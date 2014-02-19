@@ -1,5 +1,7 @@
 package com.swandev.swangame;
 
+import io.socket.SocketIOException;
+
 import java.net.MalformedURLException;
 
 import com.badlogic.gdx.Gdx;
@@ -11,27 +13,36 @@ public class SplashScreen implements Screen {
 	final String serverIP = "localhost";
 	final int port = 8080;
 	final String serverAddress = "http://" + serverIP + ":" + port;
-
+	boolean connectFailed = false;
+	
 	public SplashScreen(MyGdxGame myGdxGame) {
 		this.game = myGdxGame;
+		connect();
 	}
 
-	public boolean connect() {
+	public void connect() {
 		final SocketIOState socketIO = game.getSocketIO();
 		try {
-			socketIO.connect(serverAddress, SocketIOState.SCREEN_NAME);
+			socketIO.connect(serverAddress, SocketIOState.SCREEN_NAME, new ConnectCallback() {
+				
+				@Override
+				public void onConnect(SocketIOException ex) {
+					if (ex != null) {
+						connectFailed = true;
+					}
+				}
+			});
 		} catch (MalformedURLException e) {
 			Gdx.app.error(LogTags.SOCKET_IO, "Malformed server address " + serverAddress);
 		}
-		return socketIO.isConnected(); // TODO: obviously you need to block...
 	}
 
 	@Override
 	public void render(float delta) {
-		if (connect()) {
+		if (game.getSocketIO().isConnected()) {
 			Gdx.app.log(LogTags.SPLASHSCREEN, "Switching to pattern screen");
 			game.setScreen(new PatternScreen(game));
-		} else {
+		} else if (connectFailed) {
 			Gdx.app.exit();
 		}
 	}
