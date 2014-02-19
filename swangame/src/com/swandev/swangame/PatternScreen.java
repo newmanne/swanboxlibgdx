@@ -32,6 +32,8 @@ public class PatternScreen implements Screen {
 		spriteBatch.begin();
 		renderCenteredText(StringAssets.WELCOME_TO_PATTERN);
 		spriteBatch.end();
+		
+		game.getSocketIO().flushEvents();
 	}
 
 	private void renderCenteredText(final String text) {

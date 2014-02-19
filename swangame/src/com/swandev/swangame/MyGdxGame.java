@@ -2,16 +2,8 @@ package com.swandev.swangame;
 
 import lombok.Getter;
 
-import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL10;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class MyGdxGame extends Game {
 
@@ -20,7 +12,7 @@ public class MyGdxGame extends Game {
 
 	@Getter
 	private Assets assets;
-	
+
 	@Getter
 	private SocketIOState socketIO;
 
@@ -38,6 +30,5 @@ public class MyGdxGame extends Game {
 		spriteBatch.dispose();
 		assets.dispose();
 	}
-	
-	
+
 }
