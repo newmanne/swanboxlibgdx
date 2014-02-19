@@ -43,8 +43,13 @@ public class SocketIOState {
 	public boolean isConnected() {
 		return getClient() != null && getClient().isConnected();
 	}
+	
+	/** Call this at the end of the render loop */
+	public void flushEvents() {
+		this.eventEmitter.flushEvents();
+	}
 
-	public void connect(final String serverAddress, final String nickname) throws MalformedURLException {
+	public void connect(final String serverAddress, final String nickname, final ConnectCallback connectCallback) throws MalformedURLException {
 		final SocketIO socketIO = new SocketIO(serverAddress);
 		this.client = socketIO;
 		client.connect(new IOCallback() {
@@ -64,6 +69,7 @@ public class SocketIOState {
 			@Override
 			public void onError(SocketIOException ex) {
 				Gdx.app.error(LogTags.SOCKET_IO, "Connection error", ex);
+				connectCallback.onConnect(ex);
 			}
 
 			@Override
@@ -77,11 +83,12 @@ public class SocketIOState {
 				Gdx.app.debug(LogTags.SOCKET_IO, "Connected to " + serverAddress);
 				client.emit(SocketIOEvents.NICKNAME_SET, nickname);
 				setNickname(nickname);
+				connectCallback.onConnect(null);
 			}
 
 			@Override
 			public void on(String event, IOAcknowledge ack, Object... arguments) {
-				eventEmitter.onEvent(event, ack, arguments);
+				eventEmitter.recordEvent(event, ack, arguments);
 			}
 		});
 	}
