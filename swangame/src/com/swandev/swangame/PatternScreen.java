@@ -1,7 +1,13 @@
 package com.swandev.swangame;
 
+import io.socket.IOAcknowledge;
+
 import java.util.List;
 import java.util.Map;
+
+import lombok.Setter;
+
+import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -14,7 +20,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 public class PatternScreen implements Screen {
 
@@ -22,45 +27,30 @@ public class PatternScreen implements Screen {
 	final MyGdxGame game;
 	final OrthographicCamera camera;
 	ShapeRenderer patternDisp;
-	float r;
+	float currentRadius;
 	int index;
 	float timePassed;
-	List<String> pattern = Lists.newArrayList("red","red", "green", "blue");
-	Map<String, Color> stringToColour = ImmutableMap.of("red", Color.RED, "green", Color.GREEN, "blue", Color.BLUE);
+	@Setter
+	List<String> pattern;
+	final Map<String, Color> stringToColour = ImmutableMap.of("red", Color.RED, "green", Color.GREEN, "blue", Color.BLUE);
+	boolean shouldDisplayPattern;
 
 	public PatternScreen(MyGdxGame game) {
 		this.game = game;
 		this.camera = new OrthographicCamera();
 		camera.setToOrtho(false);
-		// CircleInfo a = new CircleInfo(Color.GREEN);
-		patternDisp = new ShapeRenderer(); // initialize shape renderer for
-											// patterns
-		r = 0; // starting radius for the circle;
-		timePassed = 0;
-		index = 0;
+		patternDisp = new ShapeRenderer();
 	}
 
-	public void drawCircle(Color colour) {
+	public void drawCircle(Color colour, float radius) {
 		patternDisp.begin(ShapeType.Line);
-		patternDisp.setColor(0, 0, 0, 1);
-		patternDisp.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, r);
+		patternDisp.setColor(Color.BLACK);
+		patternDisp.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, currentRadius);
 		patternDisp.end();
 
 		patternDisp.begin(ShapeType.Filled);
 		patternDisp.setColor(colour);
-		patternDisp.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, r);
-		patternDisp.end();
-	}
-
-	public void drawPrev(Color colour) {
-		patternDisp.begin(ShapeType.Line);
-		patternDisp.setColor(0, 0, 0, 1);
-		patternDisp.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-		patternDisp.end();
-
-		patternDisp.begin(ShapeType.Filled);
-		patternDisp.setColor(colour);
-		patternDisp.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+		patternDisp.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, currentRadius);
 		patternDisp.end();
 	}
 
@@ -68,28 +58,14 @@ public class PatternScreen implements Screen {
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		Gdx.gl.glLineWidth(Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight())*0.1f);
+
+		Gdx.gl.glLineWidth(Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.1f);
+
 		camera.update();
-		patternDisp.setProjectionMatrix(camera.combined);
-		// shape renders
-		if (index == 0) {
-			drawCircle(stringToColour.get(pattern.get(0)));
-		} 
-		else {
-			drawPrev(stringToColour.get(pattern.get(index -1)));
-			drawCircle(stringToColour.get(pattern.get(index)));
+
+		if (shouldDisplayPattern) {
+			displayPattern(delta);
 		}
-		
-		r = (timePassed/PATTERN_DELAY)*Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		timePassed += delta;
-		if (timePassed > PATTERN_DELAY) {
-			index += 1;
-			if (index >= pattern.size()){
-				index = 0;
-			}
-			timePassed = 0;
-		}
-		System.out.println(delta);
 
 		final SpriteBatch spriteBatch = game.getSpriteBatch();
 		spriteBatch.setProjectionMatrix(camera.combined);
@@ -97,8 +73,29 @@ public class PatternScreen implements Screen {
 		spriteBatch.begin();
 		renderCenteredText(StringAssets.WELCOME_TO_PATTERN);
 		spriteBatch.end();
-		
+
 		game.getSocketIO().flushEvents();
+	}
+
+	private void displayPattern(float delta) {
+		patternDisp.setProjectionMatrix(camera.combined);
+
+		if (index != 0) {
+			drawCircle(stringToColour.get(pattern.get(index - 1)), Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
+		}
+		drawCircle(stringToColour.get(pattern.get(index)), currentRadius);
+
+		currentRadius = (timePassed / PATTERN_DELAY) * Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		timePassed += delta;
+		if (timePassed > PATTERN_DELAY) {
+			index += 1;
+			if (index >= pattern.size()) {
+				index = 0;
+				shouldDisplayPattern = false;
+				game.getSocketIO().getClient().emit(SocketIOEvents.FINISHED_SEQUENCE);
+			}
+			timePassed = 0;
+		}
 	}
 
 	private void renderCenteredText(final String text) {
@@ -116,8 +113,14 @@ public class PatternScreen implements Screen {
 
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
+		game.getSocketIO().on(SocketIOEvents.START_SEQUENCE, new EventCallback() {
 
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				setPattern(SwanUtil.parseJsonList((JSONArray) args[0]));
+				shouldDisplayPattern = true;
+			}
+		});
 	}
 
 	@Override

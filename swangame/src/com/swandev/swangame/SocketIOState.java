@@ -84,6 +84,8 @@ public class SocketIOState {
 				if (!isScreen) {
 					client.emit(SocketIOEvents.NICKNAME_SET, nickname);
 					setNickname(nickname);
+				} else {
+					client.emit(SocketIOEvents.SCREEN_SET);
 				}
 				connectCallback.onConnect(null);
 			}

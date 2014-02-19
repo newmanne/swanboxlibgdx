@@ -1,5 +1,6 @@
 package com.swandev.swangame;
 
+import io.socket.IOAcknowledge;
 import io.socket.SocketIOException;
 
 import java.net.MalformedURLException;
@@ -14,9 +15,17 @@ public class SplashScreen implements Screen {
 	final int port = 8080;
 	final String serverAddress = "http://" + serverIP + ":" + port;
 	boolean connectFailed = false;
+	boolean gameStarted = false;
 
 	public SplashScreen(MyGdxGame myGdxGame) {
 		this.game = myGdxGame;
+		game.getSocketIO().on(SocketIOEvents.GAME_BEGIN, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				gameStarted = true;
+			}
+		});
 		connect();
 	}
 
@@ -39,7 +48,7 @@ public class SplashScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		if (game.getSocketIO().isConnected()) {
+		if (game.getSocketIO().isConnected() && gameStarted) {
 			Gdx.app.log(LogTags.SPLASHSCREEN, "Switching to pattern screen");
 			game.setScreen(new PatternScreen(game));
 		} else if (connectFailed) {
