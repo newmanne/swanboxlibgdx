@@ -54,6 +54,7 @@ public class SplashScreen implements Screen {
 		} else if (connectFailed) {
 			Gdx.app.exit();
 		}
+		game.getSocketIO().flushEvents();
 	}
 
 	@Override

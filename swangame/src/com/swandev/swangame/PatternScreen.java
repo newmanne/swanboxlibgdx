@@ -121,6 +121,7 @@ public class PatternScreen implements Screen {
 				shouldDisplayPattern = true;
 			}
 		});
+		game.getSocketIO().getClient().emit(SocketIOEvents.PATTERN_SCREEN_STARTED);
 	}
 
 	@Override

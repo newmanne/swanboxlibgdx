@@ -17,7 +17,9 @@ public class EventEmitter {
 
 	private void processEvent(SocketEvent event) {
 		final EventCallback callback = callbacks.get(event.getEvent());
-		callback.onEvent(event.getAck(), event.getArguments());
+		if (callback != null) {
+			callback.onEvent(event.getAck(), event.getArguments());
+		}
 	}
 
 	void recordEvent(String event, IOAcknowledge ack, Object... arguments) {
