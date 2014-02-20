@@ -126,7 +126,6 @@ public class PatternScreen implements Screen {
 			}
 		});
 		currentPlayer = game.getPlayerNames().get(0);
-		game.getSocketIO().getClient().emit(SocketIOEvents.PATTERN_SCREEN_STARTED);
 	}
 
 	private String getRandomColour() {
