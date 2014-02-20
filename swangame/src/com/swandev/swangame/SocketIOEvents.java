@@ -8,5 +8,6 @@ public class SocketIOEvents {
 	public static final String GAME_BEGIN = "game_begin";
 	public static final String FINISHED_SEQUENCE = "finished_sequence";
 	public static final String PATTERN_SCREEN_STARTED = "pattern_screen_started";
+	public static final String UPDATE_SEQUENCE = "update_sequence";
 
 }

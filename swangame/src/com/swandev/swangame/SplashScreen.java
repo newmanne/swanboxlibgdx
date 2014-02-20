@@ -4,6 +4,9 @@ import io.socket.IOAcknowledge;
 import io.socket.SocketIOException;
 
 import java.net.MalformedURLException;
+import java.util.List;
+
+import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -24,6 +27,8 @@ public class SplashScreen implements Screen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				gameStarted = true;
+				List<String> playerNames = SwanUtil.parseJsonList((JSONArray) args[0]);
+				game.setPlayerNames(playerNames);
 			}
 		});
 		connect();

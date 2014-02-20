@@ -4,10 +4,7 @@ import io.socket.IOAcknowledge;
 
 import java.util.List;
 import java.util.Map;
-
-import lombok.Setter;
-
-import org.json.JSONArray;
+import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -19,39 +16,42 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 public class PatternScreen implements Screen {
 
 	private static final float PATTERN_DELAY = 1;
+	final Random random = new Random();
 	final MyGdxGame game;
 	final OrthographicCamera camera;
-	ShapeRenderer patternDisp;
+	String currentPlayer;
 	float currentRadius;
 	int index;
 	float timePassed;
-	@Setter
 	List<String> pattern;
 	final Map<String, Color> stringToColour = ImmutableMap.of("red", Color.RED, "green", Color.GREEN, "blue", Color.BLUE);
+	final List<String> patternColors = ImmutableList.of("red", "green", "blue");
 	boolean shouldDisplayPattern;
 
 	public PatternScreen(MyGdxGame game) {
 		this.game = game;
 		this.camera = new OrthographicCamera();
 		camera.setToOrtho(false);
-		patternDisp = new ShapeRenderer();
 	}
 
 	public void drawCircle(Color colour, float radius) {
-		patternDisp.begin(ShapeType.Line);
-		patternDisp.setColor(Color.BLACK);
-		patternDisp.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, currentRadius);
-		patternDisp.end();
+		ShapeRenderer shapeRenderer = game.getShapeRenderer();
+		shapeRenderer.begin(ShapeType.Line);
+		shapeRenderer.setColor(Color.BLACK);
+		shapeRenderer.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, currentRadius);
+		shapeRenderer.end();
 
-		patternDisp.begin(ShapeType.Filled);
-		patternDisp.setColor(colour);
-		patternDisp.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, currentRadius);
-		patternDisp.end();
+		shapeRenderer.begin(ShapeType.Filled);
+		shapeRenderer.setColor(colour);
+		shapeRenderer.circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, currentRadius);
+		shapeRenderer.end();
 	}
 
 	@Override
@@ -71,14 +71,15 @@ public class PatternScreen implements Screen {
 		spriteBatch.setProjectionMatrix(camera.combined);
 
 		spriteBatch.begin();
-		renderCenteredText(StringAssets.WELCOME_TO_PATTERN);
+		renderCenteredText(StringAssets.WELCOME_TO_PATTERN + "\n" + currentPlayer + " it is your turn!");
 		spriteBatch.end();
 
 		game.getSocketIO().flushEvents();
 	}
 
 	private void displayPattern(float delta) {
-		patternDisp.setProjectionMatrix(camera.combined);
+		ShapeRenderer shapeRenderer = game.getShapeRenderer();
+		shapeRenderer.setProjectionMatrix(camera.combined);
 
 		if (index != 0) {
 			drawCircle(stringToColour.get(pattern.get(index - 1)), Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
@@ -92,7 +93,7 @@ public class PatternScreen implements Screen {
 			if (index >= pattern.size()) {
 				index = 0;
 				shouldDisplayPattern = false;
-				game.getSocketIO().getClient().emit(SocketIOEvents.FINISHED_SEQUENCE);
+				game.getSocketIO().getClient().emit(SocketIOEvents.FINISHED_SEQUENCE, currentPlayer, pattern);
 			}
 			timePassed = 0;
 		}
@@ -113,15 +114,23 @@ public class PatternScreen implements Screen {
 
 	@Override
 	public void show() {
-		game.getSocketIO().on(SocketIOEvents.START_SEQUENCE, new EventCallback() {
+		pattern = Lists.newArrayList(getRandomColour());
+		shouldDisplayPattern = true;
+		game.getSocketIO().on(SocketIOEvents.UPDATE_SEQUENCE, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				setPattern(SwanUtil.parseJsonList((JSONArray) args[0]));
+				pattern.add(getRandomColour());
+				currentPlayer = SwanUtil.getNextRoundRobin(game.getPlayerNames(), currentPlayer);
 				shouldDisplayPattern = true;
 			}
 		});
+		currentPlayer = game.getPlayerNames().get(0);
 		game.getSocketIO().getClient().emit(SocketIOEvents.PATTERN_SCREEN_STARTED);
+	}
+
+	private String getRandomColour() {
+		return patternColors.get(random.nextInt(patternColors.size()));
 	}
 
 	@Override
