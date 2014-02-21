@@ -17,6 +17,7 @@ public class SocketIOEvents {
 	public static final String GAME_STARTED = "game_started";
 	protected static final String PATTERN_ENTERED = "pattern_entered";
 	public static final String PATTERN_REQUESTED = "pattern_requested";
+	public static final String INVALID_PATTERN = "invalid_pattern";
 	public static final String GAME_OVER = "game_over";
 
 }

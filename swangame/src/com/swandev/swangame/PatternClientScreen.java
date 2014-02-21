@@ -77,6 +77,7 @@ public class PatternClientScreen implements Screen {
 				setButtonDisables(false);
 			}
 		});
+
 		game.getSocketIO().on(SocketIOEvents.GAME_OVER, new EventCallback() {
 
 			@Override

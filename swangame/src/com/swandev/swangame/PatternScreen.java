@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
+
 public class PatternScreen implements Screen {
 
 	private static final float PATTERN_DELAY = 1;
@@ -125,8 +126,24 @@ public class PatternScreen implements Screen {
 				shouldDisplayPattern = true;
 			}
 		});
+		
+		game.getSocketIO().on(SocketIOEvents.INVALID_PATTERN, new EventCallback(){
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				String removeName = (String) args[0];
+				List <String> players = game.getPlayerNames();
+				players.remove(removeName);
+				game.setPlayerNames(players);
+				if (players.isEmpty()){
+					//end the game
+					game.getSocketIO().getClient().emit(SocketIOEvents.GAME_OVER);
+				}
+				//need to move the player to the main menu screen once this has happened
+			}	
+		});
 		currentPlayer = game.getPlayerNames().get(0);
 	}
+	
 
 	private String getRandomColour() {
 		return patternColors.get(random.nextInt(patternColors.size()));
@@ -157,3 +174,6 @@ public class PatternScreen implements Screen {
 	}
 
 }
+
+
+
