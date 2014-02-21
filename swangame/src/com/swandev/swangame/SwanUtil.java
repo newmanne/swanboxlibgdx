@@ -26,7 +26,7 @@ public class SwanUtil {
 	}
 
 	public static <T> T getNextRoundRobin(List<T> playerNames, T currentObj) {
-		return playerNames.get((playerNames.indexOf(currentObj) + 1 % playerNames.size()));
+		return playerNames.get(((playerNames.indexOf(currentObj) + 1) % playerNames.size()));
 	}
 
 	public static String toAddress(String ip, String string) {
