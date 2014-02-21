@@ -55,6 +55,7 @@ public class PatternClientScreen implements Screen {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		stage.draw();
 		stage.act(delta);
+		game.getSocketIO().flushEvents();
 	}
 
 	@Override
