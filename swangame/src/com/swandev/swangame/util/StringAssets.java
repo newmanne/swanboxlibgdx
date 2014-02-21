@@ -1,4 +1,4 @@
-package com.swandev.swangame;
+package com.swandev.swangame.util;
 
 // a super hack attempt at localization
 public class StringAssets {

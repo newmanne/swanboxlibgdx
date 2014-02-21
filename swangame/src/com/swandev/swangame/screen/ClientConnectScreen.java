@@ -1,9 +1,10 @@
-package com.swandev.swangame;
+package com.swandev.swangame.screen;
 
 import io.socket.IOAcknowledge;
 import io.socket.SocketIOException;
 
 import java.net.MalformedURLException;
+import java.util.List;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -16,8 +17,16 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.google.common.collect.Lists;
+import com.swandev.swangame.PatternClientGame;
+import com.swandev.swangame.socket.ConnectCallback;
+import com.swandev.swangame.socket.EventCallback;
+import com.swandev.swangame.socket.SocketIOEvents;
+import com.swandev.swangame.socket.SocketIOState;
+import com.swandev.swangame.util.LogTags;
+import com.swandev.swangame.util.SwanUtil;
 
-public class ConnectScreen implements Screen {
+public class ClientConnectScreen implements Screen {
 
 	private final PatternClientGame game;
 	private final Stage stage;
@@ -27,8 +36,10 @@ public class ConnectScreen implements Screen {
 	private TextButton connectButton;
 	private TextButton gameStart;
 	private Table table;
+	private Label waitingText;
+	private List<Label> announcements = Lists.newArrayList();
 
-	public ConnectScreen(final PatternClientGame game) {
+	public ClientConnectScreen(final PatternClientGame game) {
 		this.game = game;
 		this.stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, game.getSpriteBatch());
 
@@ -59,7 +70,7 @@ public class ConnectScreen implements Screen {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				socketIO.getClient().emit(SocketIOEvents.START_PATTERNS);
-				game.setScreen(new PatternClientScreen(game));
+				game.setScreen(game.getPatternClientScreen());
 			}
 
 		});
@@ -70,32 +81,16 @@ public class ConnectScreen implements Screen {
 		final Label portLabel = new Label("Port", skin);
 		final Label nicknameLabel = new Label("Nickname", skin);
 
-		final Label waitingText = new Label("Waiting for host to select the game", skin);
+		waitingText = new Label("Waiting for host to select the game", skin);
 		waitingText.setVisible(false);
 
-		table = new Table(skin);
-
-		table.add(ipAddressLabel);
-		table.add(ipAddressField);
-		table.row();
-
-		table.add(portLabel);
-		table.add(portField);
-		table.row();
-
-		table.add(nicknameLabel);
-		table.add(nicknameField);
-		table.row();
-
-		table.add(connectButton);
-		table.add(gameStart);
-		table.row();
-
-		table.add(waitingText);
-
-		table.setFillParent(true);
+		buildTable(skin, ipAddressLabel, portLabel, nicknameLabel, waitingText);
 		stage.addActor(table);
 
+	}
+
+	private void registerEvents() {
+		final SocketIOState socketIO = game.getSocketIO();
 		socketIO.on(SocketIOEvents.ELECTED_CLIENT, new EventCallback() {
 
 			@Override
@@ -119,7 +114,7 @@ public class ConnectScreen implements Screen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				game.setScreen(new PatternClientScreen(game));
+				game.setScreen(game.getPatternClientScreen());
 			}
 
 		});
@@ -128,12 +123,37 @@ public class ConnectScreen implements Screen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				final String announcement = (String) args[0];
-				table.add(new Label(announcement, skin));
+				Label label = new Label(announcement, game.getAssets().getSkin());
+				announcements.add(label);
+				table.add(label);
 				table.row();
 			}
 
 		});
+	}
 
+	private void buildTable(final Skin skin, final Label ipAddressLabel, final Label portLabel, final Label nicknameLabel, final Label waitingText) {
+		table = new Table(skin);
+
+		table.add(ipAddressLabel);
+		table.add(ipAddressField);
+		table.row();
+
+		table.add(portLabel);
+		table.add(portField);
+		table.row();
+
+		table.add(nicknameLabel);
+		table.add(nicknameField);
+		table.row();
+
+		table.add(connectButton);
+		table.add(gameStart);
+		table.row();
+
+		table.add(waitingText);
+
+		table.setFillParent(true);
 	}
 
 	public void connect() {
@@ -146,7 +166,6 @@ public class ConnectScreen implements Screen {
 				public void onConnect(SocketIOException ex) {
 					if (ex != null) {
 						connectButton.setDisabled(false);
-					} else { // success
 					}
 				}
 			});
@@ -171,12 +190,24 @@ public class ConnectScreen implements Screen {
 	@Override
 	public void show() {
 		Gdx.input.setInputProcessor(stage);
+		registerEvents();
 	}
 
 	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
+		unregisterEvents();
+		for (Label announcement : announcements) {
+			announcement.remove();
+		}
+		announcements.clear();
+	}
 
+	private void unregisterEvents() {
+		final SocketIOState socketIO = game.getSocketIO();
+		socketIO.getEventEmitter().unregisterEvent(SocketIOEvents.ELECTED_CLIENT);
+		socketIO.getEventEmitter().unregisterEvent(SocketIOEvents.ELECTED_HOST);
+		socketIO.getEventEmitter().unregisterEvent(SocketIOEvents.PLAYING_PATTERNS);
+		socketIO.getEventEmitter().unregisterEvent(SocketIOEvents.ANNOUNCEMENT);
 	}
 
 	@Override

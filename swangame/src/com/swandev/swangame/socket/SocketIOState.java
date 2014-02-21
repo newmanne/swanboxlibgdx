@@ -1,4 +1,4 @@
-package com.swandev.swangame;
+package com.swandev.swangame.socket;
 
 import io.socket.IOAcknowledge;
 import io.socket.IOCallback;
@@ -13,6 +13,7 @@ import lombok.Setter;
 import org.json.JSONObject;
 
 import com.badlogic.gdx.Gdx;
+import com.swandev.swangame.util.LogTags;
 
 public class SocketIOState {
 

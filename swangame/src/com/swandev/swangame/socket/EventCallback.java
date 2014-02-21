@@ -1,4 +1,4 @@
-package com.swandev.swangame;
+package com.swandev.swangame.socket;
 
 import io.socket.IOAcknowledge;
 

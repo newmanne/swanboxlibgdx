@@ -1,4 +1,4 @@
-package com.swandev.swangame;
+package com.swandev.swangame.socket;
 
 import io.socket.IOAcknowledge;
 
@@ -37,7 +37,7 @@ public class EventEmitter {
 		callbacks.clear();
 	}
 
-	public void clearEvent(String event) {
+	public void unregisterEvent(String event) {
 		callbacks.remove(event);
 	}
 

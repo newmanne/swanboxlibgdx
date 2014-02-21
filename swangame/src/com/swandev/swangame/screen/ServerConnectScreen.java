@@ -1,4 +1,4 @@
-package com.swandev.swangame;
+package com.swandev.swangame.screen;
 
 import io.socket.IOAcknowledge;
 import io.socket.SocketIOException;
@@ -6,32 +6,33 @@ import io.socket.SocketIOException;
 import java.net.MalformedURLException;
 import java.util.List;
 
+import lombok.Setter;
+
 import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.swandev.swangame.PatternServerGame;
+import com.swandev.swangame.socket.ConnectCallback;
+import com.swandev.swangame.socket.EventCallback;
+import com.swandev.swangame.socket.EventEmitter;
+import com.swandev.swangame.socket.SocketIOEvents;
+import com.swandev.swangame.socket.SocketIOState;
+import com.swandev.swangame.util.LogTags;
+import com.swandev.swangame.util.SwanUtil;
 
-public class SplashScreen implements Screen {
+public class ServerConnectScreen implements Screen {
 
 	final PatternServerGame game;
 	final String serverIP = "localhost";
 	final int port = 8080;
-	final String serverAddress = "http://" + serverIP + ":" + port;
+	final String serverAddress = SwanUtil.toAddress(serverIP, Integer.toString(port));
 	boolean connectFailed = false;
+	@Setter
 	boolean gameStarted = false;
 
-	public SplashScreen(PatternServerGame myGdxGame) {
+	public ServerConnectScreen(PatternServerGame myGdxGame) {
 		this.game = myGdxGame;
-		game.getSocketIO().on(SocketIOEvents.GAME_BEGIN, new EventCallback() {
-
-			@Override
-			public void onEvent(IOAcknowledge ack, Object... args) {
-				gameStarted = true;
-				List<String> playerNames = SwanUtil.parseJsonList((JSONArray) args[0]);
-				game.setPlayerNames(playerNames);
-			}
-		});
-		connect();
 	}
 
 	public void connect() {
@@ -55,7 +56,7 @@ public class SplashScreen implements Screen {
 	public void render(float delta) {
 		if (game.getSocketIO().isConnected() && gameStarted) {
 			Gdx.app.log(LogTags.SPLASHSCREEN, "Switching to pattern screen");
-			game.setScreen(new PatternScreen(game));
+			game.setScreen(game.getPatternServerScreen());
 		} else if (connectFailed) {
 			Gdx.app.exit();
 		}
@@ -70,14 +71,32 @@ public class SplashScreen implements Screen {
 
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
+		registerEvents();
+		if (!game.getSocketIO().isConnected()) {
+			connect();
+		}
+	}
 
+	private void registerEvents() {
+		game.getSocketIO().on(SocketIOEvents.GAME_BEGIN, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				gameStarted = true;
+				List<String> playerNames = SwanUtil.parseJsonList((JSONArray) args[0]);
+				game.setPlayerNames(playerNames);
+			}
+		});
 	}
 
 	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
+		unregisterEvents();
+	}
 
+	private void unregisterEvents() {
+		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
+		eventEmitter.unregisterEvent(SocketIOEvents.GAME_BEGIN);
 	}
 
 	@Override

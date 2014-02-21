@@ -8,6 +8,9 @@ import lombok.Setter;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.swandev.swangame.screen.PatternServerScreen;
+import com.swandev.swangame.screen.ServerConnectScreen;
+import com.swandev.swangame.socket.SocketIOState;
 
 public class PatternServerGame extends Game {
 
@@ -27,13 +30,21 @@ public class PatternServerGame extends Game {
 	@Setter
 	private List<String> playerNames;
 
+	@Getter
+	private ServerConnectScreen serverConnectScreen;
+
+	@Getter
+	private PatternServerScreen patternServerScreen;
+
 	@Override
 	public void create() {
 		this.spriteBatch = new SpriteBatch();
 		this.assets = new Assets();
 		this.socketIO = new SocketIOState();
 		this.shapeRenderer = new ShapeRenderer();
-		setScreen(new SplashScreen(this));
+		serverConnectScreen = new ServerConnectScreen(this);
+		patternServerScreen = new PatternServerScreen(this);
+		setScreen(serverConnectScreen);
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.swandev.swangame;
+package com.swandev.swangame.screen;
 
 import io.socket.IOAcknowledge;
 
@@ -20,6 +20,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.google.common.collect.Lists;
+import com.swandev.swangame.PatternClientGame;
+import com.swandev.swangame.socket.EventCallback;
+import com.swandev.swangame.socket.EventEmitter;
+import com.swandev.swangame.socket.SocketIOEvents;
+import com.swandev.swangame.util.LogTags;
+import com.swandev.swangame.util.SwanUtil;
 
 public class PatternClientScreen implements Screen {
 
@@ -38,7 +44,7 @@ public class PatternClientScreen implements Screen {
 
 		Table table = new Table(skin);
 
-		for (String colour : PatternScreen.stringToColour.keySet()) {
+		for (String colour : PatternServerScreen.stringToColour.keySet()) {
 			PatternButton patternButton = new PatternButton(colour, skin);
 			table.add(patternButton).width(Gdx.graphics.getWidth() * 0.5f).height(Gdx.graphics.getHeight() * 0.2f);
 			table.row();
@@ -67,6 +73,11 @@ public class PatternClientScreen implements Screen {
 	public void show() {
 		setButtonDisables(true);
 		Gdx.input.setInputProcessor(stage);
+		registerEvents();
+		game.getSocketIO().getClient().emit(SocketIOEvents.GAME_STARTED);
+	}
+
+	private void registerEvents() {
 		game.getSocketIO().on(SocketIOEvents.PATTERN_REQUESTED, new EventCallback() {
 
 			@Override
@@ -82,14 +93,22 @@ public class PatternClientScreen implements Screen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				Gdx.app.log(LogTags.SOCKET_IO, "WOMP WOMP");
+				game.setScreen(game.getConnectScreen());
 			}
 		});
-		game.getSocketIO().getClient().emit(SocketIOEvents.GAME_STARTED);
 	}
 
 	@Override
 	public void hide() {
-		// TODO Auto-generated method stub
+		pattern.clear();
+		unregisterEvents();
+	}
+
+	private void unregisterEvents() {
+		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
+		eventEmitter.unregisterEvent(SocketIOEvents.PATTERN_REQUESTED);
+		eventEmitter.unregisterEvent(SocketIOEvents.GAME_OVER);
+		eventEmitter.unregisterEvent(SocketIOEvents.GAME_STARTED);
 
 	}
 
@@ -123,7 +142,7 @@ public class PatternClientScreen implements Screen {
 		public PatternButton(final String colour, Skin skin) {
 			super(colour, skin);
 			this.colour = colour;
-			setColor(PatternScreen.stringToColour.get(colour)); // lol, clean this up
+			setColor(PatternServerScreen.stringToColour.get(colour)); // lol, clean this up
 			addListener(new ChangeListener() {
 
 				@Override
