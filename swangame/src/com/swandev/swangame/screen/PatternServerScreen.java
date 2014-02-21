@@ -139,11 +139,19 @@ public class PatternServerScreen implements Screen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				pattern.clear();
-				game.getServerConnectScreen().setGameStarted(false);
-			}
+				String removeName = (String) args[0];
+				List <String> players = game.getPlayerNames();
+				players.remove(removeName);
+				game.setPlayerNames(players);
+				if (players.isEmpty()){
+					//end the game
+					game.getSocketIO().getClient().emit(SocketIOEvents.GAME_OVER);
+				}
+				//need to move the player to the main menu screen once this has happened
+			}	
 		});
 	}
+	
 
 	private String getRandomColour() {
 		return patternColors.get(random.nextInt(patternColors.size()));
@@ -179,3 +187,6 @@ public class PatternServerScreen implements Screen {
 	}
 
 }
+
+
+
