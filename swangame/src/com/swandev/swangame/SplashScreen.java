@@ -13,14 +13,14 @@ import com.badlogic.gdx.Screen;
 
 public class SplashScreen implements Screen {
 
-	final MyGdxGame game;
+	final PatternServerGame game;
 	final String serverIP = "localhost";
 	final int port = 8080;
 	final String serverAddress = "http://" + serverIP + ":" + port;
 	boolean connectFailed = false;
 	boolean gameStarted = false;
 
-	public SplashScreen(MyGdxGame myGdxGame) {
+	public SplashScreen(PatternServerGame myGdxGame) {
 		this.game = myGdxGame;
 		game.getSocketIO().on(SocketIOEvents.GAME_BEGIN, new EventCallback() {
 

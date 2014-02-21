@@ -24,18 +24,18 @@ public class PatternScreen implements Screen {
 
 	private static final float PATTERN_DELAY = 1;
 	final Random random = new Random();
-	final MyGdxGame game;
+	final PatternServerGame game;
 	final OrthographicCamera camera;
 	String currentPlayer;
 	float currentRadius;
 	int index;
 	float timePassed;
 	List<String> pattern;
-	final Map<String, Color> stringToColour = ImmutableMap.of("red", Color.RED, "green", Color.GREEN, "blue", Color.BLUE);
+	public final static Map<String, Color> stringToColour = ImmutableMap.of("red", Color.RED, "green", Color.GREEN, "blue", Color.BLUE);
 	final List<String> patternColors = ImmutableList.of("red", "green", "blue");
 	boolean shouldDisplayPattern;
 
-	public PatternScreen(MyGdxGame game) {
+	public PatternScreen(PatternServerGame game) {
 		this.game = game;
 		this.camera = new OrthographicCamera();
 		camera.setToOrtho(false);

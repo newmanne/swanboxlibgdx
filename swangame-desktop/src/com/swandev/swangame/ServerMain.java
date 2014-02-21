@@ -3,7 +3,7 @@ package com.swandev.swangame;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 
-public class Main {
+public class ServerMain {
 	public static void main(String[] args) {
 		LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
 		cfg.title = "swangame";
@@ -11,6 +11,6 @@ public class Main {
 		cfg.width = 480;
 		cfg.height = 320;
 		
-		new LwjglApplication(new MyGdxGame(), cfg);
+		new LwjglApplication(new PatternServerGame(), cfg);
 	}
 }
