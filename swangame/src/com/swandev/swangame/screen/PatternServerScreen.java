@@ -150,6 +150,25 @@ public class PatternServerScreen implements Screen {
 				}
 			}
 		});
+		
+		game.getSocketIO().on(SocketIOEvents.CLIENT_DISCONNECT, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				Gdx.app.log("error","In Client Disconnect");
+				String removeName = (String) args[0];
+				List<String> players = game.getSocketIO().getNicknames();
+				players.remove(removeName);
+				if (currentPlayer.equals(removeName)){
+					Gdx.app.log("error","Changing name");
+					takeTurn(false);
+				}
+				if (players.isEmpty()){
+					game.getSocketIO().swanBroadcast(SocketIOEvents.GAME_OVER);
+					game.setScreen(game.getServerConnectScreen());	
+				}
+			}
+		});
 	}
 
 	private void takeTurn(boolean addNewColour) {
@@ -173,6 +192,8 @@ public class PatternServerScreen implements Screen {
 		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
 		eventEmitter.unregisterEvent(SocketIOEvents.UPDATE_SEQUENCE);
 		eventEmitter.unregisterEvent(SocketIOEvents.GAME_OVER);
+		eventEmitter.unregisterEvent(SocketIOEvents.INVALID_PATTERN);
+		eventEmitter.unregisterEvent(SocketIOEvents.CLIENT_DISCONNECT);
 	}
 
 	@Override

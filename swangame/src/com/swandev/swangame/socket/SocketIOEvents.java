@@ -11,4 +11,6 @@ public class SocketIOEvents {
 	public static final String INVALID_PATTERN = "invalid_pattern";
 	public static final String GAME_OVER = "game_over";
 
+	
+	public static final String CLIENT_DISCONNECT = "client_disconnect";
 }
