@@ -17,11 +17,12 @@ public class SocketIOEvents {
 	public static final String INVALID_PATTERN = "invalid_pattern";
 	public static final String GAME_OVER = "game_over";
 
+	
 	public static final String SWAN_EMIT = "swan_emit";
 	public static final String SWAN_BROADCAST = "swan_broadcast";
 
 	public static final String GET_NICKNAMES = "swan_get_nicknames";
 
 	public static final String SCREEN_SET = "screen_set";
-
+	public static final String CLIENT_DISCONNECT = "client_disconnect";
 }

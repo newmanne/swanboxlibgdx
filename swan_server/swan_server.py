@@ -68,6 +68,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         nickname = self.socket.session['nickname']
         SwanNamespace.player_sessid.remove([self.socket, nickname])
         #broadcast to everyone that someone has disconnected
+        self.broadcast_event('client_disconnect', nickname)
         self.broadcast_event('announcement', '%s has disconnected' % nickname)
         self.broadcast_event('nicknames', self.request['nicknames'])
         
@@ -155,6 +156,9 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_swan_emit(self, nickname, event, args):
         print "SENDING TO ", nickname, " EVENT ", event, " WITH ARGS ", args
         self.emit_to_nickname(nickname, event, args)
+
+    def on_swan_broadcast_but_me(self,event,args):
+        self.broadcast_event_not_me(event, *args)
 
     def on_swan_get_nicknames(self):
         self.emit_to_socket("swan_get_nicknames", self.socket, self.request['nicknames'])

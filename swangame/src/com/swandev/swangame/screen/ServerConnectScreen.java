@@ -88,6 +88,8 @@ public class ServerConnectScreen implements Screen {
 				game.getSocketIO().requestNicknames();
 			}
 		});
+	
+
 	}
 
 	@Override
