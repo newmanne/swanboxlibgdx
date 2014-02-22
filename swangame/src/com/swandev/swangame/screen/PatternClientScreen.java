@@ -74,7 +74,6 @@ public class PatternClientScreen implements Screen {
 		setButtonDisables(true);
 		Gdx.input.setInputProcessor(stage);
 		registerEvents();
-		game.getSocketIO().swanBroadcast(SocketIOEvents.PLAYING_PATTERNS);
 	}
 
 	private void registerEvents() {
@@ -109,8 +108,6 @@ public class PatternClientScreen implements Screen {
 		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
 		eventEmitter.unregisterEvent(SocketIOEvents.PATTERN_REQUESTED);
 		eventEmitter.unregisterEvent(SocketIOEvents.GAME_OVER);
-		eventEmitter.unregisterEvent(SocketIOEvents.PLAYING_PATTERNS);
-
 	}
 
 	@Override

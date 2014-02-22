@@ -11,14 +11,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.swandev.swangame.PatternServerGame;
+import com.swandev.swangame.socket.CommonSocketIOEvents;
 import com.swandev.swangame.socket.ConnectCallback;
 import com.swandev.swangame.socket.EventCallback;
 import com.swandev.swangame.socket.EventEmitter;
-import com.swandev.swangame.socket.SocketIOEvents;
 import com.swandev.swangame.socket.SocketIOState;
 import com.swandev.swangame.util.LogTags;
 import com.swandev.swangame.util.SwanUtil;
 
+// TODO: make this abstract class
 public class ServerConnectScreen implements Screen {
 
 	final PatternServerGame game;
@@ -80,7 +81,7 @@ public class ServerConnectScreen implements Screen {
 	}
 
 	private void registerEvents() {
-		game.getSocketIO().on(SocketIOEvents.PLAYING_PATTERNS, new EventCallback() {
+		game.getSocketIO().on(CommonSocketIOEvents.GAME_START, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -97,7 +98,7 @@ public class ServerConnectScreen implements Screen {
 
 	private void unregisterEvents() {
 		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
-		eventEmitter.unregisterEvent(SocketIOEvents.PLAYING_PATTERNS);
+		eventEmitter.unregisterEvent(CommonSocketIOEvents.GAME_START);
 	}
 
 	@Override
