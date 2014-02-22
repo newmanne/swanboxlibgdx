@@ -135,7 +135,7 @@ public class PatternServerScreen implements Screen {
 				shouldDisplayPattern = true;
 			}
 		});
-		game.getSocketIO().on(SocketIOEvents.GAME_OVER, new EventCallback() {
+		game.getSocketIO().on(SocketIOEvents.INVALID_PATTERN, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -146,6 +146,7 @@ public class PatternServerScreen implements Screen {
 				if (players.isEmpty()){
 					//end the game
 					game.getSocketIO().getClient().emit(SocketIOEvents.GAME_OVER);
+					game.setScreen(game.getServerConnectScreen());
 				}
 				//need to move the player to the main menu screen once this has happened
 			}	
