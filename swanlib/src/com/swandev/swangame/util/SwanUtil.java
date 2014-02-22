@@ -1,6 +1,9 @@
 package com.swandev.swangame.util;
 
 import java.util.List;
+import java.util.Random;
+
+import lombok.Getter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -8,6 +11,9 @@ import org.json.JSONException;
 import com.google.common.collect.Lists;
 
 public class SwanUtil {
+
+	@Getter
+	private static Random random = new Random();
 
 	public static boolean isDebug() {
 		return true;

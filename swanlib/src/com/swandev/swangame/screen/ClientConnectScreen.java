@@ -8,8 +8,6 @@ import java.util.List;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -23,14 +21,14 @@ import com.google.common.collect.Lists;
 import com.swandev.swangame.socket.CommonSocketIOEvents;
 import com.swandev.swangame.socket.ConnectCallback;
 import com.swandev.swangame.socket.EventCallback;
+import com.swandev.swangame.socket.EventEmitter;
 import com.swandev.swangame.socket.SocketIOState;
 import com.swandev.swangame.util.CommonLogTags;
 import com.swandev.swangame.util.SwanUtil;
 
-public abstract class ClientConnectScreen implements Screen {
+public abstract class ClientConnectScreen extends SwanScreen {
 
 	protected final Game game;
-	protected final SocketIOState socketIO;
 	private final Stage stage;
 	private final Skin skin;
 	private TextField ipAddressField;
@@ -43,8 +41,8 @@ public abstract class ClientConnectScreen implements Screen {
 	private List<Label> announcements = Lists.newArrayList();
 
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch, final Skin skin) {
+		super(socketIO);
 		this.game = game;
-		this.socketIO = socketIO;
 		this.skin = skin;
 		this.stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, spritebatch);
 
@@ -90,27 +88,28 @@ public abstract class ClientConnectScreen implements Screen {
 
 	}
 
-	private void registerEvents() {
-		socketIO.on(CommonSocketIOEvents.ELECTED_CLIENT, new EventCallback() {
+	@Override
+	protected void registerEvents() {
+		getSocketIO().on(CommonSocketIOEvents.ELECTED_CLIENT, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				socketIO.setHost(false);
+				getSocketIO().setHost(false);
 				waitingText.setVisible(true);
 			}
 
 		});
-		socketIO.on(CommonSocketIOEvents.ELECTED_HOST, new EventCallback() {
+		getSocketIO().on(CommonSocketIOEvents.ELECTED_HOST, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				socketIO.setHost(true);
+				getSocketIO().setHost(true);
 				gameStart.setVisible(true);
 				gameStart.setDisabled(false);
 			}
 
 		});
-		socketIO.on(CommonSocketIOEvents.GAME_START, new EventCallback() {
+		getSocketIO().on(CommonSocketIOEvents.GAME_START, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -118,7 +117,7 @@ public abstract class ClientConnectScreen implements Screen {
 			}
 
 		});
-		socketIO.on(CommonSocketIOEvents.ANNOUNCEMENT, new EventCallback() {
+		getSocketIO().on(CommonSocketIOEvents.ANNOUNCEMENT, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -159,7 +158,7 @@ public abstract class ClientConnectScreen implements Screen {
 	public void connect() {
 		final String address = SwanUtil.toAddress(ipAddressField.getText(), portField.getText());
 		try {
-			socketIO.connect(address, nicknameField.getText(), false, new ConnectCallback() {
+			getSocketIO().connect(address, nicknameField.getText(), false, new ConnectCallback() {
 
 				@Override
 				public void onConnect(SocketIOException ex) {
@@ -175,10 +174,9 @@ public abstract class ClientConnectScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+		super.render(delta);
 		stage.draw();
 		stage.act(delta);
-		socketIO.flushEvents();
 	}
 
 	@Override
@@ -188,36 +186,25 @@ public abstract class ClientConnectScreen implements Screen {
 
 	@Override
 	public void show() {
+		super.show();
 		Gdx.input.setInputProcessor(stage);
-		registerEvents();
 	}
 
 	@Override
 	public void hide() {
-		unregisterEvents();
+		super.hide();
 		for (Label announcement : announcements) {
 			announcement.remove();
 		}
 		announcements.clear();
 	}
 
-	private void unregisterEvents() {
-		socketIO.getEventEmitter().unregisterEvent(CommonSocketIOEvents.ELECTED_CLIENT);
-		socketIO.getEventEmitter().unregisterEvent(CommonSocketIOEvents.ELECTED_HOST);
-		socketIO.getEventEmitter().unregisterEvent(CommonSocketIOEvents.GAME_START);
-		socketIO.getEventEmitter().unregisterEvent(CommonSocketIOEvents.ANNOUNCEMENT);
-	}
-
 	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-
+	protected void unregisterEvents(EventEmitter eventEmitter) {
+		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_CLIENT);
+		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_HOST);
+		eventEmitter.unregisterEvent(CommonSocketIOEvents.GAME_START);
+		eventEmitter.unregisterEvent(CommonSocketIOEvents.ANNOUNCEMENT);
 	}
 
 	@Override

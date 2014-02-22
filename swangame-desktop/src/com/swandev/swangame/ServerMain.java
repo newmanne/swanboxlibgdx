@@ -10,7 +10,7 @@ public class ServerMain {
 		cfg.useGL20 = true;
 		cfg.width = 480;
 		cfg.height = 320;
-		
+
 		new LwjglApplication(new PatternServerGame(), cfg);
 	}
 }

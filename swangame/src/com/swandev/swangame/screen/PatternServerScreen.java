@@ -3,13 +3,9 @@ package com.swandev.swangame.screen;
 import io.socket.IOAcknowledge;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
@@ -17,18 +13,17 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.swandev.swangame.PatternServerGame;
 import com.swandev.swangame.socket.EventCallback;
 import com.swandev.swangame.socket.EventEmitter;
 import com.swandev.swangame.socket.SocketIOEvents;
+import com.swandev.swangame.util.PatternCommon;
 import com.swandev.swangame.util.SwanUtil;
 
-public class PatternServerScreen implements Screen {
+public class PatternServerScreen extends SwanScreen {
 
 	private static final float PATTERN_DELAY = 1;
-	final Random random = new Random();
 	final PatternServerGame game;
 	final OrthographicCamera camera;
 	String currentPlayer;
@@ -36,11 +31,11 @@ public class PatternServerScreen implements Screen {
 	int index;
 	float timePassed;
 	List<String> pattern;
-	public final static Map<String, Color> stringToColour = ImmutableMap.of("red", Color.RED, "green", Color.GREEN, "blue", Color.BLUE);
 	final List<String> patternColors = ImmutableList.of("red", "green", "blue");
 	boolean shouldDisplayPattern;
 
 	public PatternServerScreen(PatternServerGame game) {
+		super(game.getSocketIO());
 		this.game = game;
 		this.camera = new OrthographicCamera();
 		camera.setToOrtho(false);
@@ -61,9 +56,7 @@ public class PatternServerScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClearColor(0, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
+		super.render(delta);
 		Gdx.gl.glLineWidth(Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.1f);
 
 		camera.update();
@@ -78,18 +71,13 @@ public class PatternServerScreen implements Screen {
 		spriteBatch.begin();
 		renderCenteredText(currentPlayer + " it is your turn!");
 		spriteBatch.end();
-
-		game.getSocketIO().flushEvents();
 	}
 
 	private void displayPattern(float delta) {
 		ShapeRenderer shapeRenderer = game.getShapeRenderer();
 		shapeRenderer.setProjectionMatrix(camera.combined);
 
-		if (index != 0) {
-			drawCircle(stringToColour.get(pattern.get(index - 1)), Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-		}
-		drawCircle(stringToColour.get(pattern.get(index)), currentRadius);
+		drawCircle(PatternCommon.getStringToColour().get(pattern.get(index)), currentRadius);
 
 		currentRadius = (timePassed / PATTERN_DELAY) * Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		timePassed += delta;
@@ -112,21 +100,26 @@ public class PatternServerScreen implements Screen {
 	}
 
 	@Override
-	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void show() {
+		super.show();
 		pattern = Lists.newArrayList(getRandomColour());
 		shouldDisplayPattern = true;
-		registerEvents();
 		currentPlayer = game.getSocketIO().getNicknames().get(0);
 	}
 
-	private void registerEvents() {
-		game.getSocketIO().on(SocketIOEvents.UPDATE_SEQUENCE, new EventCallback() {
+	private void advanceGameAfterLosingPlayer(String player) {
+		getSocketIO().getNicknames().remove(player);
+		if (getSocketIO().getNicknames().isEmpty()) {
+			getSocketIO().swanBroadcast(SocketIOEvents.GAME_OVER);
+			game.setScreen(game.getServerConnectScreen());
+		} else {
+			takeTurn(false);
+		}
+	}
+
+	@Override
+	protected void registerEvents() {
+		getSocketIO().on(SocketIOEvents.UPDATE_SEQUENCE, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -134,41 +127,17 @@ public class PatternServerScreen implements Screen {
 			}
 
 		});
-		game.getSocketIO().on(SocketIOEvents.INVALID_PATTERN, new EventCallback() {
+		EventCallback removeAPlayer = new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				String removeName = (String) args[0];
-				List<String> players = game.getSocketIO().getNicknames();
-				players.remove(removeName);
-				if (players.isEmpty()) {
-					// end the game
-					game.getSocketIO().swanBroadcast(SocketIOEvents.GAME_OVER);
-					game.setScreen(game.getServerConnectScreen());
-				} else {
-					takeTurn(false);
-				}
+				advanceGameAfterLosingPlayer(removeName);
 			}
-		});
-		
-		game.getSocketIO().on(SocketIOEvents.CLIENT_DISCONNECT, new EventCallback() {
 
-			@Override
-			public void onEvent(IOAcknowledge ack, Object... args) {
-				Gdx.app.log("error","In Client Disconnect");
-				String removeName = (String) args[0];
-				List<String> players = game.getSocketIO().getNicknames();
-				players.remove(removeName);
-				if (currentPlayer.equals(removeName)){
-					Gdx.app.log("error","Changing name");
-					takeTurn(false);
-				}
-				if (players.isEmpty()){
-					game.getSocketIO().swanBroadcast(SocketIOEvents.GAME_OVER);
-					game.setScreen(game.getServerConnectScreen());	
-				}
-			}
-		});
+		};
+		getSocketIO().on(SocketIOEvents.INVALID_PATTERN, removeAPlayer);
+		getSocketIO().on(SocketIOEvents.CLIENT_DISCONNECT, removeAPlayer);
 	}
 
 	private void takeTurn(boolean addNewColour) {
@@ -180,32 +149,15 @@ public class PatternServerScreen implements Screen {
 	}
 
 	private String getRandomColour() {
-		return patternColors.get(random.nextInt(patternColors.size()));
+		return patternColors.get(SwanUtil.getRandom().nextInt(patternColors.size()));
 	}
 
 	@Override
-	public void hide() {
-		unregisterEvents();
-	}
-
-	private void unregisterEvents() {
-		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
+	protected void unregisterEvents(EventEmitter eventEmitter) {
 		eventEmitter.unregisterEvent(SocketIOEvents.UPDATE_SEQUENCE);
 		eventEmitter.unregisterEvent(SocketIOEvents.GAME_OVER);
 		eventEmitter.unregisterEvent(SocketIOEvents.INVALID_PATTERN);
 		eventEmitter.unregisterEvent(SocketIOEvents.CLIENT_DISCONNECT);
-	}
-
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override

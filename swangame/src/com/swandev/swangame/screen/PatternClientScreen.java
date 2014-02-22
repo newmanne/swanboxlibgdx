@@ -10,8 +10,6 @@ import lombok.Setter;
 import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
@@ -25,9 +23,10 @@ import com.swandev.swangame.socket.EventCallback;
 import com.swandev.swangame.socket.EventEmitter;
 import com.swandev.swangame.socket.SocketIOEvents;
 import com.swandev.swangame.util.LogTags;
+import com.swandev.swangame.util.PatternCommon;
 import com.swandev.swangame.util.SwanUtil;
 
-public class PatternClientScreen implements Screen {
+public class PatternClientScreen extends SwanScreen {
 
 	private final PatternClientGame game;
 	private final Stage stage;
@@ -37,6 +36,7 @@ public class PatternClientScreen implements Screen {
 	List<PatternButton> buttons = Lists.newArrayList();
 
 	public PatternClientScreen(PatternClientGame game) {
+		super(game.getSocketIO());
 		this.game = game;
 		this.stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, game.getSpriteBatch());
 
@@ -44,7 +44,7 @@ public class PatternClientScreen implements Screen {
 
 		Table table = new Table(skin);
 
-		for (String colour : PatternServerScreen.stringToColour.keySet()) {
+		for (String colour : PatternCommon.getStringToColour().keySet()) {
 			PatternButton patternButton = new PatternButton(colour, skin);
 			table.add(patternButton).width(Gdx.graphics.getWidth() * 0.5f).height(Gdx.graphics.getHeight() * 0.2f);
 			table.row();
@@ -58,10 +58,9 @@ public class PatternClientScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+		super.render(delta);
 		stage.draw();
 		stage.act(delta);
-		game.getSocketIO().flushEvents();
 	}
 
 	@Override
@@ -71,13 +70,14 @@ public class PatternClientScreen implements Screen {
 
 	@Override
 	public void show() {
+		super.show();
 		setButtonDisables(true);
 		Gdx.input.setInputProcessor(stage);
-		registerEvents();
 	}
 
-	private void registerEvents() {
-		game.getSocketIO().on(SocketIOEvents.PATTERN_REQUESTED, new EventCallback() {
+	@Override
+	protected void registerEvents() {
+		getSocketIO().on(SocketIOEvents.PATTERN_REQUESTED, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -88,7 +88,7 @@ public class PatternClientScreen implements Screen {
 			}
 		});
 
-		game.getSocketIO().on(SocketIOEvents.GAME_OVER, new EventCallback() {
+		getSocketIO().on(SocketIOEvents.GAME_OVER, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -100,26 +100,14 @@ public class PatternClientScreen implements Screen {
 
 	@Override
 	public void hide() {
+		super.hide();
 		pattern.clear();
-		unregisterEvents();
 	}
 
-	private void unregisterEvents() {
-		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
+	@Override
+	protected void unregisterEvents(EventEmitter eventEmitter) {
 		eventEmitter.unregisterEvent(SocketIOEvents.PATTERN_REQUESTED);
 		eventEmitter.unregisterEvent(SocketIOEvents.GAME_OVER);
-	}
-
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -140,7 +128,7 @@ public class PatternClientScreen implements Screen {
 		public PatternButton(final String colour, Skin skin) {
 			super(colour, skin);
 			this.colour = colour;
-			setColor(PatternServerScreen.stringToColour.get(colour)); // lol, clean this up
+			setColor(PatternCommon.getStringToColour().get(colour)); // lol, clean this up
 			addListener(new ChangeListener() {
 
 				@Override
