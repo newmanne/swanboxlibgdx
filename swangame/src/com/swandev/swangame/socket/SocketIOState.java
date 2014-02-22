@@ -35,6 +35,7 @@ public class SocketIOState {
 	private List<String> nicknames = Lists.newArrayList();
 
 	@Getter
+	@Setter
 	private boolean playerListReady;
 
 	public SocketIOState() {

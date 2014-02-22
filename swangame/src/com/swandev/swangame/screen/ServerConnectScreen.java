@@ -72,6 +72,7 @@ public class ServerConnectScreen implements Screen {
 	@Override
 	public void show() {
 		gameStarted = false;
+		game.getSocketIO().setPlayerListReady(false);
 		registerEvents();
 		if (!game.getSocketIO().isConnected()) {
 			connect();
