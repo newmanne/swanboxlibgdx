@@ -6,7 +6,6 @@ public class SocketIOEvents {
 
 	// pattern game
 	public static final String PLAYING_PATTERNS = "playing_patterns";
-	public static final String START_PATTERNS = "start_patterns";
 	public static final String FINISHED_SEQUENCE = "finished_sequence";
 	public static final String UPDATE_SEQUENCE = "update_sequence";
 	public static final String PATTERN_ENTERED = "pattern_entered";

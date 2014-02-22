@@ -130,10 +130,9 @@ public class PatternServerScreen implements Screen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				pattern.add(getRandomColour());
-				currentPlayer = SwanUtil.getNextRoundRobin(game.getSocketIO().getNicknames(), currentPlayer);
-				shouldDisplayPattern = true;
+				takeTurn(true);
 			}
+
 		});
 		game.getSocketIO().on(SocketIOEvents.INVALID_PATTERN, new EventCallback() {
 
@@ -146,9 +145,19 @@ public class PatternServerScreen implements Screen {
 					// end the game
 					game.getSocketIO().swanBroadcast(SocketIOEvents.GAME_OVER);
 					game.setScreen(game.getServerConnectScreen());
+				} else {
+					takeTurn(false);
 				}
 			}
 		});
+	}
+
+	private void takeTurn(boolean addNewColour) {
+		if (addNewColour) {
+			pattern.add(getRandomColour());
+		}
+		currentPlayer = SwanUtil.getNextRoundRobin(game.getSocketIO().getNicknames(), currentPlayer);
+		shouldDisplayPattern = true;
 	}
 
 	private String getRandomColour() {
