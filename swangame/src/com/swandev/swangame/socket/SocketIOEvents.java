@@ -15,7 +15,6 @@ public class SocketIOEvents {
 	public static final String ELECTED_CLIENT = "elected_client";
 	public static final String ELECTED_HOST = "elected_host";
 	public static final String ANNOUNCEMENT = "announcement";
-	public static final String GAME_STARTED = "game_started";
 	public static final String INVALID_PATTERN = "invalid_pattern";
 	public static final String GAME_OVER = "game_over";
 

@@ -80,7 +80,7 @@ public class ServerConnectScreen implements Screen {
 	}
 
 	private void registerEvents() {
-		game.getSocketIO().on(SocketIOEvents.GAME_STARTED, new EventCallback() {
+		game.getSocketIO().on(SocketIOEvents.PLAYING_PATTERNS, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -97,7 +97,7 @@ public class ServerConnectScreen implements Screen {
 
 	private void unregisterEvents() {
 		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
-		eventEmitter.unregisterEvent(SocketIOEvents.GAME_STARTED);
+		eventEmitter.unregisterEvent(SocketIOEvents.PLAYING_PATTERNS);
 	}
 
 	@Override

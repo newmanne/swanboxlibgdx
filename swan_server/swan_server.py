@@ -112,45 +112,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
 ################################################################################################
 ################################################################################################
-
-
-# Patterns Game Related Events:
-################################################################################################
-################################################################################################
-################################################################################################
-
-    def on_game_started(self):
-        #logic code for game here
-        #game_player_sessid = list(player_sessid)
-        print 'GAME HAS STARTED'
-        self.emit_to_socket('game_begin', SwanNamespace.screenSocket, self.request['nicknames'])
-        
-
-    def on_pattern_entered(self, valid):
-        if valid:
-            self.emit_to_socket('update_sequence', SwanNamespace.screenSocket)
-        if not valid[0]:
-            print 'Wrong sequence from:', self.socket.session['nickname']
-            self.emit_to_socket('invalid_pattern',SwanNamespace.screenSocket, self.socket.session['nickname'])
-            #self.broadcast_event('game_over')
-
-            
-    def on_finished_sequence(self, player_name, colour_sequence):
-        print 'Finished Sequence'
-        for index, nickname in enumerate(SwanNamespace.player_sessid):
-            print nickname[1]
-            print player_name
-            #check if nickname is the same as in the list
-            if nickname[1] == player_name:
-                print 'Sending Sequence', colour_sequence, 'to', SwanNamespace.player_sessid[index][0]
-                self.emit_to_socket('pattern_requested', SwanNamespace.player_sessid[index][0], colour_sequence)
-
-    def on_game_over(self):
-        self.broadcast_event('game_over')
-
-################################################################################################
-################################################################################################
-################################################################################################
     
 
 #Chatroom Related Events
