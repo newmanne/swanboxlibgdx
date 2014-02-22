@@ -69,7 +69,7 @@ public class ClientConnectScreen implements Screen {
 
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				socketIO.getClient().emit(SocketIOEvents.START_PATTERNS);
+				socketIO.swanBroadcast(SocketIOEvents.START_PATTERNS);
 				game.setScreen(game.getPatternClientScreen());
 			}
 

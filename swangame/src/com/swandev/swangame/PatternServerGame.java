@@ -1,9 +1,6 @@
 package com.swandev.swangame;
 
-import java.util.List;
-
 import lombok.Getter;
-import lombok.Setter;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -25,10 +22,6 @@ public class PatternServerGame extends Game {
 
 	@Getter
 	private SocketIOState socketIO;
-
-	@Getter
-	@Setter
-	private List<String> playerNames;
 
 	@Getter
 	private ServerConnectScreen serverConnectScreen;

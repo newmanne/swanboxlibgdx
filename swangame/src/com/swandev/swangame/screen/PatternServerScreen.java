@@ -98,7 +98,7 @@ public class PatternServerScreen implements Screen {
 			if (index >= pattern.size()) {
 				index = 0;
 				shouldDisplayPattern = false;
-				game.getSocketIO().getClient().emit(SocketIOEvents.FINISHED_SEQUENCE, currentPlayer, pattern);
+				game.getSocketIO().swanEmit(SocketIOEvents.PATTERN_REQUESTED, currentPlayer, pattern);
 			}
 			timePassed = 0;
 		}
@@ -122,7 +122,7 @@ public class PatternServerScreen implements Screen {
 		pattern = Lists.newArrayList(getRandomColour());
 		shouldDisplayPattern = true;
 		registerEvents();
-		currentPlayer = game.getPlayerNames().get(0);
+		currentPlayer = game.getSocketIO().getNicknames().get(0);
 	}
 
 	private void registerEvents() {
@@ -131,7 +131,7 @@ public class PatternServerScreen implements Screen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				pattern.add(getRandomColour());
-				currentPlayer = SwanUtil.getNextRoundRobin(game.getPlayerNames(), currentPlayer);
+				currentPlayer = SwanUtil.getNextRoundRobin(game.getSocketIO().getNicknames(), currentPlayer);
 				shouldDisplayPattern = true;
 			}
 		});
@@ -140,19 +140,16 @@ public class PatternServerScreen implements Screen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				String removeName = (String) args[0];
-				List <String> players = game.getPlayerNames();
+				List<String> players = game.getSocketIO().getNicknames();
 				players.remove(removeName);
-				game.setPlayerNames(players);
-				if (players.isEmpty()){
-					//end the game
-					game.getSocketIO().getClient().emit(SocketIOEvents.GAME_OVER);
+				if (players.isEmpty()) {
+					// end the game
+					game.getSocketIO().swanBroadcast(SocketIOEvents.GAME_OVER);
 					game.setScreen(game.getServerConnectScreen());
 				}
-				//need to move the player to the main menu screen once this has happened
-			}	
+			}
 		});
 	}
-	
 
 	private String getRandomColour() {
 		return patternColors.get(random.nextInt(patternColors.size()));
@@ -188,6 +185,3 @@ public class PatternServerScreen implements Screen {
 	}
 
 }
-
-
-

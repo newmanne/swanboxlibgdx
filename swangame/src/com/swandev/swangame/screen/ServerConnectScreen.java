@@ -4,11 +4,8 @@ import io.socket.IOAcknowledge;
 import io.socket.SocketIOException;
 
 import java.net.MalformedURLException;
-import java.util.List;
 
 import lombok.Setter;
-
-import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -57,7 +54,7 @@ public class ServerConnectScreen implements Screen {
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		if (game.getSocketIO().isConnected() && gameStarted) {
+		if (game.getSocketIO().isConnected() && gameStarted && game.getSocketIO().isPlayerListReady()) {
 			Gdx.app.log(LogTags.SPLASHSCREEN, "Switching to pattern screen");
 			game.setScreen(game.getPatternServerScreen());
 		} else if (connectFailed) {
@@ -74,22 +71,20 @@ public class ServerConnectScreen implements Screen {
 
 	@Override
 	public void show() {
-		
-		registerEvents();
 		gameStarted = false;
+		registerEvents();
 		if (!game.getSocketIO().isConnected()) {
 			connect();
 		}
 	}
 
 	private void registerEvents() {
-		game.getSocketIO().on(SocketIOEvents.GAME_BEGIN, new EventCallback() {
+		game.getSocketIO().on(SocketIOEvents.GAME_STARTED, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				gameStarted = true;
-				List<String> playerNames = SwanUtil.parseJsonList((JSONArray) args[0]);
-				game.setPlayerNames(playerNames);
+				game.getSocketIO().requestNicknames();
 			}
 		});
 	}
@@ -101,7 +96,7 @@ public class ServerConnectScreen implements Screen {
 
 	private void unregisterEvents() {
 		EventEmitter eventEmitter = game.getSocketIO().getEventEmitter();
-		eventEmitter.unregisterEvent(SocketIOEvents.GAME_BEGIN);
+		eventEmitter.unregisterEvent(SocketIOEvents.GAME_STARTED);
 	}
 
 	@Override

@@ -6,14 +6,18 @@ import io.socket.SocketIO;
 import io.socket.SocketIOException;
 
 import java.net.MalformedURLException;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.badlogic.gdx.Gdx;
+import com.google.common.collect.Lists;
 import com.swandev.swangame.util.LogTags;
+import com.swandev.swangame.util.SwanUtil;
 
 public class SocketIOState {
 
@@ -27,8 +31,22 @@ public class SocketIOState {
 	@Setter
 	private String nickname;
 
+	@Getter
+	private List<String> nicknames = Lists.newArrayList();
+
+	@Getter
+	private boolean playerListReady;
+
 	public SocketIOState() {
 		this.eventEmitter = new EventEmitter();
+		on(SocketIOEvents.GET_NICKNAMES, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				nicknames = SwanUtil.parseJsonList((JSONArray) args[0]);
+				playerListReady = true;
+			}
+		});
 	}
 
 	public static final String SCREEN_NAME = "Screen";
@@ -43,6 +61,23 @@ public class SocketIOState {
 
 	public boolean isConnected() {
 		return getClient() != null && getClient().isConnected();
+	}
+
+	public void swanEmit(String event, String addressee, Object... args) {
+		client.emit(SocketIOEvents.SWAN_EMIT, addressee, event, args);
+	}
+
+	public void emitToScreen(String event, Object... args) {
+		swanEmit(event, SocketIOState.SCREEN_NAME, args);
+	}
+
+	public void swanBroadcast(String event, Object... args) {
+		client.emit(SocketIOEvents.SWAN_BROADCAST, event, args);
+	}
+
+	/** Updates the nicknames */
+	public void requestNicknames() {
+		client.emit(SocketIOEvents.GET_NICKNAMES);
 	}
 
 	/** Call this at the end of the render loop */

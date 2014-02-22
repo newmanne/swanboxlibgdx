@@ -74,7 +74,7 @@ public class PatternClientScreen implements Screen {
 		setButtonDisables(true);
 		Gdx.input.setInputProcessor(stage);
 		registerEvents();
-		game.getSocketIO().getClient().emit(SocketIOEvents.GAME_STARTED);
+		game.getSocketIO().emitToScreen(SocketIOEvents.GAME_STARTED);
 	}
 
 	private void registerEvents() {
@@ -156,7 +156,11 @@ public class PatternClientScreen implements Screen {
 						isValid = false;
 					}
 					if (!isValid || pattern.isEmpty()) {
-						game.getSocketIO().getClient().emit(SocketIOEvents.PATTERN_ENTERED, new JSONArray().put(isValid));
+						if (isValid) {
+							game.getSocketIO().emitToScreen(SocketIOEvents.UPDATE_SEQUENCE);
+						} else {
+							game.getSocketIO().emitToScreen(SocketIOEvents.INVALID_PATTERN, game.getSocketIO().getNickname());
+						}
 						setButtonDisables(true);
 					}
 				}
