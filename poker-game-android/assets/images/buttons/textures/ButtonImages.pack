@@ -1,0 +1,19 @@
+
+ButtonImages.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+next-card
+  rotate: false
+  xy: 1, 259
+  size: 512, 256
+  orig: 512, 256
+  offset: 0, 0
+  index: -1
+next-suit
+  rotate: false
+  xy: 1, 1
+  size: 512, 256
+  orig: 512, 256
+  offset: 0, 0
+  index: -1
