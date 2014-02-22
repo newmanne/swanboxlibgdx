@@ -189,7 +189,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def on_swan_broadcast(self, event, args):
         print "BROADCASTING EVENT ", event, " WITH ARGS ", args 
-        self.broadcast_event('event', args)
+        self.broadcast_event(event, *args)
 
     def on_swan_emit(self, nickname, event, args):
         print "SENDING TO ", nickname, " EVENT ", event, " WITH ARGS ", args
@@ -216,12 +216,12 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def emit_to_nickname(self, name, event, args):
         if name == "Screen":
-            self.emit_to_socket(event, SwanNamespace.screenSocket, args)
+            self.emit_to_socket(event, SwanNamespace.screenSocket, *args)
         else:
             for index, nickname in enumerate(SwanNamespace.player_sessid):
                 #check if nickname is the same as in the list
                 if nickname[1] == name:
-                    self.emit_to_socket(event, SwanNamespace.player_sessid[index][0], args)
+                    self.emit_to_socket(event, SwanNamespace.player_sessid[index][0], *args)
 
     def emit_to_socket(self, event, target, *args):
         pkt = dict(type="event",
