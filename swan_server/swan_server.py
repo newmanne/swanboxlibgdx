@@ -6,6 +6,7 @@ from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 
 import random
+import subprocess
 
 
 class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
@@ -31,6 +32,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
        # self.request['nicknames'].append('Screen')
         self.socket.session['nickname'] = 'Screen'
         SwanNamespace.screenSocket = self.socket
+        self.broadcast_event("game_start")
 
     def on_nickname(self, nickname):
         self.request['nicknames'].append(nickname)
@@ -108,6 +110,13 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_start_patterns (self):
         print 'Starting Patterns'
         self.broadcast_event('playing_patterns')
+
+    def on_run_application (self, file):
+        jar_file =file + '.jar'
+        jar_run = ["java", "-jar", jar_file]
+        #subprocess.call(jar_run, shell=False)
+        proc = subprocess.Popen(['java', '-jar', jar_file], stdout=subprocess.PIPE)
+        print "I AM HERE"
 
 
 ################################################################################################
