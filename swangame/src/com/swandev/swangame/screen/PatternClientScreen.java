@@ -93,7 +93,8 @@ public class PatternClientScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				Gdx.app.log(LogTags.SOCKET_IO, "WOMP WOMP");
-				game.setScreen(game.getConnectScreen());
+				// TODO:
+//				game.setScreen(game.getConnectScreen());
 			}
 		});
 	}

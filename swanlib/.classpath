@@ -3,9 +3,9 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="libs/gson-2.2.4.jar"/>
-	<classpathentry kind="lib" path="libs/guava-15.0.jar"/>
-	<classpathentry kind="lib" path="libs/lombok-api.jar"/>
-	<classpathentry kind="lib" path="libs/socketio.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/guava-15.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/lombok-api.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/socketio.jar"/>
 	<classpathentry kind="lib" path="/swangame/libs/gdx.jar" sourcepath="/swangame/libs/gdx-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

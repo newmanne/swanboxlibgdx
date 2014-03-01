@@ -23,6 +23,9 @@ public class SocketIOState {
 
 	@Getter
 	SocketIO client;
+	
+	@Getter
+	String serverAddress;
 
 	@Getter
 	final EventEmitter eventEmitter;
@@ -91,6 +94,7 @@ public class SocketIOState {
 	}
 
 	public void connect(final String serverAddress, final String nickname, final boolean isScreen, final ConnectCallback connectCallback) throws MalformedURLException {
+		this.serverAddress = serverAddress;
 		final SocketIO socketIO = new SocketIO(serverAddress);
 		this.client = socketIO;
 		// TODO: make this modular...
