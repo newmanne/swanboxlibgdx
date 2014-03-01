@@ -71,6 +71,10 @@ public class SocketIOState {
 	public void emitToScreen(String event, Object... args) {
 		swanEmit(event, SocketIOState.SCREEN_NAME, args);
 	}
+	
+	public void emitToServer(String event, Object... args){
+		client.emit(event, args);
+	}
 
 	public void swanBroadcast(String event, Object... args) {
 		client.emit(CommonSocketIOEvents.SWAN_BROADCAST, event, args);
