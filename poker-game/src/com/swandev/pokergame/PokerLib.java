@@ -10,6 +10,9 @@ public class PokerLib {
 
 	static public final int CARD_BACK = -1;
 	
+	public static int MAX_CARD = 13;
+	public static int MAX_SUIT = 400;
+	
 	static public Map<Integer, TextureRegion> getCardTextures(){
 		Map<Integer, TextureRegion> cardList = Maps.newHashMap();
 		TextureAtlas cardAtlas = new TextureAtlas("images/cards/CardImages.pack");

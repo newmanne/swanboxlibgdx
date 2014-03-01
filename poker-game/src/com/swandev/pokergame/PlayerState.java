@@ -1,6 +1,5 @@
 package com.swandev.pokergame;
 
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
 
 public class PlayerState {
 	
@@ -10,14 +9,14 @@ public class PlayerState {
 	public int chipValue;
 	public int betValue;
 	
-	public Button nextCardButton;
-	public Button nextSuitButton;
-	
+	public int callValue;
+
 	public PlayerState(){
 		this.card1 = PokerLib.CARD_BACK;
 		this.card2 = PokerLib.CARD_BACK;
 		this.chipValue = 100000;
 		this.betValue = 0;
+		this.callValue = 0;
 	}
 	
 	public boolean receiveCard(int cardCode){
@@ -35,15 +34,5 @@ public class PlayerState {
 	public void clearHand(){
 		this.card1 = PokerLib.CARD_BACK;
 		this.card2 = PokerLib.CARD_BACK;
-	}
-	
-	public void placeBet(int bet){
-		//The bet button should be disabled if you aren't allowed to make
-		//a bet, but in case we are given an erroneous bet then just do
-		//nothing.
-		if (bet <= chipValue){
-			this.chipValue -= bet;
-			this.betValue += bet;
-		}
 	}
 }
