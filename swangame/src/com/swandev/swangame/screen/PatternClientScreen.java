@@ -27,7 +27,7 @@ import com.swandev.swangame.util.PatternCommon;
 import com.swandev.swangame.util.SwanUtil;
 
 public class PatternClientScreen extends SwanScreen {
-
+	
 	private final PatternClientGame game;
 	private final Stage stage;
 	@Getter

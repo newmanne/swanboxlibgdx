@@ -1,5 +1,6 @@
 package com.swandev.connectapp;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -18,9 +19,9 @@ public class DesktopSwanService implements SwanService {
 	public void switchGame(String game, String nickname, String address) {
 		Gdx.app.log("Switching", "Switching to " + game);
 		try {
-			Runtime.getRuntime().exec("java -jar " + game + ".jar " + nickname + " " + address);
+			Process exec = Runtime.getRuntime().exec("java -jar " + game + ".jar " + nickname + " " + address, null, new File("/home/newmanne/swanboxLIBGDX"));
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException("Couldn't start a new game", e);
 		}
 	}
 
