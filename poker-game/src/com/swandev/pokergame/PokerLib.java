@@ -13,7 +13,7 @@ public class PokerLib {
 	static public final int CARD_BACK = -1;
 	
 	//Define some MAX's for the card codes
-	public static int MAX_CARD = 13;
+	public static int MAX_CARD = 14;
 	public static int MAX_SUIT = 400;
 	
 	static public Map<Integer, TextureRegion> getCardTextures(){
@@ -80,7 +80,7 @@ public class PokerLib {
 	 * 	- bet $		(Integer)
 	 * 		- if this is 0, it indicates a check. 
 	 * 		- On an all-in, it will be the remaining chipValue for the Player.
-	 * 		- On a check, it will be the difference between the check value and the bet value
+	 * 		- On a call, it will be the difference between the call value and the bet value
 	 * 		- On a raise, it will be anywhere between a check and an all-in
 	 */
 	

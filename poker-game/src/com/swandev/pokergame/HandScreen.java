@@ -1,8 +1,13 @@
 package com.swandev.pokergame;
 
+import io.socket.IOAcknowledge;
+
+import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
+
+import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -22,7 +27,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.google.common.collect.Maps;
 import com.swandev.pokergame.HandScreen.HandRenderer.CardImage;
 import com.swandev.swangame.screen.SwanScreen;
+import com.swandev.swangame.socket.EventCallback;
 import com.swandev.swangame.socket.EventEmitter;
+import com.swandev.swangame.util.SwanUtil;
 
 public class HandScreen extends SwanScreen {
 	//*** Layout Coordinates ***//
@@ -106,37 +113,56 @@ public class HandScreen extends SwanScreen {
 		ppuX = (float)Gdx.graphics.getWidth() / CAMERA_WIDTH;
 		ppuY = (float)Gdx.graphics.getHeight() / CAMERA_HEIGHT;
 		
-		//fake being dealt two cards
-		state.card1 = 101;
-		state.card2 = 201;
-		myHand = new HandRenderer(state);
-		
-		final Skin skin = game.getAssets().getSkin();
-		
-		//Build the elements of the stage as seen on the client screen
-		//Note: Order is important here! The order in which we add the elements
-		//is the order in which they will be rendered; this only *really* matters
-		//for the background since it needs to be behind everything else, but also
-		//determines who's in front in some weird resizing cases.
-		buildBackground(skin);
-		buildCards(skin);
-		buildMoneyText(skin);
-		buildButtonTable(skin);	
-		
-		//This call should be made at the end of a response to a "Your Turn" message, after
-		//changing the PlayerState appropriately.
-		enableLegalActionButtons();
+
 	}
 	
 	@Override
 	protected void registerEvents() {
-		// TODO Auto-generated method stub
+		getSocketIO().on(PokerLib.DEAL_HAND, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				state.clearHand();
+				JSONArray jsonArray = (JSONArray) args[0];
+				List<String> hand = SwanUtil.parseJsonList(jsonArray);
+				state.receiveCard(Integer.parseInt(hand.get(0)));
+				state.receiveCard(Integer.parseInt(hand.get(1)));
+				state.betValue = (Integer) args[1];
+				state.chipValue = (Integer) args[2];
+				state.callValue = (Integer) args[3];
+			}
+		});
+		
+		getSocketIO().on(PokerLib.YOUR_TURN, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				state.callValue = (Integer) args[0];
+				System.out.println("Bet value is: " + state.betValue);
+				System.out.println("Call value is: " + state.callValue);
+				enableLegalActionButtons();	
+			}
+		});
+		
+		getSocketIO().on(PokerLib.ACTION_ACKNOWLEDGE, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				state.betValue = (Integer) args[0];
+				state.chipValue = (Integer) args[1];
+				state.callValue = (Integer) args[2];
+				
+			}
+		});
 		
 	}
 
 	@Override
 	protected void unregisterEvents(EventEmitter eventEmitter) {
 		// TODO Auto-generated method stub
+		eventEmitter.unregisterEvent(PokerLib.DEAL_HAND);
+		eventEmitter.unregisterEvent(PokerLib.YOUR_TURN);
+		eventEmitter.unregisterEvent(PokerLib.ACTION_ACKNOWLEDGE);
 		
 	}
 	
@@ -356,10 +382,11 @@ public class HandScreen extends SwanScreen {
 	private void requestBet(int betValue){
 		//send the request to the server
 		if (betValue == -1){
-			//TODO: send a FOLD_REQUEST
+			getSocketIO().emitToScreen(PokerLib.FOLD_REQUEST, getSocketIO().getNickname());
+			disableActionButtons();
 			return;
 		} else { 
-			//TODO: send a BET_REQUEST
+			getSocketIO().emitToScreen(PokerLib.BET_REQUEST, getSocketIO().getNickname(), betValue);
 		}
 		
 		//disable the buttons while you wait for the ack; the valid ones will be re-enabled on a YOUR_TURN
@@ -370,19 +397,19 @@ public class HandScreen extends SwanScreen {
 		
 		//BEGIN OF HACK
 		
-		//These steps should happen in response to the server acknowledging a bet action, and only
-		//set the chipValue, betValue, and callValue to whatever the server said they should be.
-		state.chipValue -= betValue;
-		state.betValue += betValue;
-		state.callValue = state.betValue;
-		
-		betLabel.setText(new Integer(state.betValue).toString());
-		cashLabel.setText(new Integer(state.chipValue).toString());
-		callLabel.setText(new Integer(state.callValue).toString());
-		
-		//Now re-enable the action buttons; this should happen ONLY in response to a YOUR_TURN or INVALID_ACTION
-		//message from the server
-		enableLegalActionButtons();
+//		//These steps should happen in response to the server acknowledging a bet action, and only
+//		//set the chipValue, betValue, and callValue to whatever the server said they should be.
+//		state.chipValue -= betValue;
+//		state.betValue += betValue;
+//		state.callValue = state.betValue;
+//		
+//		betLabel.setText(new Integer(state.betValue).toString());
+//		cashLabel.setText(new Integer(state.chipValue).toString());
+//		callLabel.setText(new Integer(state.callValue).toString());
+//		
+//		//Now re-enable the action buttons; this should happen ONLY in response to a YOUR_TURN or INVALID_ACTION
+//		//message from the server
+//		enableLegalActionButtons();
 		
 		//END OF HACK
 	}
@@ -461,6 +488,25 @@ public class HandScreen extends SwanScreen {
 	@Override
 	public void show() {
 		super.show();
+		//fake being dealt two cards
+		myHand = new HandRenderer(state);
+		
+		final Skin skin = game.getAssets().getSkin();
+		
+		//Build the elements of the stage as seen on the client screen
+		//Note: Order is important here! The order in which we add the elements
+		//is the order in which they will be rendered; this only *really* matters
+		//for the background since it needs to be behind everything else, but also
+		//determines who's in front in some weird resizing cases.
+		buildBackground(skin);
+		buildCards(skin);
+		buildMoneyText(skin);
+		buildButtonTable(skin);	
+		
+		//This call should be made at the end of a response to a "Your Turn" message, after
+		//changing the PlayerState appropriately.
+		//enableLegalActionButtons(); move to the registered events
+		disableActionButtons();
 		Gdx.input.setInputProcessor(stage);
 	}
 

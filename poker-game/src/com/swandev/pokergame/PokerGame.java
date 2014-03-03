@@ -37,7 +37,8 @@ public class PokerGame extends Game {
 		shapeRenderer = new ShapeRenderer();
 		connectScreen = new PokerClientConnectScreen(this, socketIO, spriteBatch, getAssets().getSkin());
 		handScreen = new HandScreen(this);
-		setScreen(handScreen);
+		//setScreen(handScreen);
+		setScreen(connectScreen);
 	}
 
 	@Override

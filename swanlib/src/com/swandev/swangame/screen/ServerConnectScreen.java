@@ -80,6 +80,7 @@ public abstract class ServerConnectScreen extends SwanScreen {
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				gameStarted = true;
 				getSocketIO().requestNicknames();
+			
 			}
 		});
 
