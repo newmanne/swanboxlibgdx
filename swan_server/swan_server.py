@@ -14,11 +14,9 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     player_sessid = [];
     game_player_sessid = [];
     count = 0;
-    colourSequence = list()
-    colour = ['red', 'blue', 'green']
     screenSocket = None
     hostSocket = None
-    roundrobin = 0;
+    game_in_progress = None
 
     def on_test(self):
         print 'test works'
@@ -32,7 +30,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
        # self.request['nicknames'].append('Screen')
         self.socket.session['nickname'] = 'Screen'
         SwanNamespace.screenSocket = self.socket
-        self.broadcast_event("game_start")
+        self.broadcast_event("game_start", SwanNamespace.game_in_progress)
 
     def on_nickname(self, nickname):
         self.request['nicknames'].append(nickname)
@@ -103,20 +101,11 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
 ################################################################################################
 
-    def on_start_chatroom (self):
-        print 'Starting Chatroom'
-        self.broadcast_event('playing_chatroom')
-
-    def on_start_patterns (self):
-        print 'Starting Patterns'
-        self.broadcast_event('playing_patterns')
-
-    def on_run_application (self, file):
-        jar_file =file + '.jar'
+    def on_application_start (self, file):
+	SwanNamespace.game_in_progress = file
+        jar_file =file + '_server.jar'
         jar_run = ["java", "-jar", jar_file]
-        #subprocess.call(jar_run, shell=False)
         proc = subprocess.Popen(['java', '-jar', jar_file], stdout=subprocess.PIPE)
-        print "I AM HERE"
 
 
 ################################################################################################

@@ -12,5 +12,6 @@ public class CommonSocketIOEvents {
 	public static final String ANNOUNCEMENT = "announcement";
 	public static final String GAME_START = "game_start";
 	public static final String RUN_APPLICATION = "run_application";
+	public static final String APPLICATION_START = "application_start";
 
 }

@@ -92,7 +92,7 @@ public class SocketIOState {
 	public void flushEvents() {
 		this.eventEmitter.flushEvents();
 	}
-
+	
 	public void connect(final String serverAddress, final String nickname, final boolean isScreen, final ConnectCallback connectCallback) throws MalformedURLException {
 		this.serverAddress = serverAddress;
 		final SocketIO socketIO = new SocketIO(serverAddress);

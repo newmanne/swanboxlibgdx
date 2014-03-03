@@ -100,7 +100,7 @@ public class ClientConnectScreen extends SwanScreen {
 
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
-							getSocketIO().swanBroadcast(CommonSocketIOEvents.GAME_START, gameStart.getText());
+							getSocketIO().emitToServer(CommonSocketIOEvents.APPLICATION_START, gameStart.getText()); 
 						}
 
 					});
@@ -114,7 +114,9 @@ public class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				String game = (String) args[0];
+				getSocketIO().getClient().disconnect();
 				swanSwervice.switchGame(game, getSocketIO().getNickname(), getSocketIO().getServerAddress());
+				// TODO: what now?
 			}
 
 		});
