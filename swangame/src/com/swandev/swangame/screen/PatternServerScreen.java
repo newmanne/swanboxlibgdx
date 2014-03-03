@@ -18,6 +18,7 @@ import com.swandev.swangame.PatternServerGame;
 import com.swandev.swangame.socket.EventCallback;
 import com.swandev.swangame.socket.EventEmitter;
 import com.swandev.swangame.socket.SocketIOEvents;
+import com.swandev.swangame.util.LogTags;
 import com.swandev.swangame.util.PatternCommon;
 import com.swandev.swangame.util.SwanUtil;
 
@@ -136,6 +137,15 @@ public class PatternServerScreen extends SwanScreen {
 			}
 
 		};
+		getSocketIO().on(SocketIOEvents.GAME_OVER, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				getSocketIO().getClient().disconnect();
+				Gdx.app.log(LogTags.SOCKET_IO, "Received game over signal, exiting");
+				Gdx.app.exit();
+			}
+		});
 		getSocketIO().on(SocketIOEvents.INVALID_PATTERN, removeAPlayer);
 		getSocketIO().on(SocketIOEvents.CLIENT_DISCONNECT, removeAPlayer);
 	}

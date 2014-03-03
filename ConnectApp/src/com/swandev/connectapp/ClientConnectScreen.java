@@ -93,6 +93,10 @@ public class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				getSocketIO().setHost(true);
+				placeGameButtons();
+			}
+
+			private void placeGameButtons() {
 				// TODO: actually verify your friends have the same game...
 				for (String game : swanSwervice.getAvailableGames()) {
 					final TextButton gameStart = new TextButton(game, skin);
@@ -115,10 +119,7 @@ public class ClientConnectScreen extends SwanScreen {
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				String game = (String) args[0];
 				getSocketIO().getClient().disconnect();
-				announce("Switching to game " + game);
-				announce("Disconnecting from server... This is normal behavior");
 				swanSwervice.switchGame(game, getSocketIO().getNickname(), getSocketIO().getServerAddress());
-				// TODO: what now?
 			}
 
 		});

@@ -60,9 +60,9 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         
         SwanNamespace.count = SwanNamespace.count + 1
 
-        if (is_game_started):
+        if (SwanNamespace.is_game_started):
                 if (SwanNamespace.count == SwanNamespace.in_game_count):
-                    on_application_start(SwanNamespace.game_in_progress)
+                    self.on_application_start(SwanNamespace.game_in_progress)
 
 
         # Just have them join a default-named room
@@ -112,13 +112,13 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def on_game_selected(self, game_name):
         SwanNamespace.game_in_progress = game_name
-        self.broadcast('switch_game', game_name)
+        self.broadcast_event('switch_game', game_name)
         SwanNamespace.in_game_count = len(SwanNamespace.player_sessid)
-        is_game_started = true
+        SwanNamespace.is_game_started = True
 
-    def on_application_start (file):
-	
-        jar_file =file + '_server.jar'
+    def on_application_start(self, file):
+        jar_file = file + '_server.jar'
+        jar_file = jar_file.replace('com.swandev.', '')
         jar_run = ["java", "-jar", jar_file]
         proc = subprocess.Popen(['java', '-jar', jar_file], stdout=subprocess.PIPE)
 

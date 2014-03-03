@@ -92,9 +92,9 @@ public class PatternClientScreen extends SwanScreen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				Gdx.app.log(LogTags.SOCKET_IO, "WOMP WOMP");
-				// TODO:
-//				game.setScreen(game.getConnectScreen());
+				Gdx.app.log(LogTags.SOCKET_IO, "Game over, exiting");
+				getSocketIO().getClient().disconnect();
+				Gdx.app.exit();
 			}
 		});
 	}
@@ -129,7 +129,7 @@ public class PatternClientScreen extends SwanScreen {
 		public PatternButton(final String colour, Skin skin) {
 			super(colour, skin);
 			this.colour = colour;
-			setColor(PatternCommon.getStringToColour().get(colour)); // lol, clean this up
+			setColor(PatternCommon.getStringToColour().get(colour)); 
 			addListener(new ChangeListener() {
 
 				@Override
@@ -143,9 +143,9 @@ public class PatternClientScreen extends SwanScreen {
 					}
 					if (!isValid || pattern.isEmpty()) {
 						if (isValid) {
-							game.getSocketIO().emitToScreen(SocketIOEvents.UPDATE_SEQUENCE);
+							getSocketIO().emitToScreen(SocketIOEvents.UPDATE_SEQUENCE);
 						} else {
-							game.getSocketIO().emitToScreen(SocketIOEvents.INVALID_PATTERN, game.getSocketIO().getNickname());
+							getSocketIO().emitToScreen(SocketIOEvents.INVALID_PATTERN, getSocketIO().getNickname());
 						}
 						setButtonDisables(true);
 					}

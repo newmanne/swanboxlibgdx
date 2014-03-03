@@ -39,7 +39,7 @@ public class SwanUtil {
 		return playerNames.get(nextIndex);
 	}
 
-	public static String toAddress(String ip, String string) {
-		return "http://" + ip + ":" + string;
+	public static String toAddress(String ip, String port) {
+		return "http://" + ip + ":" + port;
 	}
 }
