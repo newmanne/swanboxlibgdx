@@ -38,6 +38,9 @@ public class EventEmitter {
 	}
 
 	public void unregisterEvent(String event) {
+		if (callbacks.get(event) == null) {
+			throw new IllegalStateException("Trying to unregister an event that was never regsitered: " + event);
+		}
 		callbacks.remove(event);
 	}
 

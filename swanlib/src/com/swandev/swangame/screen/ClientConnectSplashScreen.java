@@ -19,10 +19,13 @@ import com.swandev.swangame.socket.SocketIOState;
 import com.swandev.swangame.util.CommonLogTags;
 import com.swandev.swangame.util.ConnectParams;
 
+/** This is an invisible generic connect screen that handles the reconnecting to server. It should be placed at the star
+ * of every game.
+ */
 public abstract class ClientConnectSplashScreen extends SwanScreen {
 	
 	protected final Game game;
-	boolean connectFailed = false;
+	private SocketIOException connectError;
 	@Setter
 	boolean gameStarted = false;
 	Map<String, String> connectParams;
@@ -39,9 +42,7 @@ public abstract class ClientConnectSplashScreen extends SwanScreen {
 
 				@Override
 				public void onConnect(SocketIOException ex) {
-					if (ex != null) {
-						connectFailed = true;
-					}
+					connectError = ex;
 				}
 			});
 		} catch (MalformedURLException e) {
@@ -55,7 +56,8 @@ public abstract class ClientConnectSplashScreen extends SwanScreen {
 		if (getSocketIO().isConnected() && gameStarted) {
 			Gdx.app.log(CommonLogTags.SERVER_CONNECT_SCREEN, "Switching to game");
 			game.setScreen(getGameScreen());
-		} else if (connectFailed) {
+		} else if (connectError != null) {
+			Gdx.app.error(CommonLogTags.SOCKET_IO, "Error connecting to server, exiting", connectError);
 			Gdx.app.exit();
 		}
 	}

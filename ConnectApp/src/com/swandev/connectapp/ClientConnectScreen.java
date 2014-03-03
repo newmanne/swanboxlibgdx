@@ -42,7 +42,7 @@ public class ClientConnectScreen extends SwanScreen {
 
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final Skin skin, SwanService swanSwervice) {
 		super(socketIO);
-		this.swanSwervice = swanSwervice;
+		this.swanSwervice = swanSwervice; 
 		this.game = game;
 		this.skin = skin;
 		this.stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false);
@@ -100,7 +100,7 @@ public class ClientConnectScreen extends SwanScreen {
 
 						@Override
 						public void changed(ChangeEvent event, Actor actor) {
-							getSocketIO().emitToServer(CommonSocketIOEvents.APPLICATION_START, gameStart.getText()); 
+							getSocketIO().emitToServer(CommonSocketIOEvents.GAME_SELECTED, gameStart.getText()); 
 						}
 
 					});
@@ -109,12 +109,14 @@ public class ClientConnectScreen extends SwanScreen {
 			}
 
 		});
-		getSocketIO().on(CommonSocketIOEvents.GAME_START, new EventCallback() {
+		getSocketIO().on(CommonSocketIOEvents.SWITCH_GAME, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				String game = (String) args[0];
 				getSocketIO().getClient().disconnect();
+				announce("Switching to game " + game);
+				announce("Disconnecting from server... This is normal behavior");
 				swanSwervice.switchGame(game, getSocketIO().getNickname(), getSocketIO().getServerAddress());
 				// TODO: what now?
 			}
@@ -125,13 +127,17 @@ public class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				final String announcement = (String) args[0];
-				Label label = new Label(announcement, skin);
-				announcements.add(label);
-				table.add(label);
-				table.row();
+				announce(announcement);
 			}
 
 		});
+	}
+	
+	private void announce(final String announcement) {
+		Label label = new Label(announcement, skin);
+		announcements.add(label);
+		table.add(label);
+		table.row();
 	}
 
 	private void buildTable(final Skin skin, final Label ipAddressLabel, final Label portLabel, final Label nicknameLabel, final Label waitingText) {
@@ -205,7 +211,7 @@ public class ClientConnectScreen extends SwanScreen {
 	protected void unregisterEvents(EventEmitter eventEmitter) {
 		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_CLIENT);
 		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_HOST);
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.GAME_START);
+		eventEmitter.unregisterEvent(CommonSocketIOEvents.SWITCH_GAME);
 		eventEmitter.unregisterEvent(CommonSocketIOEvents.ANNOUNCEMENT);
 	}
 

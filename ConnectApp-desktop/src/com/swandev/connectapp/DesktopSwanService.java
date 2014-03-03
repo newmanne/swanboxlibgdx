@@ -17,6 +17,7 @@ public class DesktopSwanService implements SwanService {
 
 	@Override
 	public void switchGame(String game, String nickname, String address) {
+		// TODO: this is super hacky, most of the problem is we can't get logs of newly started process
 		Gdx.app.log("Switching", "Switching to " + game);
 		try {
 			Process exec = Runtime.getRuntime().exec("java -jar " + game + ".jar " + nickname + " " + address, null, new File("/home/newmanne/swanboxLIBGDX"));

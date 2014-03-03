@@ -1,6 +1,5 @@
 package com.swandev.swangame.screen;
 
-import io.socket.IOAcknowledge;
 import io.socket.SocketIOException;
 
 import java.net.MalformedURLException;
@@ -10,9 +9,7 @@ import lombok.Setter;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.swandev.swangame.socket.CommonSocketIOEvents;
 import com.swandev.swangame.socket.ConnectCallback;
-import com.swandev.swangame.socket.EventCallback;
 import com.swandev.swangame.socket.EventEmitter;
 import com.swandev.swangame.socket.SocketIOState;
 import com.swandev.swangame.util.CommonLogTags;
@@ -24,7 +21,7 @@ public abstract class ServerConnectScreen extends SwanScreen {
 	final String serverIP = "localhost";
 	final int port = 8080;
 	final String serverAddress = SwanUtil.toAddress(serverIP, Integer.toString(port));
-	boolean connectFailed = false;
+	private SocketIOException connectError;
 	@Setter
 	boolean gameStarted = false;
 
@@ -39,8 +36,9 @@ public abstract class ServerConnectScreen extends SwanScreen {
 
 				@Override
 				public void onConnect(SocketIOException ex) {
-					if (ex != null) {
-						connectFailed = true;
+					connectError = ex;
+					if (ex == null) {
+						getSocketIO().requestNicknames();
 					}
 				}
 			});
@@ -52,10 +50,11 @@ public abstract class ServerConnectScreen extends SwanScreen {
 	@Override
 	public void render(float delta) {
 		super.render(delta);
-		if (getSocketIO().isConnected() && gameStarted && getSocketIO().isPlayerListReady()) {
+		if (getSocketIO().isConnected() && getSocketIO().isPlayerListReady()) {
 			Gdx.app.log(CommonLogTags.SERVER_CONNECT_SCREEN, "Switching to game");
 			game.setScreen(getGameScreen());
-		} else if (connectFailed) {
+		} else if (connectError != null) {
+			Gdx.app.error(CommonLogTags.SOCKET_IO, "Error connecting to server, exiting", connectError);
 			Gdx.app.exit();
 		}
 	}
@@ -74,20 +73,10 @@ public abstract class ServerConnectScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(CommonSocketIOEvents.GAME_START, new EventCallback() {
-
-			@Override
-			public void onEvent(IOAcknowledge ack, Object... args) {
-				gameStarted = true;
-				getSocketIO().requestNicknames();
-			}
-		});
-
 	}
 
 	@Override
 	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.GAME_START);
 	}
 
 	@Override
