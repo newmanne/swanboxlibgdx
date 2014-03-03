@@ -17,6 +17,8 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     screenSocket = None
     hostSocket = None
     game_in_progress = None
+    is_game_started = False
+    in_game_count = 0
 
     def on_test(self):
         print 'test works'
@@ -30,7 +32,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
        # self.request['nicknames'].append('Screen')
         self.socket.session['nickname'] = 'Screen'
         SwanNamespace.screenSocket = self.socket
-        self.broadcast_event("game_start", SwanNamespace.game_in_progress)
+        self.broadcast_event('game_start')
 
     def on_nickname(self, nickname):
         self.request['nicknames'].append(nickname)
@@ -57,6 +59,12 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
             self.emit('elected_client')
         
         SwanNamespace.count = SwanNamespace.count + 1
+
+        if (is_game_started):
+                if (SwanNamespace.count == SwanNamespace.in_game_count):
+                    on_application_start(SwanNamespace.game_in_progress)
+
+
         # Just have them join a default-named room
         self.join('main_room')
 
@@ -87,6 +95,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
                 self.broadcast_event('announcement', '%s is now the host' % SwanNamespace.player_sessid[0][1])
             else:
                 print "Waiting for Host to Connect"
+
         self.disconnect(silent=True)
 
 ################################################################################################
@@ -101,8 +110,14 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
 ################################################################################################
 
-    def on_application_start (self, file):
-	SwanNamespace.game_in_progress = file
+    def on_game_selected(self, game_name):
+        SwanNamespace.game_in_progress = game_name
+        self.broadcast('switch_game', game_name)
+        SwanNamespace.in_game_count = len(SwanNamespace.player_sessid)
+        is_game_started = true
+
+    def on_application_start (file):
+	
         jar_file =file + '_server.jar'
         jar_run = ["java", "-jar", jar_file]
         proc = subprocess.Popen(['java', '-jar', jar_file], stdout=subprocess.PIPE)
@@ -112,35 +127,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
 ################################################################################################
     
-
-#Chatroom Related Events
-################################################################################################
-################################################################################################
-################################################################################################
-    def on_user_message(self, msg):
-        # tmp = msg.split("/")
-        # if len(tmp) >= 2:
-        #     tmp = tmp[1].split(" ")
-        #     tmp2 = msg.split(" ", 2)
-        #     if tmp[0] is "w":
-        #         if len(tmp2) >= 3:
-        #             for pair in SwanNamespace.player_sessid:
-        #                 if pair[1] == tmp2[1]:
-        #                     self.emit_to_socket('msg_to_room', pair[0], self.socket.session['nickname'], tmp2[2])                      
-        #     else:
-        #         self.emit_to_room('main_room', 'msg_to_room',
-        #         self.socket.session['nickname'], msg)           
-        # else:
-        print msg[0]
-        self.broadcast_event('msg_to_room',self.socket.session['nickname'], msg[0])
-        #self.emit_to_room(self, 'main_room' 'msg_to_room',
-        #self.socket.session['nickname'], msg)
-
-
-################################################################################################
-################################################################################################
-################################################################################################        
-
 
 #Mailbox Implementation
 ################################################################################################
@@ -261,9 +247,3 @@ if __name__ == '__main__':
     SocketIOServer(('0.0.0.0', 8080), Application(),
         resource="socket.io", policy_server=True,
         policy_listener=('0.0.0.0', 10843)).serve_forever()
-
-
-
-
-#Notes: 
-#- Should the game server determine the next player or the server?
