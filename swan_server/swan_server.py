@@ -32,7 +32,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
        # self.request['nicknames'].append('Screen')
         self.socket.session['nickname'] = 'Screen'
         SwanNamespace.screenSocket = self.socket
-        self.broadcast_event("game_start")
 
     def on_nickname(self, nickname):
         self.request['nicknames'].append(nickname)
@@ -112,11 +111,8 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         self.broadcast_event('playing_patterns')
 
     def on_run_application (self, file):
-        jar_file =file + '.jar'
-        jar_run = ["java", "-jar", jar_file]
-        #subprocess.call(jar_run, shell=False)
-        proc = subprocess.Popen(['java', '-jar', jar_file], stdout=subprocess.PIPE)
-        print "I AM HERE"
+        jar_file = file + '.jar'
+        subprocess.call('java', '-jar', jar_file)
 
 
 ################################################################################################
