@@ -124,9 +124,9 @@ public class HandScreen extends SwanScreen {
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				state.clearHand();
 				JSONArray jsonArray = (JSONArray) args[0];
-				List<String> hand = SwanUtil.parseJsonList(jsonArray);
-				state.receiveCard(Integer.parseInt(hand.get(0)));
-				state.receiveCard(Integer.parseInt(hand.get(1)));
+				List<Integer> hand = SwanUtil.parseJsonList(jsonArray);
+				state.receiveCard(hand.get(0));
+				state.receiveCard(hand.get(1));
 				state.betValue = (Integer) args[1];
 				state.chipValue = (Integer) args[2];
 				state.callValue = (Integer) args[3];

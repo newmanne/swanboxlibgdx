@@ -19,11 +19,11 @@ public class SwanUtil {
 		return true;
 	}
 
-	public static List<String> parseJsonList(JSONArray jsonArray) {
-		final List<String> list = Lists.newArrayList();
+	public static <T> List<T> parseJsonList(JSONArray jsonArray) {
+		final List<T> list = Lists.newArrayList();
 		for (int i = 0; i < jsonArray.length(); i++) {
 			try {
-				list.add(jsonArray.getString(i));
+				list.add((T) jsonArray.get(i));
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
