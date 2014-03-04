@@ -33,6 +33,7 @@ public class PokerGameServer extends Game {
 		serverConnectScreen = new PokerGameConnectScreen(this, getSocketIO());
 		pokerServerScreen = new PokerGameScreen(this);
 		setScreen(serverConnectScreen);
+		//setScreen(pokerServerScreen);
 	}
 	
 	@Override

@@ -10,9 +10,15 @@ import java.util.TimerTask;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.swandev.swangame.screen.SwanScreen;
@@ -22,6 +28,23 @@ import com.swandev.swangame.util.CommonLogTags;
 
 public class PokerGameScreen extends SwanScreen {
 
+	public static final float CAMERA_WIDTH = 21f;
+	public static final float CAMERA_HEIGHT = 13f;
+	
+	public static final float LABEL_WIDTH = 2f;
+	public static final float LABEL_HEIGHT = 1f;
+	
+	public static final float PLAYER_NAME_WIDTH = 4f;
+	
+	public static final float CARD_WIDTH = 3f;
+	public static final float CARD_HEIGHT = 4f;
+	
+	public static final float PLAYER_TABLE_PADDING_X = 1f;
+	public static final float PLAYER_TABLE_PADDING_Y = 1f;
+	
+	public static final float CARD_PADDING_X = 1f;
+	public static final float CARD_PADDING_Y = 2f;
+	
 	public class playerStats {
 		private int money;
 		private List<Integer> hand;
@@ -121,12 +144,29 @@ public class PokerGameScreen extends SwanScreen {
 	float xMid;
 	float yMid;
 	int indexKey;
+	
+	private final Stage stage;
+	private Image[] cards = new Image[5];
+	private Map<String, PlayerTable> tables = Maps.newHashMap();
+	private Image backgroundImage;
+	private int width;
+	private int height;
+	private float ppuX;
+	private float ppuY;
 
 	public PokerGameScreen(PokerGameServer game) {
 		super(game.getSocketIO());
 		this.game = game;
 		this.camera = new OrthographicCamera();
 		camera.setToOrtho(false);
+		this.width = Gdx.graphics.getWidth();
+		this.height = Gdx.graphics.getHeight();
+		
+		ppuX = (float)width / CAMERA_WIDTH;
+		ppuY = (float)height / CAMERA_HEIGHT;
+		
+		this.stage = new Stage(width, height, false, game.getSpriteBatch());
+		
 		cardAtlas = new TextureAtlas("images/cards/CardImages.pack");
 		timePassed = 0;
 		round = 0;
@@ -154,45 +194,55 @@ public class PokerGameScreen extends SwanScreen {
 				deck.add(i * 100 + j);
 			}
 		}
-
 		// System.out.println(deck);
 	}
 
+	private void buildBackground(Skin skin){
+		//Adds a background texture to the stage
+		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/background.png"))));
+		backgroundImage.setX(0);
+		backgroundImage.setY(0);
+		backgroundImage.setWidth(width);
+		backgroundImage.setHeight(height);
+		backgroundImage.setFillParent(true);
+		stage.addActor(backgroundImage);
+	}
+	
 	@Override
 	public void render(float delta) {
 		super.render(delta);
 		timePassed += delta;
-
+		
+		stage.draw();
+		stage.act(delta);
+		/*
 		final SpriteBatch spriteBatch = game.getSpriteBatch();
 		spriteBatch.setProjectionMatrix(camera.combined);
 		spriteBatch.begin();
 
 		switch (round) {
 		case 0:
-			spriteBatch.end();
-			return;
+			break;
 		case 1:
 			for (int i = 0; i < 3; i++) {
 				spriteBatch.draw(cardList.get(table.get(i)), xMid - HALF_CARD_WIDTH + 13 * i - 13 * 4.5f, yMid - HALF_CARD_HEIGHT + 100);
 			}
-			spriteBatch.end();
-			return;
+			break;
 		case 2:
 			for (int i = 0; i < 4; i++) {
 				spriteBatch.draw(cardList.get(table.get(i)), xMid - HALF_CARD_WIDTH + 13 * i - 13 * 4.5f, yMid - HALF_CARD_HEIGHT + 100);
 			}
-			spriteBatch.end();
-			return;
+			break;
 		case 3:
 			for (int i = 0; i < 5; i++) {
 				spriteBatch.draw(cardList.get(table.get(i)), xMid - HALF_CARD_WIDTH + 13 * i - 13 * 4.5f, yMid - HALF_CARD_HEIGHT + 100);
 			}
-			spriteBatch.end();
-			return;
+			break;
 		default:
-			spriteBatch.end();
-			return;
+			break;
 		}
+		spriteBatch.end();
+		*/
 	}
 
 	public void testAndDeal(List<String> players, List<Integer> table) {
@@ -236,6 +286,7 @@ public class PokerGameScreen extends SwanScreen {
 			List<Integer> rankHand = Lists.newArrayList(currentPlayer.hand);
 			rankHand.addAll(table);
 			currentPlayer.setBest(rank(rankHand));
+			tables.get(players.get(i)).setChipValue(currentPlayer.money);
 			getSocketIO().swanEmit(PokerLib.DEAL_HAND, players.get(i), currentPlayer.hand, currentPlayer.bet, currentPlayer.money, 0);
 		}
 		System.out.println("table: " + table);
@@ -684,7 +735,11 @@ public class PokerGameScreen extends SwanScreen {
 	}
 
 	public void startRound() {
-
+		//re-initialize the cards to face-down
+		for (Image card : cards){
+			card.setDrawable(new TextureRegionDrawable(cardList.get(CARD_BACK)));
+		}
+		
 		playerStats tmp;
 		activePlayers = Lists.newArrayList();
 		for (int i = 0; i < playerNames.size(); i++){
@@ -707,7 +762,10 @@ public class PokerGameScreen extends SwanScreen {
 
 	public void nextRound() {
 		round++;
-		if (round == 3) {
+		for (int i = 0; i < round+2; i++){
+			cards[i].setDrawable(new TextureRegionDrawable(cardList.get(table.get(i))));
+		}
+		if (round == 3) {			
 			Timer timer = new Timer("hi");
 			timer.schedule(new TimerTask() {
 				
@@ -718,21 +776,20 @@ public class PokerGameScreen extends SwanScreen {
 				}
 			}, 5000);
 			return;
-		}
-		
-		playerStats tmp;
-		
-		
-		for (int i = 0; i < playerNames.size(); i++) {
-			tmp = playerList.get(playerNames.get(i));
-			if (tmp.isFolded) {
-				continue;
+		} else {
+			playerStats tmp;
+			
+			
+			for (int i = 0; i < playerNames.size(); i++) {
+				tmp = playerList.get(playerNames.get(i));
+				if (tmp.isFolded) {
+					continue;
+				}
+				activePlayer = i;
+				getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerNames.get(activePlayer), callValue);
+				return;
 			}
-			activePlayer = i;
-			getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerNames.get(activePlayer), callValue);
-			return;
 		}
-
 	}
 
 	public void endRound() {
@@ -763,9 +820,12 @@ public class PokerGameScreen extends SwanScreen {
 			tmp.bet = 0;
 			if(winner.contains(tmp)){
 				tmp.money += pot/winner.size();
+				tables.get(activePlayers.get(i)).setChipValue(tmp.money); //update the label
 				getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, activePlayers.get(i), tmp.bet, tmp.money, 0, true);
+			} else {
+				tables.get(activePlayers.get(i)).setChipValue(tmp.money); //update the label
+				getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, activePlayers.get(i), tmp.bet, tmp.money, 0, false);
 			}
-			getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, activePlayers.get(i), tmp.bet, tmp.money, 0, false);
 		}
 		startRound();
 	}
@@ -801,9 +861,67 @@ public class PokerGameScreen extends SwanScreen {
 		for (int i = 0; i < playerNames.size(); i++) {
 			playerList.put(playerNames.get(i), new playerStats(playerNames.get(i), 100000));
 		}
+		
+		final Skin skin = game.getAssets().getSkin();
+		buildBackground(skin);
+		buildCards();
+		buildPlayerTables(skin);
+
 		startRound();
 	}
 
+	private void buildCards(){
+		for (int i = 0; i < 5; ++i){
+			cards[i] = new Image();
+			cards[i].setWidth(CARD_WIDTH*ppuX);
+			cards[i].setX(CARD_PADDING_X*ppuX + i*(CARD_PADDING_X + CARD_WIDTH)*ppuX);
+			cards[i].setHeight(CARD_HEIGHT*ppuY);
+			cards[i].setY(Gdx.graphics.getHeight() - (CARD_HEIGHT + CARD_PADDING_Y)*ppuY);
+			stage.addActor(cards[i]);
+		}
+	}
+	
+	private void buildPlayerTables(Skin skin){
+		for(int i = 0; i < playerNames.size(); ++i){
+			String playerName = playerNames.get(i);
+			PlayerTable newTable = new PlayerTable(skin, playerName, playerList.get(playerName).myMoney());
+			newTable.bottom().left();
+			newTable.padLeft((PLAYER_TABLE_PADDING_X + (i%4)*(PLAYER_NAME_WIDTH + PLAYER_TABLE_PADDING_X))*ppuX);
+			float yCoord = PLAYER_TABLE_PADDING_Y*ppuY;
+			if (i > 3){
+				yCoord += (LABEL_HEIGHT*2 + PLAYER_TABLE_PADDING_Y)*ppuY;
+			}
+			newTable.padBottom(yCoord);
+			newTable.setFillParent(true);
+			stage.addActor(newTable);
+			tables.put(playerName, newTable);
+		}
+	}
+	
+	private class PlayerTable extends Table {
+		private Label nameLabel;
+		private Label chipLabel;
+		private Label chipValueLabel;
+		
+		public PlayerTable(Skin skin, String name, Integer chipValue){
+			nameLabel = new Label(name, skin);
+			chipLabel = new Label("Chips:", skin);
+			chipValueLabel = new Label(chipValue.toString(), skin);
+			
+			defaults().width(LABEL_WIDTH*ppuX);
+			defaults().height(LABEL_HEIGHT*ppuY);
+			add(nameLabel).colspan(2).width(PLAYER_NAME_WIDTH);
+			row();
+			add(chipLabel);
+			add(chipValueLabel);
+			row();
+		}
+		
+		public void setChipValue(Integer value){
+			chipValueLabel.setText(value.toString());
+		}
+	}
+	
 	@Override
 	public void hide() {
 		// TODO Auto-generated method stub
@@ -874,6 +992,7 @@ public class PokerGameScreen extends SwanScreen {
 					nextRound--;
 				}
 				// TODO send ack?
+				tables.get(player).setChipValue(currentPlayer.money);
 				getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, player, currentPlayer.bet, currentPlayer.money, callValue);
 				// Pot split if value is all in?
 				if (nextRound == 0){

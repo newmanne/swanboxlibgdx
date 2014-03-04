@@ -385,24 +385,6 @@ public class HandScreen extends SwanScreen {
 		disableActionButtons();
 		
 		//END OF FUNCTION (once the socket stuff is integrated)
-		
-		//BEGIN OF HACK
-		
-//		//These steps should happen in response to the server acknowledging a bet action, and only
-//		//set the chipValue, betValue, and callValue to whatever the server said they should be.
-//		state.chipValue -= betValue;
-//		state.betValue += betValue;
-//		state.callValue = state.betValue;
-//		
-//		betLabel.setText(new Integer(state.betValue).toString());
-//		cashLabel.setText(new Integer(state.chipValue).toString());
-//		callLabel.setText(new Integer(state.callValue).toString());
-//		
-//		//Now re-enable the action buttons; this should happen ONLY in response to a YOUR_TURN or INVALID_ACTION
-//		//message from the server
-//		enableLegalActionButtons();
-		
-		//END OF HACK
 	}
 	
 	public void render(float delta){
