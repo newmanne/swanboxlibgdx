@@ -66,13 +66,14 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def recv_disconnect(self):
         # Remove nickname from the list.
         nickname = self.socket.session['nickname']
-        SwanNamespace.player_sessid.remove([self.socket, nickname])
+        
         #broadcast to everyone that someone has disconnected
         self.broadcast_event('client_disconnect', nickname)
         self.broadcast_event('announcement', '%s has disconnected' % nickname)
         self.broadcast_event('nicknames', self.request['nicknames'])
         
         if nickname != 'Screen':
+            SwanNamespace.player_sessid.remove([self.socket, nickname])
             self.request['nicknames'].remove(nickname)
             SwanNamespace.count = SwanNamespace.count - 1
 
