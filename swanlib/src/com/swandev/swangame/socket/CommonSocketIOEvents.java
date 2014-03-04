@@ -11,6 +11,5 @@ public class CommonSocketIOEvents {
 	public static final String ELECTED_HOST = "elected_host";
 	public static final String ANNOUNCEMENT = "announcement";
 	public static final String GAME_START = "game_start";
-	public static final String RUN_APPLICATION = "run_application";
 
 }

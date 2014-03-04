@@ -6,7 +6,6 @@ from socketio.namespace import BaseNamespace
 from socketio.mixins import RoomsMixin, BroadcastMixin
 
 import random
-import subprocess
 
 
 class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
@@ -109,10 +108,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_start_patterns (self):
         print 'Starting Patterns'
         self.broadcast_event('playing_patterns')
-
-    def on_run_application (self, file):
-        jar_file = file + '.jar'
-        subprocess.call('java', '-jar', jar_file)
 
 
 ################################################################################################

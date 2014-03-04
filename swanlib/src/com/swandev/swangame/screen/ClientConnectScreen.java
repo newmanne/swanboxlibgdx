@@ -69,9 +69,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				//socketIO.swanBroadcast(CommonSocketIOEvents.GAME_START);
-				runApplication(socketIO, "Patterns");
-				
+				socketIO.swanBroadcast(CommonSocketIOEvents.GAME_START);
 			}
 
 		});
@@ -115,7 +113,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				
 				switchToGame();
 			}
 
@@ -207,7 +204,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_CLIENT);
 		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_HOST);
 		eventEmitter.unregisterEvent(CommonSocketIOEvents.GAME_START);
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.RUN_APPLICATION);
 		eventEmitter.unregisterEvent(CommonSocketIOEvents.ANNOUNCEMENT);
 	}
 
@@ -215,13 +211,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	public void dispose() {
 		stage.dispose();
 	}
-	
-	public void runApplication(final SocketIOState socketIO, String game)
-	{
-		socketIO.emitToServer("run_application", game);
-		
-	}
-	
 
 	protected abstract void switchToGame();
 
