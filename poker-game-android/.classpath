@@ -2,12 +2,15 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
+	<classpathentry exported="true" kind="lib" path="/swanlib/libs/guava-15.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="/swanlib/libs/lombok-api.jar"/>
+	<classpathentry exported="true" kind="lib" path="/swanlib/libs/socketio.jar"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/swanlib"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/poker-game"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="lib" path="/poker-game/libs/gdx.jar" sourcepath="/poker-game/libs/gdx-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/gdx-backend-android.jar" sourcepath="libs/gdx-backend-android-sources.jar"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/swanlib"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
