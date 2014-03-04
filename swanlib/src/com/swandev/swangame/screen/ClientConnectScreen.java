@@ -6,6 +6,7 @@ import io.socket.SocketIOException;
 import java.net.MalformedURLException;
 import java.util.List;
 
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -31,14 +32,14 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	protected final Game game;
 	private final Stage stage;
 	private final Skin skin;
-	private TextField ipAddressField;
-	private TextField portField;
-	private TextField nicknameField;
-	private TextButton connectButton;
-	private TextButton gameStart;
+	private final TextField ipAddressField;
+	private final TextField portField;
+	private final TextField nicknameField;
+	private final TextButton connectButton;
+	private final TextButton gameStart;
 	private Table table;
-	private Label waitingText;
-	private List<Label> announcements = Lists.newArrayList();
+	private final Label waitingText;
+	private final List<Label> announcements = Lists.newArrayList();
 
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch, final Skin skin) {
 		super(socketIO);
@@ -46,7 +47,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		this.skin = skin;
 		this.stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, spritebatch);
 
-		final String defaultIP = SwanUtil.isDebug() ? "localhost" : "";
+		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
 		ipAddressField = new TextField(defaultIP, skin);
 		ipAddressField.setMessageText("IP Address");
 
@@ -58,6 +59,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		connectButton = new TextButton("Connect", skin);
 		connectButton.addListener(new ChangeListener() {
+			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				connectButton.setDisabled(true);
 				connect();
