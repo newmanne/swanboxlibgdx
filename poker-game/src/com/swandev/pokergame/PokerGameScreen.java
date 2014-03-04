@@ -749,13 +749,13 @@ public class PokerGameScreen extends SwanScreen {
 		} else {
 			playerStats tmp;
 
-			for (int i = 0; i < playerNames.size(); i++) {
-				tmp = playerList.get(playerNames.get(i));
+			for (int i = 0; i < activePlayers.size(); i++) {
+				tmp = playerList.get(activePlayers.get(i));
 				if (tmp.isFolded) {
 					continue;
 				}
 				activePlayer = i;
-				getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerNames.get(activePlayer), callValue);
+				getSocketIO().swanEmit(PokerLib.YOUR_TURN, activePlayers.get(activePlayer), callValue);
 				return;
 			}
 		}
