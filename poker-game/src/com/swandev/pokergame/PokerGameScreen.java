@@ -9,7 +9,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -31,6 +30,7 @@ public class PokerGameScreen extends SwanScreen {
 		public int bet;
 		private String name;
 		private List<Integer> bestHand;
+		public boolean isActive;
 
 		public playerStats(String name, int money) {
 			this.name = name;
@@ -39,6 +39,7 @@ public class PokerGameScreen extends SwanScreen {
 			this.hand = Lists.newArrayList();
 			this.bet = 0;
 			this.isFolded = false;
+			this.isActive = true;
 		}
 
 		public List<Integer> getHand() {
@@ -106,7 +107,8 @@ public class PokerGameScreen extends SwanScreen {
 	int callValue; // indicates minimum value
 	int remainingActive; // remaining active players
 	int nextRound; //
-
+	int pot;
+	
 	private TextureAtlas cardAtlas;
 	Map<Integer, TextureRegion> cardList = Maps.newHashMap();
 	Map<String, playerStats> playerList = Maps.newHashMap();
@@ -114,6 +116,7 @@ public class PokerGameScreen extends SwanScreen {
 	List<Integer> deck = Lists.newArrayList();
 	List<Integer> table = Lists.newArrayList();
 	List<String> playerNames = Lists.newArrayList();
+	List<String> activePlayers = Lists.newArrayList();
 
 	float xMid;
 	float yMid;
@@ -159,13 +162,6 @@ public class PokerGameScreen extends SwanScreen {
 	public void render(float delta) {
 		super.render(delta);
 		timePassed += delta;
-		if (timePassed > INPUT_DELAY) {
-			if (Gdx.input.isKeyPressed(Keys.ENTER)) {
-				shuffleAndDeal(playerNames, table);
-				// testAndDeal(playerNames, table);
-			}
-			timePassed = 0;
-		}
 
 		final SpriteBatch spriteBatch = game.getSpriteBatch();
 		spriteBatch.setProjectionMatrix(camera.combined);
@@ -197,31 +193,6 @@ public class PokerGameScreen extends SwanScreen {
 			spriteBatch.end();
 			return;
 		}
-
-		// for (int i = 0; i < table.size(); i++) {
-		// spriteBatch.draw(cardList.get(table.get(i)), xMid - HALF_CARD_WIDTH +
-		// 13 * i - 13 * 4.5f, yMid - HALF_CARD_HEIGHT + 100);
-		// }
-		//
-		// for (int i = 0; i < playerNames.size(); i++) {
-		// playerStats currentPlayer = playerList.get(playerNames.get(i));
-		// for (int j = 0; j < 2; j++) {
-		// spriteBatch.draw(cardList.get(currentPlayer.hand.get(j)), xMid -
-		// HALF_CARD_WIDTH + 13 * j - 13 * 4.5f - 100 + 150 * i, yMid -
-		// HALF_CARD_HEIGHT);
-		// }
-		// for (int j = 0; j < 5; j++) {
-		// spriteBatch.draw(cardList.get(currentPlayer.bestHand.get(j)), xMid -
-		// HALF_CARD_WIDTH + 13 * j - 13 * 4.5f - 100 + 150 * i, yMid -
-		// HALF_CARD_HEIGHT - 100);
-		// }
-		// System.out.println(currentPlayer.toString());
-		// }
-		// System.out.println("---------------------------------");
-		// System.out.println("Winners are: " +
-		// compareHands(playerNames).size());
-		// System.out.println(compareHands(playerNames));
-		// spriteBatch.end();
 	}
 
 	public void testAndDeal(List<String> players, List<Integer> table) {
@@ -552,20 +523,20 @@ public class PokerGameScreen extends SwanScreen {
 //		System.out.println("List of triples is: " + triples);
 //		System.out.println("List of quads is: " + quads);
 //		System.out.println("There is a straight " + straight);
-		
-		if (straight) {
-			System.out.println(straightList);
-		}
-
-		System.out.println("There is a flush " + flush);
-		if (flush) {
-			System.out.println(flushList);
-		}
-
-		System.out.println("There is a straight flush " + straightFlush);
-		if (straightFlush) {
-			System.out.println(straightFlushList);
-		}
+//		
+//		if (straight) {
+//			System.out.println(straightList);
+//		}
+//
+//		System.out.println("There is a flush " + flush);
+//		if (flush) {
+//			System.out.println(flushList);
+//		}
+//
+//		System.out.println("There is a straight flush " + straightFlush);
+//		if (straightFlush) {
+//			System.out.println(straightFlushList);
+//		}
 
 		swapSuit(handRank);
 		if (straightFlush) {
@@ -713,7 +684,25 @@ public class PokerGameScreen extends SwanScreen {
 	}
 
 	public void startRound() {
-		getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerNames.get(activePlayer), callValue);
+
+		playerStats tmp;
+		activePlayers = Lists.newArrayList();
+		for (int i = 0; i < playerNames.size(); i++){
+			tmp = playerList.get(playerNames.get(i));
+			if (tmp.isActive){
+				activePlayers.add(playerNames.get(i));
+			}
+		}
+		table = Lists.newArrayList();
+		shuffleAndDeal(activePlayers, table);
+		dealer = activePlayers.size() - 1;
+		activePlayer = 0;
+		remainingActive = activePlayers.size();
+		nextRound = remainingActive;
+		callValue = 0;
+		round = 0;
+		pot = 0;
+		getSocketIO().swanEmit(PokerLib.YOUR_TURN, activePlayers.get(activePlayer), callValue);
 	}
 
 	public void nextRound() {
@@ -727,7 +716,7 @@ public class PokerGameScreen extends SwanScreen {
 					endRound();
 					
 				}
-			}, 10000);
+			}, 5000);
 			return;
 		}
 		
@@ -756,12 +745,28 @@ public class PokerGameScreen extends SwanScreen {
 		 * all folded players are brought back
 		 */
 		playerStats tmp;
-		for (int i = 0; i < playerNames.size(); i++){
-			tmp = playerList.get(playerNames.get(i));
-			tmp.isFolded = false;
+		List<String> winningList = Lists.newArrayList();
+
+		for (int i = 0; i < activePlayers.size(); i++){
+			tmp = playerList.get(activePlayers.get(i));
+			if (tmp.isFolded){
+				tmp.isFolded = false;
+			}else{
+				winningList.add(playerNames.get(i));
+			}
 		}
-		remainingActive = playerNames.size();
-		round = 0;
+		List<playerStats> winner = compareHands(winningList);
+		System.out.println(winner);
+		System.out.println("Pot size: " + pot);
+		for (int i = 0; i < activePlayers.size();i++){
+			tmp = playerList.get(activePlayers.get(i));
+			tmp.bet = 0;
+			if(winner.contains(tmp)){
+				tmp.money += pot/winner.size();
+				getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, activePlayers.get(i), tmp.bet, tmp.money, 0, true);
+			}
+			getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, activePlayers.get(i), tmp.bet, tmp.money, 0, false);
+		}
 		startRound();
 	}
 
@@ -791,18 +796,11 @@ public class PokerGameScreen extends SwanScreen {
 
 	@Override
 	public void show() {
-		// TODO Auto-generated method stub
 		super.show();
 		playerNames = Lists.newArrayList(getSocketIO().getNicknames());
 		for (int i = 0; i < playerNames.size(); i++) {
 			playerList.put(playerNames.get(i), new playerStats(playerNames.get(i), 100000));
 		}
-		shuffleAndDeal(playerNames, table);
-		dealer = playerNames.size() - 1;
-		activePlayer = 0;
-		remainingActive = playerNames.size();
-		nextRound = remainingActive;
-		callValue = 0;
 		startRound();
 	}
 
@@ -862,11 +860,11 @@ public class PokerGameScreen extends SwanScreen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				System.out.println("Got here");
 				String player = (String) args[0];
 				Integer newBet = (Integer) args[1];
 				playerStats currentPlayer = playerList.get(player);
 				currentPlayer.placeBet(newBet);
+				pot += newBet;
 				if (currentPlayer.bet > callValue) {
 					callValue = currentPlayer.bet;
 					nextRound = remainingActive;
@@ -875,7 +873,6 @@ public class PokerGameScreen extends SwanScreen {
 				} else {
 					nextRound--;
 				}
-				System.out.println(currentPlayer);
 				// TODO send ack?
 				getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, player, currentPlayer.bet, currentPlayer.money, callValue);
 				// Pot split if value is all in?

@@ -138,8 +138,7 @@ public class HandScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				state.callValue = (Integer) args[0];
-				System.out.println("Bet value is: " + state.betValue);
-				System.out.println("Call value is: " + state.callValue);
+				callLabel.setText(new Integer(state.callValue).toString());
 				enableLegalActionButtons();	
 			}
 		});
@@ -151,10 +150,27 @@ public class HandScreen extends SwanScreen {
 				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
-				
+				betLabel.setText(new Integer(state.betValue).toString());
+				cashLabel.setText(new Integer(state.chipValue).toString());
+				callLabel.setText(new Integer(state.callValue).toString());
+				disableActionButtons();
 			}
 		});
 		
+		getSocketIO().on(PokerLib.HAND_COMPLETE, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				state.betValue = (Integer) args[0];
+				state.chipValue = (Integer) args[1];
+				state.callValue = (Integer) args[2];
+				//TODO Extract (Boolean) args[3]
+				betLabel.setText(new Integer(state.betValue).toString());
+				cashLabel.setText(new Integer(state.chipValue).toString());
+				callLabel.setText(new Integer(state.callValue).toString());
+				disableActionButtons();
+			}
+		});
 	}
 
 	@Override
@@ -239,31 +255,6 @@ public class HandScreen extends SwanScreen {
 		buttonTable.padLeft(BUTTON_PADDING_LEFT*ppuX).padTop(BUTTON_PADDING_TOP*ppuY);
 		
 		//Note that this section should be deleted completely once we are dealt cards from the dealer
-		/******* BEGIN NON_SUBMIT CODE SECTION ******/
-		/*Next Card Button increments the card value of both cards*/
-		TextButton nextCardButton = new TextButton("Next Card", skin);
-		nextCardButton.addListener(new ChangeListener(){
-			@Override
-			public void changed(ChangeEvent event, Actor actor){
-				state.card1 = incrementCard(state.card1);
-				state.card2 = incrementCard(state.card2);
-			}
-		});
-		buttonTable.add(nextCardButton);
-		buttonTable.row();
-		
-		/*Next Suit Button cycles each card through the suits*/
-		TextButton nextSuitButton = new TextButton("Next Suit", skin);
-		nextSuitButton.addListener(new ChangeListener(){
-			@Override
-			public void changed(ChangeEvent event, Actor actor){
-				state.card1 = incrementSuit(state.card1);
-				state.card2 = incrementSuit(state.card2);
-			}
-		});
-		buttonTable.add(nextSuitButton);
-		buttonTable.row();
-		/******* END NON_SUBMIT CODE SECTION ******/
 		
 		/* All-In Button Requests a bet which is equal to the total cash the player owns*/
 		allInButton = new TextButton("All In!", skin);
@@ -363,7 +354,7 @@ public class HandScreen extends SwanScreen {
 		
 		//now re-enable only the legal ones
 		foldButton.setDisabled(false); //you can always fold
-		if (state.betValue < state.callValue){
+		if ((state.betValue < state.callValue)&&(state.chipValue >= (state.callValue - state.betValue))){
 			callButton.setDisabled(false); //you can only call if you haven't bet up to the call value
 		} else {
 			checkButton.setDisabled(false); //otherwise you will be able to check
@@ -488,7 +479,6 @@ public class HandScreen extends SwanScreen {
 	@Override
 	public void show() {
 		super.show();
-		//fake being dealt two cards
 		myHand = new HandRenderer(state);
 		
 		final Skin skin = game.getAssets().getSkin();

@@ -31,10 +31,10 @@ public class PokerLib {
 				cardList.put(key, cardAtlas.findRegion(Integer.toString(i)));
 			}
 		}
-		cardList.put(201, cardAtlas.findRegion("1"));
-		cardList.put(401, cardAtlas.findRegion("2"));
-		cardList.put(301, cardAtlas.findRegion("3"));
-		cardList.put(101, cardAtlas.findRegion("4"));
+		cardList.put(214, cardAtlas.findRegion("1"));
+		cardList.put(414, cardAtlas.findRegion("2"));
+		cardList.put(314, cardAtlas.findRegion("3"));
+		cardList.put(114, cardAtlas.findRegion("4"));
 		cardList.put(CARD_BACK, cardAtlas.findRegion("b1fv"));
 		return cardList;
 	}
