@@ -162,24 +162,20 @@ public class HandScreen extends SwanScreen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				System.out.println("Saw a hand complete message!");
+				Gdx.app.log("poker", "Saw a hand complete message!");
 
 				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
 				state.clearHand();
-				// TODO Extract (Boolean) args[3]
 				Boolean you_won = (Boolean) args[3];
-				String youWonText = "You lost!";
-				if (you_won) {
-					youWonText = "You won!";
-				}
-				winLabel.setText(youWonText);
+				String statusText = you_won ? "You won!" : "You lost!";
+				winLabel.setText(statusText);
 				winLabel.setVisible(true);
 
-				betLabel.setText(new Integer(state.betValue).toString());
-				cashLabel.setText(new Integer(state.chipValue).toString());
-				callLabel.setText(new Integer(state.callValue).toString());
+				betLabel.setText(Integer.toString(state.betValue));
+				cashLabel.setText(Integer.toString(state.chipValue));
+				callLabel.setText(Integer.toString(state.callValue));
 				disableActionButtons();
 			}
 		});
@@ -304,25 +300,23 @@ public class HandScreen extends SwanScreen {
 		buttonTable.add(callButton);
 		buttonTable.row();
 
-		/* Check Button Requests a bet of 0, signaling to move on to the next player */
 		checkButton = new TextButton("Check", skin);
 		checkButton.setColor(Color.YELLOW);
 		checkButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				requestBet(0);
+				requestBet(PokerLib.BET_CHECK);
 			}
 		});
 		buttonTable.add(checkButton);
 		buttonTable.row();
 
-		/* Fold Button Requests a bet of -1, symbolizing a user folding the current hand. */
 		foldButton = new TextButton("Fold", skin);
 		foldButton.setColor(Color.GRAY);
 		foldButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				requestBet(-1);
+				requestBet(PokerLib.BET_FOLD);
 			}
 		});
 		buttonTable.add(foldButton);
@@ -385,8 +379,6 @@ public class HandScreen extends SwanScreen {
 		// send the request to the server
 		if (betValue == -1) {
 			getSocketIO().emitToScreen(PokerLib.FOLD_REQUEST, getSocketIO().getNickname());
-			disableActionButtons();
-			return;
 		} else {
 			getSocketIO().emitToScreen(PokerLib.BET_REQUEST, getSocketIO().getNickname(), betValue);
 		}
