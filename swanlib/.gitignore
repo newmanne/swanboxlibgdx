@@ -1,1 +1,7 @@
 bin/
+build/
+.gradle/
+local.properties
+.settings/
+.classpath
+.project

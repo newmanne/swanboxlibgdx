@@ -1,0 +1,57 @@
+buildscript {
+
+    ext.gdxVersion = "1.0-SNAPSHOT"
+
+    repositories {
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+
+    dependencies {
+        classpath "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
+    }
+}
+
+apply plugin: "java"
+apply plugin: "maven"
+apply plugin: "eclipse"
+
+group = "com.swandev"
+version = "1.0"
+ext.appName = "swanlib"
+
+sourceCompatibility = 1.6
+
+configurations {
+	provided
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    mavenLocal();
+}
+
+dependencies {
+    compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+    compile "org.projectlombok:lombok:1.12.6" 
+    compile group: 'com.google.guava', name: 'guava', version: '16.0'
+    compile group: 'com.google.code.gson', name:'gson', version:'2.2.4'
+    compile group: 'org.gottox', name: 'socketio', version:'1.0'
+    //compile files('libs/socketio.jar')
+    runtime files('libs/lombok-api.jar')
+}
+
+sourceSets.main.java.srcDirs = [ "src/" ]
+
+eclipse.project {
+    name = appName + "-core"
+}
+
+import com.badlogic.gdx.tools.texturepacker.TexturePacker
+task texturePacker << {
+  if (project.ext.has('texturePacker')) {
+    logger.info "Calling TexturePacker: "+texturePacker
+    TexturePacker.process(texturePacker[0], texturePacker[1], texturePacker[2])
+  }
+}
