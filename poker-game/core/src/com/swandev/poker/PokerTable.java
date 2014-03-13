@@ -111,7 +111,7 @@ public class PokerTable {
 	private boolean shouldAdvanceRounds() {
 		// If everyone has checked (ie call value is 0 and the player who just played was last alive closest to dealer)
 		boolean shouldAdvance = false;
-		// TODO: the dealer folding could really screw this up
+		// TODO: this should obviously be closest to dealer, not the dealear, because if the dealer folds this will break
 		if (callValue == 0 && currentPlayer == dealer) {
 			shouldAdvance = true;
 		} else {
@@ -160,15 +160,19 @@ public class PokerTable {
 			}
 		});
 		Collections.reverse(showdownPlayers);
-		// TODO: actually handle ties by adding all the people to the winners list (easy)
-		List<PlayerStats> winners = Lists.newArrayList(showdownPlayers.get(0));
+		List<PlayerStats> winners = Lists.newArrayList();
+		int i = 0;
+		while (i < showdownPlayers.size() && showdownPlayers.get(i).getHand().equals(showdownPlayers.get(0).getHand())) {
+			winners.add(showdownPlayers.get(i));
+			i++;
+		}
 		pot.payout(winners);
 		Gdx.app.log("poker", "Winning hands " + showdownPlayers.get(0).getHand());
 		for (PlayerStats player : players) {
 			player.setAlive(player.getMoney() > 0);
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, winners.contains(player));
 		}
-		// TODO: check for GameOver condition
+		// TODO: check for GameOver condition (1 alive player)
 		pokerGameScreen.uiBetweenHands();
 	}
 }
