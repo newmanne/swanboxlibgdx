@@ -138,8 +138,10 @@ public class HandScreen extends SwanScreen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				state.callValue = (Integer) args[0];
-				callLabel.setText(new Integer(state.callValue).toString());
+				state.betValue = (Integer) args[0];
+				state.chipValue = (Integer) args[1];
+				state.callValue = (Integer) args[2];
+				callLabel.setText(Integer.toString(state.callValue));
 				enableLegalActionButtons();
 			}
 		});

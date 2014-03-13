@@ -54,18 +54,19 @@ public class PokerTable {
 			}
 		}
 
-		dealer = nextAlivePlayer(dealer);
-		currentPlayer = nextAlivePlayer(dealer);
+		dealer = nextUnfoldedAlivePlayer(dealer);
+		currentPlayer = nextUnfoldedAlivePlayer(dealer);
 		pokerGameScreen.uiForPreFlop();
-		pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, players.get(currentPlayer).getName(), callValue);
+		PlayerStats playerStats = players.get(currentPlayer);
+		pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
 	}
 
-	private int nextAlivePlayer(int playerNumber) {
-		int nextAlivePlayer = (playerNumber + 1) % players.size();
-		while (!players.get(nextAlivePlayer).isAlive()) {
-			nextAlivePlayer = (playerNumber + 1) % players.size();
+	private int nextUnfoldedAlivePlayer(int playerNumber) {
+		int nextUnfoldedAlivePlayer = (playerNumber + 1) % players.size();
+		while (!players.get(nextUnfoldedAlivePlayer).isAlive() || players.get(nextUnfoldedAlivePlayer).isFolded()) {
+			nextUnfoldedAlivePlayer = (playerNumber + 1) % players.size();
 		}
-		return nextAlivePlayer;
+		return nextUnfoldedAlivePlayer;
 	}
 
 	private PokerHand getBestHand(PlayerStats player) {
@@ -102,24 +103,30 @@ public class PokerTable {
 		} else if (shouldAdvanceRounds()) {
 			nextRound();
 		} else {
-			currentPlayer = nextAlivePlayer(currentPlayer);
-			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, players.get(currentPlayer).getName(), callValue);
+			currentPlayer = nextUnfoldedAlivePlayer(currentPlayer);
+			PlayerStats playerStats = players.get(currentPlayer);
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
 		}
 	}
 
 	private boolean shouldAdvanceRounds() {
-		// If everyone still in has bet the same amount, the round should end
+		// If everyone has checked (ie call value is 0 and the player who just played was last alive closest to dealer)
 		boolean shouldAdvance = false;
-		List<Integer> bets = Lists.newArrayList();
-		for (PlayerStats player : players) {
-			if (player.isAlive() && !player.isFolded() && player.getBet() != 0) {
-				bets.add(player.getBet());
+		// TODO: the dealer folding could really screw this up
+		if (callValue == 0 && currentPlayer == dealer) {
+			shouldAdvance = true;
+		} else {
+			// If everyone alive still in has bet the same amount, the round should end
+			List<Integer> bets = Lists.newArrayList();
+			for (PlayerStats player : players) {
+				if (player.isAlive() && !player.isFolded() && player.getBet() != 0) {
+					bets.add(player.getBet());
+				}
+			}
+			if (bets.size() == getNumRemainingPlayersInRound() && Sets.newHashSet(bets).size() == 1) {
+				shouldAdvance = true;
 			}
 		}
-		if (bets.size() == getNumRemainingPlayersInRound() && Sets.newHashSet(bets).size() == 1) {
-			shouldAdvance = true;
-		}
-		// TODO: Otherwise, if everyone has checked
 		return shouldAdvance;
 	}
 
@@ -133,7 +140,9 @@ public class PokerTable {
 				player.clearBet();
 			}
 			callValue = 0;
-			nextPlayer();
+			currentPlayer = nextUnfoldedAlivePlayer(dealer);
+			PlayerStats playerStats = players.get(currentPlayer);
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
 		}
 	}
 
@@ -152,7 +161,7 @@ public class PokerTable {
 			}
 		});
 		Collections.reverse(showdownPlayers);
-		// TODO: actually handle ties
+		// TODO: actually handle ties by adding all the people to the winners list (easy)
 		List<PlayerStats> winners = Lists.newArrayList(showdownPlayers.get(0));
 		pot.payout(winners);
 		Gdx.app.log("poker", "Winning hands " + showdownPlayers.get(0).getHand());
