@@ -458,7 +458,7 @@ public class HandScreen extends SwanScreen {
 				});
 			}
 		}
-	} // End of HandRenderer class
+	}
 
 	@Override
 	public void resize(int width, int height) {

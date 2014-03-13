@@ -19,7 +19,7 @@ public class PokerLib {
 	public final static int BET_CHECK = 0;
 	public final static int BET_FOLD = -1;
 
-	static public Map<Integer, TextureRegion> getCardTextures() {
+	public static Map<Integer, TextureRegion> getCardTextures() {
 		// Load the images from the texture pack into a map of card codes -> TextureRegions
 		Map<Integer, TextureRegion> cardList = Maps.newHashMap();
 		TextureAtlas cardAtlas = new TextureAtlas("images/cards/CardImages.pack");
