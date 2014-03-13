@@ -25,10 +25,9 @@ public class PlayerStats {
 	private int bet;
 	@Getter
 	private final String name;
-
-	public boolean isAlive() {
-		return money > 0;
-	}
+	@Getter
+	@Setter
+	private boolean alive = true;
 
 	public PlayerStats(String name, int money) {
 		this.name = name;

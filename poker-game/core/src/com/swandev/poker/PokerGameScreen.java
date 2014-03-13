@@ -169,7 +169,7 @@ public class PokerGameScreen extends SwanScreen {
 		buildPlayerTables(skin);
 
 		pokerTable = new PokerTable(this, players);
-		pokerTable.newRound();
+		pokerTable.newHand();
 	}
 
 	private void buildCards() {
@@ -235,7 +235,7 @@ public class PokerGameScreen extends SwanScreen {
 		}
 	}
 
-	public void uiBetweenRounds() {
+	public void uiBetweenHands() {
 		for (PlayerStats player : playerMap.values()) {
 			tables.get(player.getName()).setChipValue(player.getMoney()); // update the label
 		}
@@ -244,7 +244,7 @@ public class PokerGameScreen extends SwanScreen {
 
 			@Override
 			public void run() {
-				pokerTable.newRound();
+				pokerTable.newHand();
 
 			}
 		}, 5000);

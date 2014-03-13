@@ -22,7 +22,6 @@ public class PokerTable {
 	List<PlayerStats> players;
 	int dealer;
 	int currentPlayer;
-	int lastToAct;
 	final PokerGameScreen pokerGameScreen;
 
 	public PokerTable(PokerGameScreen pokerGameScreen, List<PlayerStats> players) {
@@ -30,7 +29,7 @@ public class PokerTable {
 		this.players = players;
 	}
 
-	public void newRound() {
+	public void newHand() {
 		Gdx.app.log("poker", "Starting a new round of poker!");
 		callValue = 0;
 		deck.reset();
@@ -46,7 +45,7 @@ public class PokerTable {
 				deck.deal(player);
 				Gdx.app.log("poker", "Dealt " + player.getPrivateCards() + " to player " + player.getName());
 				player.setHand(getBestHand(player));
-				List<Integer> cardPictureValues = Lists.newArrayList();
+				final List<Integer> cardPictureValues = Lists.newArrayList();
 				for (Card card : player.getPrivateCards()) {
 					cardPictureValues.add(card.getImageNumber());
 				}
@@ -92,14 +91,14 @@ public class PokerTable {
 
 	public void betPlayer(PlayerStats currentPlayer, int amount) {
 		currentPlayer.placeBet(amount, pot);
-		callValue += currentPlayer.getBet();
+		callValue = Math.max(callValue, currentPlayer.getBet());
 		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, currentPlayer.getName(), currentPlayer.getBet(), currentPlayer.getMoney(), callValue);
 		nextPlayer();
 	}
 
 	private void nextPlayer() {
 		if (getNumRemainingPlayersInRound() == 1) {
-			endRound();
+			endHand();
 		} else if (shouldAdvanceRounds()) {
 			nextRound();
 		} else {
@@ -116,10 +115,10 @@ public class PokerTable {
 		if (callValue == 0 && currentPlayer == dealer) {
 			shouldAdvance = true;
 		} else {
-			// If everyone alive still in has bet the same amount, the round should end
+			// If everyone alive still in has bet the same (non-zero) amount, the round should end
 			List<Integer> bets = Lists.newArrayList();
 			for (PlayerStats player : players) {
-				if (player.isAlive() && !player.isFolded() && player.getBet() != 0) {
+				if (player.isAlive() && !player.isFolded() && player.getBet() > 0) {
 					bets.add(player.getBet());
 				}
 			}
@@ -132,7 +131,7 @@ public class PokerTable {
 
 	private void nextRound() {
 		if (round == PokerRound.RIVER) {
-			endRound();
+			endHand();
 		} else {
 			round = PokerRound.values()[round.ordinal() + 1];
 			pokerGameScreen.uiForDrawCards(round);
@@ -146,7 +145,7 @@ public class PokerTable {
 		}
 	}
 
-	public void endRound() {
+	public void endHand() {
 		final List<PlayerStats> showdownPlayers = Lists.newArrayList();
 		for (PlayerStats player : players) {
 			if (player.isAlive() && !player.isFolded()) {
@@ -166,8 +165,10 @@ public class PokerTable {
 		pot.payout(winners);
 		Gdx.app.log("poker", "Winning hands " + showdownPlayers.get(0).getHand());
 		for (PlayerStats player : players) {
+			player.setAlive(player.getMoney() > 0);
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, winners.contains(player));
 		}
-		pokerGameScreen.uiBetweenRounds();
+		// TODO: check for GameOver condition
+		pokerGameScreen.uiBetweenHands();
 	}
 }

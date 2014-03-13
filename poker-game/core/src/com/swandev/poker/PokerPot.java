@@ -18,7 +18,7 @@ public class PokerPot {
 	}
 
 	public void payout(List<PlayerStats> winners) {
-		// TODO: actually deal with split pots
+		// TODO: actually deal with split pots - perhaps this should have a map<Player, contribution> ?
 		for (PlayerStats winner : winners) {
 			winner.setMoney(winner.getMoney() + value / winners.size());
 		}
