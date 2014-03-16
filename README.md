@@ -5,7 +5,7 @@ swanbox is an awesome library/platform/collection of apps that lets you experien
 
 first time setup
 ============
-To begin: Install the [gradle plugin for eclipse](https://github.com/spring-projects/eclipse-integration-gradle/). Then install maven. Then install swanlib into your local repository (you will have to do this every time you make a change to swanlib) by running `./gradlew install` in the swanlib dir. You will need to install the socketio jar into your local .m2 repostory also (cd into swanlib/libs and run `;mvn install:install-file -Dfile=socketio.jar -DgroupId=org.gottox -DartifactId=socketio -Dversion=1.0 -Dpackaging=jar`. Then in eclipse, import existing GRADLE PROJECTS. Import the android/core/desktop versions. 
+To begin: Install the [gradle plugin for eclipse](https://github.com/spring-projects/eclipse-integration-gradle/). Then install maven. You will need to install the socketio jar into your local .m2 repostory also (cd into swanlib/libs and run `mvn install:install-file -Dfile=socketio.jar -DgroupId=org.gottox -DartifactId=socketio -Dversion=1.0 -Dpackaging=jar`. Then in eclipse, import existing GRADLE PROJECTS. Import the android/core/desktop versions. Then install swanlib into your local repository (you will have to do this every time you make a change to swanlib) by running `./gradlew install` in the swanlib dir. 
 
 
 running
