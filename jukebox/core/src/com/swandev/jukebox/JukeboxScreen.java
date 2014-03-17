@@ -1,5 +1,7 @@
 package com.swandev.jukebox;
 
+import io.socket.IOAcknowledge;
+
 import java.util.List;
 import java.util.Queue;
 
@@ -10,7 +12,9 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
+//import com.swandev.swangame.socket.SocketIOEvents;
 import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.socket.SocketIOState;
 
@@ -19,6 +23,7 @@ public class JukeboxScreen extends SwanScreen {
 	private static final String MUSIC_DIR = "Music/";
 	final List<SongData> songs = Lists.newArrayList();
 	final Queue<SongData> playList = Queues.newConcurrentLinkedQueue();
+	public boolean isPaused = false;
 
 	public JukeboxScreen(SocketIOState socketIO) {
 		super(socketIO);
@@ -34,6 +39,8 @@ public class JukeboxScreen extends SwanScreen {
 	public void show() {
 		super.show();
 		updateSongList();
+		//broadcast to all players the current song list on the system.
+		getSocketIO().swanBroadcast(JukeboxLib.SEND_SONGLIST, songs);
 		playList.add(songs.get(0));
 	}
 
@@ -58,13 +65,37 @@ public class JukeboxScreen extends SwanScreen {
 			final SongData currentSong = playList.peek();
 			final Music currentMusic = currentSong.getMusic();
 			if (!currentMusic.isPlaying()) {
-				if (currentMusic.getPosition() > 0) { // song over
-					playList.remove();
-				} else {
-					currentMusic.play(); // begin a new song
+				if (!isPaused){
+					if (currentMusic.getPosition() > 0) { // song over
+						playList.remove();
+					} else {
+						currentMusic.play(); // begin a new song
+					}
 				}
 			}
 		}
+	}
+	
+	public void jukeboxPlay(){
+		Music currentSong = playList.peek().getMusic();
+		currentSong.play();
+		isPaused = false;
+	}
+	
+	public void jukeboxPause(){
+		Music currentSong = playList.peek().getMusic();
+		isPaused = true;
+		currentSong.pause();
+	}
+	
+	public void jukeboxNext(){
+		Music currentSong = playList.peek().getMusic();
+		currentSong.stop();
+	}
+	
+	
+	public void addToPlaylist(String songName){
+		playList.add(songs.get(songs.indexOf(songName)));
 	}
 
 	public void printPlayList() {
@@ -84,6 +115,44 @@ public class JukeboxScreen extends SwanScreen {
 	@Override
 	protected void registerEvents() {
 		// TODO Auto-generated method stub
+		
+		getSocketIO().on(JukeboxLib.REQUEST_SONGLIST, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				//getSocketIO().swanEmit(JukeboxLib.SEND_SONGLIST, , args)
+				getSocketIO().swanBroadcast(JukeboxLib.SEND_SONGLIST, songs);
+			}
+
+		});
+		
+		getSocketIO().on(JukeboxLib.ADD_TO_PLAYLIST, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				String songName = (String) args[0];
+				addToPlaylist(songName);
+			}
+
+		});
+		
+		getSocketIO().on(JukeboxLib.USER_PLAY, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				jukeboxPlay();
+			}
+		});
+		
+		getSocketIO().on(JukeboxLib.USER_PAUSE, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				String songName = (String) args[0];
+				addToPlaylist(songName);
+			}
+
+		});
 
 	}
 
