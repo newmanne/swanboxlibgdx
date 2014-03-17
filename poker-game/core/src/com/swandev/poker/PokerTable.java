@@ -43,8 +43,10 @@ public class PokerTable {
 		deck.shuffle();
 		tableCards = deck.dealTable();
 		Gdx.app.log("poker", "Table cards are " + tableCards);
+		PlayerStats lastAlive = null;
 		for (PlayerStats player : players) {
 			if (player.isAlive()) {
+				lastAlive = player;
 				deck.deal(player);
 				Gdx.app.log("poker", "Dealt " + player.getPrivateCards() + " to player " + player.getName());
 				player.setHand(getBestHand(player));
@@ -53,14 +55,20 @@ public class PokerTable {
 					cardPictureValues.add(card.getImageNumber());
 				}
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), cardPictureValues, 0, player.getMoney(), 0);
+			} else {
+				pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, player.getName());
 			}
 		}
 		numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
-		dealer = nextUnfoldedAlivePlayer(dealer);
-		currentPlayer = nextUnfoldedAlivePlayer(dealer);
-		pokerGameScreen.uiForPreFlop();
-		PlayerStats playerStats = players.get(currentPlayer);
-		pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
+		if (getNumRemainingPlayersInRound() == 1) {
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, lastAlive.getName());
+		} else {
+			dealer = nextUnfoldedAlivePlayer(dealer);
+			currentPlayer = nextUnfoldedAlivePlayer(dealer);
+			pokerGameScreen.uiForPreFlop();
+			PlayerStats playerStats = players.get(currentPlayer);
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
+		}
 	}
 
 	private int nextUnfoldedAlivePlayer(int playerNumber) {

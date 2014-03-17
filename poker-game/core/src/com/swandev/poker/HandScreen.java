@@ -181,6 +181,13 @@ public class HandScreen extends SwanScreen {
 				disableActionButtons();
 			}
 		});
+		getSocketIO().on(PokerLib.GAMEOVER, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				game.setScreen(game.getConnectScreen());
+			}
+		});
 	}
 
 	@Override
@@ -189,7 +196,7 @@ public class HandScreen extends SwanScreen {
 		eventEmitter.unregisterEvent(PokerLib.DEAL_HAND);
 		eventEmitter.unregisterEvent(PokerLib.YOUR_TURN);
 		eventEmitter.unregisterEvent(PokerLib.ACTION_ACKNOWLEDGE);
-
+		eventEmitter.unregisterEvent(PokerLib.GAMEOVER);
 	}
 
 	private void buildBackground(Skin skin) {
