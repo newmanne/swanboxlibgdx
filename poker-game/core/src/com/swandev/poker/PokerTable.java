@@ -22,6 +22,7 @@ public class PokerTable {
 	List<PlayerStats> players;
 	int dealer;
 	int currentPlayer;
+	int numChecksOrFoldsRequiredToAdvanceRounds;
 	final PokerGameScreen pokerGameScreen;
 
 	public PokerTable(PokerGameScreen pokerGameScreen, List<PlayerStats> players) {
@@ -53,7 +54,7 @@ public class PokerTable {
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), cardPictureValues, 0, player.getMoney(), 0);
 			}
 		}
-
+		numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
 		dealer = nextUnfoldedAlivePlayer(dealer);
 		currentPlayer = nextUnfoldedAlivePlayer(dealer);
 		pokerGameScreen.uiForPreFlop();
@@ -64,7 +65,7 @@ public class PokerTable {
 	private int nextUnfoldedAlivePlayer(int playerNumber) {
 		int nextUnfoldedAlivePlayer = (playerNumber + 1) % players.size();
 		while (!players.get(nextUnfoldedAlivePlayer).isAlive() || players.get(nextUnfoldedAlivePlayer).isFolded()) {
-			nextUnfoldedAlivePlayer = (playerNumber + 1) % players.size();
+			nextUnfoldedAlivePlayer = (nextUnfoldedAlivePlayer + 1) % players.size();
 		}
 		return nextUnfoldedAlivePlayer;
 	}
@@ -87,12 +88,18 @@ public class PokerTable {
 
 	public void foldPlayer(PlayerStats player) {
 		player.setFolded(true);
+		numChecksOrFoldsRequiredToAdvanceRounds--;
 		nextPlayer();
 	}
 
 	public void betPlayer(PlayerStats currentPlayer, int amount) {
-		currentPlayer.placeBet(amount, pot);
-		callValue = Math.max(callValue, currentPlayer.getBet());
+		if (amount == PokerLib.BET_CHECK) {
+			numChecksOrFoldsRequiredToAdvanceRounds--;
+		} else {
+			numChecksOrFoldsRequiredToAdvanceRounds = Integer.MAX_VALUE; // this condition can't happen anymore
+			currentPlayer.placeBet(amount, pot);
+			callValue = Math.max(callValue, currentPlayer.getBet());
+		}
 		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, currentPlayer.getName(), currentPlayer.getBet(), currentPlayer.getMoney(), callValue);
 		nextPlayer();
 	}
@@ -112,8 +119,8 @@ public class PokerTable {
 	private boolean shouldAdvanceRounds() {
 		// If everyone has checked (ie call value is 0 and the player who just played was last alive closest to dealer)
 		boolean shouldAdvance = false;
-		// TODO: this should obviously be closest to dealer, not the dealear, because if the dealer folds this will break
-		if (callValue == 0 && currentPlayer == dealer) {
+		if (numChecksOrFoldsRequiredToAdvanceRounds == 0) {
+			Gdx.app.log("POKER", "Advancing rounds because everyone has checked or folded");
 			shouldAdvance = true;
 		} else {
 			// If everyone alive still in has bet the same (non-zero) amount, the round should end
@@ -135,11 +142,13 @@ public class PokerTable {
 			endHand();
 		} else {
 			round = PokerRound.values()[round.ordinal() + 1];
+			Gdx.app.log("POKER", "Advancing to round " + round);
 			pokerGameScreen.uiForDrawCards(round);
 			for (PlayerStats player : players) {
 				player.clearBet();
 			}
 			callValue = 0;
+			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
 			currentPlayer = nextUnfoldedAlivePlayer(dealer);
 			PlayerStats playerStats = players.get(currentPlayer);
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
