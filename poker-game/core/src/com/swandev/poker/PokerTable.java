@@ -97,7 +97,11 @@ public class PokerTable {
 		if (amount == PokerLib.BET_CHECK) {
 			numChecksOrFoldsRequiredToAdvanceRounds--;
 		} else {
-			numChecksOrFoldsRequiredToAdvanceRounds = Integer.MAX_VALUE; // this condition can't happen anymore
+			numChecksOrFoldsRequiredToAdvanceRounds = Integer.MAX_VALUE; // this
+																			// condition
+																			// can't
+																			// happen
+																			// anymore
 			currentPlayer.placeBet(amount, pot);
 			callValue = Math.max(callValue, currentPlayer.getBet());
 		}
@@ -118,13 +122,15 @@ public class PokerTable {
 	}
 
 	private boolean shouldAdvanceRounds() {
-		// If everyone has checked (ie call value is 0 and the player who just played was last alive closest to dealer)
+		// If everyone has checked (ie call value is 0 and the player who just
+		// played was last alive closest to dealer)
 		boolean shouldAdvance = false;
 		if (numChecksOrFoldsRequiredToAdvanceRounds == 0) {
 			Gdx.app.log("POKER", "Advancing rounds because everyone has checked or folded");
 			shouldAdvance = true;
 		} else {
-			// If everyone alive still in has bet the same (non-zero) amount, the round should end
+			// If everyone alive still in has bet the same (non-zero) amount,
+			// the round should end
 			List<Integer> bets = Lists.newArrayList();
 			for (PlayerStats player : players) {
 				if (player.isAlive() && !player.isFolded() && player.getBet() > 0) {
@@ -148,31 +154,31 @@ public class PokerTable {
 			int numAllin = 0;
 			for (PlayerStats player : players) {
 				player.clearBet();
-				if (player.isAllIn()){
+				if (player.isAllIn()) {
 					numAllin++;
 				}
 			}
 			callValue = 0;
 			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound() - numAllin;
-			if (numChecksOrFoldsRequiredToAdvanceRounds == 0){
+			if (numChecksOrFoldsRequiredToAdvanceRounds == 0) {
 				round = PokerRound.RIVER;
 				pokerGameScreen.uiForDrawCards(round);
 				endHand();
+			} else {
+				currentPlayer = nextUnfoldedAlivePlayer(dealer);
+				PlayerStats playerStats = players.get(currentPlayer);
+				pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
 			}
-			currentPlayer = nextUnfoldedAlivePlayer(dealer);
-			PlayerStats playerStats = players.get(currentPlayer);
-			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
 		}
 	}
 
 	public void endHand() {
 		final List<PlayerStats> showdownPlayers = Lists.newArrayList();
-		final List<PlayerStats> foldedList = Lists.newArrayList(); 
+		final List<PlayerStats> foldedList = Lists.newArrayList();
 		for (PlayerStats player : players) {
 			if (player.isAlive() && !player.isFolded()) {
 				showdownPlayers.add(player);
-			}
-			else if(player.isAlive() && player.isFolded()){
+			} else if (player.isAlive() && player.isFolded()) {
 				foldedList.add(player);
 			}
 		}
@@ -193,16 +199,15 @@ public class PokerTable {
 		// TODO: check for GameOver condition (1 alive player)
 		pokerGameScreen.uiBetweenHands();
 	}
-	
+
 	@VisibleForTesting
 	public void endHandDummy() {
 		final List<PlayerStats> showdownPlayers = Lists.newArrayList();
-		final List<PlayerStats> foldedList = Lists.newArrayList(); 
+		final List<PlayerStats> foldedList = Lists.newArrayList();
 		for (PlayerStats player : players) {
 			if (player.isAlive() && !player.isFolded()) {
 				showdownPlayers.add(player);
-			}
-			else if(player.isAlive() && player.isFolded()){
+			} else if (player.isAlive() && player.isFolded()) {
 				foldedList.add(player);
 			}
 		}
