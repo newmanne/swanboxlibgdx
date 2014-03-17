@@ -118,7 +118,18 @@ public class PokerTable {
 	}
 
 	private void nextPlayer() {
-		if (getNumRemainingPlayersInRound() == 1) {
+		int numAllin = 0;
+		for (PlayerStats player : players) {
+			if (player.isAllIn()) {
+				numAllin++;
+			}
+		}
+		if (getNumRemainingPlayersInRound() - numAllin <= 0){
+			round = PokerRound.RIVER;
+			pokerGameScreen.uiForDrawCards(round);
+			endHand();
+		}
+		else if (getNumRemainingPlayersInRound() == 1) {
 			endHand();
 		} else if (shouldAdvanceRounds()) {
 			nextRound();
@@ -133,6 +144,7 @@ public class PokerTable {
 		// If everyone has checked (ie call value is 0 and the player who just
 		// played was last alive closest to dealer)
 		boolean shouldAdvance = false;
+
 		if (numChecksOrFoldsRequiredToAdvanceRounds == 0) {
 			Gdx.app.log("POKER", "Advancing rounds because everyone has checked or folded");
 			shouldAdvance = true;
@@ -159,24 +171,15 @@ public class PokerTable {
 			round = PokerRound.values()[round.ordinal() + 1];
 			Gdx.app.log("POKER", "Advancing to round " + round);
 			pokerGameScreen.uiForDrawCards(round);
-			int numAllin = 0;
 			for (PlayerStats player : players) {
 				player.clearBet();
-				if (player.isAllIn()) {
-					numAllin++;
-				}
 			}
 			callValue = 0;
-			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound() - numAllin;
-			if (numChecksOrFoldsRequiredToAdvanceRounds == 0) {
-				round = PokerRound.RIVER;
-				pokerGameScreen.uiForDrawCards(round);
-				endHand();
-			} else {
-				currentPlayer = nextUnfoldedAlivePlayer(dealer);
-				PlayerStats playerStats = players.get(currentPlayer);
-				pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
-			}
+			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
+			currentPlayer = nextUnfoldedAlivePlayer(dealer);
+			PlayerStats playerStats = players.get(currentPlayer);
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
+
 		}
 	}
 
