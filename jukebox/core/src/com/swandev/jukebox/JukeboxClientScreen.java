@@ -56,7 +56,7 @@ public class JukeboxClientScreen extends SwanScreen {
 					protected void result(Object result) {
 						if (result.equals(true)) {
 							Gdx.app.log("JUKEBOX", "Song " + songName + " selected to be played");
-							getSocketIO().emitToScreen(JukeboxLib.ADD_TO_PLAYLIST, songName);
+							getSocketIO().emitToScreen(JukeboxLib.ADD_TO_PLAYLIST, getSocketIO().getNickname(), songName);
 							songSelected = true;
 						}
 					}
