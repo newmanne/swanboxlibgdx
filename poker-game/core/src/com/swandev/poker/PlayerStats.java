@@ -28,6 +28,11 @@ public class PlayerStats {
 	@Getter
 	@Setter
 	private boolean alive = true;
+	@Getter
+	@Setter
+	private int totalBet;
+	@Getter
+	private boolean allIn = false;
 
 	public PlayerStats(String name, int money) {
 		this.name = name;
@@ -37,6 +42,10 @@ public class PlayerStats {
 	public void placeBet(int amount, PokerPot pot) {
 		bet += amount;
 		money -= amount;
+		if (money == 0){
+			allIn = true;
+		}
+		totalBet += amount;
 		pot.add(amount);
 	}
 
@@ -48,6 +57,8 @@ public class PlayerStats {
 		bet = 0;
 		folded = false;
 		privateCards.clear();
+		totalBet = 0;
+		allIn = false;
 	}
 
 }
