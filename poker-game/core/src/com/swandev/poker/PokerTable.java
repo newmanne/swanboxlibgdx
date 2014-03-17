@@ -62,6 +62,7 @@ public class PokerTable {
 		numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
 		if (getNumRemainingPlayersInRound() == 1) {
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, lastAlive.getName());
+			pokerGameScreen.game.setScreen(pokerGameScreen.game.getServerConnectScreen());
 		} else {
 			dealer = nextUnfoldedAlivePlayer(dealer);
 			currentPlayer = nextUnfoldedAlivePlayer(dealer);

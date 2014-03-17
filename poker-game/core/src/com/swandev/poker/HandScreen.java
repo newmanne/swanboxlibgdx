@@ -477,6 +477,7 @@ public class HandScreen extends SwanScreen {
 	@Override
 	public void show() {
 		super.show();
+		state.reset();
 		myHand = new HandRenderer(state);
 
 		final Skin skin = game.getAssets().getSkin();

@@ -253,6 +253,7 @@ public class PokerGameScreen extends SwanScreen {
 	@Override
 	public void hide() {
 		// TODO Auto-generated method stub
+		
 
 	}
 
