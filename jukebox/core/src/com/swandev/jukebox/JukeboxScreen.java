@@ -1,96 +1,78 @@
 package com.swandev.jukebox;
 
 import java.util.List;
+import java.util.Queue;
+
+import lombok.Data;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.socket.SocketIOState;
 
-
 public class JukeboxScreen extends SwanScreen {
 
-	List<SongData> songs = Lists.newArrayList();
-	List<SongData> playList = Lists.newArrayList();
-	Music currentSong;
-	Skin buttonSkin;
-	
+	private static final String MUSIC_DIR = "Music/";
+	final List<SongData> songs = Lists.newArrayList();
+	final Queue<SongData> playList = Queues.newConcurrentLinkedQueue();
 
 	public JukeboxScreen(SocketIOState socketIO) {
 		super(socketIO);
 	}
 
-
 	@Override
 	public void render(float delta) {
 		super.render(delta);
-		playStatus();
+		jukeboxLogic();
 	}
 
 	@Override
 	public void show() {
 		super.show();
-		getSongList();
-		playList = songs;
-	
+		updateSongList();
+		playList.add(songs.get(0));
 	}
-	
-	public void getSongList(){
-		boolean exists = Gdx.files.external("Music/").isDirectory();
-		if (!exists){
-			//error
+
+	public void updateSongList() {
+		songs.clear();
+		if (!Gdx.files.external(MUSIC_DIR).isDirectory()) {
+			throw new RuntimeException("Could not find music directory!");
 		}
-		
-		FileHandle [] files = Gdx.files.external("Music/").list();
-		for (FileHandle song : files){
-			String fileName = song.nameWithoutExtension();
-			Music songName = Gdx.audio.newMusic(song);
-			SongData songData = new SongData(fileName, songName);
+		final FileHandle[] files = Gdx.files.external(MUSIC_DIR).list();
+		for (FileHandle file : files) {
+			final String fileName = file.nameWithoutExtension();
+			final Music song = Gdx.audio.newMusic(file);
+			final SongData songData = new SongData(fileName, song);
 			songs.add(songData);
 		}
 	}
-	
-	public void playStatus(){
-		if (currentSong == null){
-			printPlayList();
-			currentSong = playList.get(0).music;
-			currentSong.play();
-		}
-		if (!currentSong.isPlaying()){
-			removeFromPlayList();
-			printPlayList();
-			if (!playList.isEmpty()){
-				currentSong = songs.get(0).music;
-				currentSong.play();
+
+	public void jukeboxLogic() {
+		if (playList.isEmpty()) {
+			return;
+		} else {
+			final SongData currentSong = playList.peek();
+			final Music currentMusic = currentSong.getMusic();
+			if (!currentMusic.isPlaying()) {
+				if (currentMusic.getPosition() > 0) { // song over
+					playList.remove();
+				} else {
+					currentMusic.play(); // begin a new song
+				}
 			}
 		}
-		
 	}
-	
-	
-	public synchronized void addToPlayList(SongData song){
-		playList.add(song);
-	}
-	
-	
-	public synchronized void removeFromPlayList(){
-		if (!playList.isEmpty()){
-			playList.remove(0);
+
+	public void printPlayList() {
+		Gdx.app.log("JUKEBOX", "Printing Play List");
+		for (SongData song : songs) {
+			Gdx.app.log("JUKEBOX", song.toString());
 		}
-	}
-	
-	public void printPlayList(){
-		int length = playList.size();
-		int i;
-		System.out.println("Printing Play List");
-		for (i = 0; i < length; i++){
-			System.out.println(playList.get(i).songName);
-		}
-		System.out.println("///////////////////");
+		Gdx.app.log("JUKEBOX", "//////////////////");
 	}
 
 	@Override
@@ -111,14 +93,10 @@ public class JukeboxScreen extends SwanScreen {
 
 	}
 
-}
-
-class SongData{
-	String songName;
-	Music music;
-	
-	public SongData(String name, Music file){
-		songName = name;
-		music = file;
+	@Data
+	public static class SongData {
+		private final String songName;
+		private final Music music;
 	}
+
 }
