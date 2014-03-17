@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.Getter;
 
 import com.badlogic.gdx.Gdx;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.swandev.poker.PokerGameScreen.PokerRound;
@@ -182,5 +183,29 @@ public class PokerTable {
 		}
 		// TODO: check for GameOver condition (1 alive player)
 		pokerGameScreen.uiBetweenHands();
+	}
+	
+	@VisibleForTesting
+	public void endHandDummy() {
+		final List<PlayerStats> showdownPlayers = Lists.newArrayList();
+		final List<PlayerStats> foldedList = Lists.newArrayList(); 
+		for (PlayerStats player : players) {
+			if (player.isAlive() && !player.isFolded()) {
+				showdownPlayers.add(player);
+			}
+			else if(player.isAlive() && player.isFolded()){
+				foldedList.add(player);
+			}
+		}
+		Collections.sort(showdownPlayers, new Comparator<PlayerStats>() {
+
+			@Override
+			public int compare(PlayerStats o1, PlayerStats o2) {
+				return o1.getHand().compareTo(o2.getHand());
+			}
+		});
+		Collections.reverse(showdownPlayers);
+		List<PlayerStats> winners = Lists.newArrayList(pot.payout(showdownPlayers, foldedList));
+		winners.clear();
 	}
 }

@@ -6,7 +6,6 @@ import java.util.List;
 
 import lombok.Data;
 
-import com.badlogic.gdx.Gdx;
 import com.google.common.collect.Lists;
 
 @Data
@@ -23,11 +22,7 @@ public class PokerPot {
 	}
 
 	public List<PlayerStats> payout(List<PlayerStats> rankList, List<PlayerStats> foldedList) {
-		// TODO: actually deal with split pots - perhaps this should have a
-		// map<Player, contribution> ?
-		// for (PlayerStats winner : winners) {
-		// winner.setMoney(winner.getMoney() + value / winners.size());
-		// }
+		
 		List<PlayerStats> winners = Lists.newArrayList();
 		List<List<PlayerStats>> tierList = Lists.newArrayList();
 		int i, j, k, l;
@@ -35,7 +30,7 @@ public class PokerPot {
 			List<PlayerStats> sameTier = Lists.newArrayList();
 			sameTier.add(rankList.get(i));
 			for (i = i + 1; i < rankList.size(); i++) {
-				if (!sameTier.get(0).getHand().equals(rankList.get(i).getHand())) {
+				if (sameTier.get(0).getHand().compareTo(rankList.get(i).getHand()) != 0) {
 					i--;
 					break;
 				}
@@ -43,7 +38,8 @@ public class PokerPot {
 			}
 			tierList.add(sameTier);
 		}
-		// TODO: For each list in tierList, sort in ascending order of totalBet
+
+		// For each list in tierList, sort in ascending order of totalBet
 
 		for (List<PlayerStats> tier : tierList) {
 			Collections.sort(tier, new Comparator<PlayerStats>() {
@@ -55,7 +51,7 @@ public class PokerPot {
 			});
 		}
 
-		// TODO: For each person in the same tier, take away their contribution
+		// For each person in the same tier, take away their contribution
 		// from remaining players.
 		for (i = 0; i < tierList.size(); i++) {
 			List<PlayerStats> stillIn = Lists.newArrayList(tierList.get(i));
@@ -90,8 +86,6 @@ public class PokerPot {
 
 					}
 				}
-				Gdx.app.log("poker", "The current amount is " + amount);
-				Gdx.app.log("poker", "Tier and list " + i + ", " + j);
 				amount = amount / stillIn.size();
 				for (k = 0; k < stillIn.size(); k++) {
 					stillIn.get(k).setMoney(stillIn.get(k).getMoney() + amount);
