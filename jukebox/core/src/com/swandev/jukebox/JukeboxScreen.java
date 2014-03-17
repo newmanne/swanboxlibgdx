@@ -13,6 +13,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 //import com.swandev.swangame.socket.SocketIOEvents;
+//import com.swandev.swangame.socket.SocketIOEvents;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.socket.EventEmitter;
@@ -130,7 +131,8 @@ public class JukeboxScreen extends SwanScreen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				String songName = (String) args[0];
+				String sender = (String) args[0];
+				String songName = (String) args[1];
 				addToPlaylist(songName);
 			}
 
@@ -148,8 +150,16 @@ public class JukeboxScreen extends SwanScreen {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
-				String songName = (String) args[0];
-				addToPlaylist(songName);
+				jukeboxPause();
+			}
+
+		});
+		
+		getSocketIO().on(JukeboxLib.USER_NEXT, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				jukeboxNext();
 			}
 
 		});
@@ -157,9 +167,13 @@ public class JukeboxScreen extends SwanScreen {
 	}
 
 	@Override
-	protected void unregisterEvents(EventEmitter arg0) {
+	protected void unregisterEvents(EventEmitter eventEmitter) {
 		// TODO Auto-generated method stub
-
+		eventEmitter.unregisterEvent(JukeboxLib.ADD_TO_PLAYLIST);
+		eventEmitter.unregisterEvent(JukeboxLib.REQUEST_SONGLIST);
+		eventEmitter.unregisterEvent(JukeboxLib.USER_NEXT);
+		eventEmitter.unregisterEvent(JukeboxLib.USER_PLAY);
+		eventEmitter.unregisterEvent(JukeboxLib.USER_PAUSE);
 	}
 
 	@Data
