@@ -77,7 +77,7 @@ public class JukeboxClientScreen extends SwanScreen {
 	public void show() {
 		super.show();
 		Gdx.input.setInputProcessor(stage);
-		getSocketIO().emitToScreen(JukeboxLib.REQUEST_SONGLIST);
+		
 	}
 
 	@Override
@@ -88,6 +88,16 @@ public class JukeboxClientScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
+		
+		getSocketIO().on(JukeboxLib.SCREEN_READY, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				getSocketIO().emitToScreen(JukeboxLib.REQUEST_SONGLIST);
+			}
+		});
+		
+		
 		getSocketIO().on(JukeboxLib.SONG_OVER, new EventCallback() {
 
 			@Override

@@ -153,20 +153,14 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_swan_broadcast(self, event, args):
 
         print "BROADCASTING EVENT ", event, " WITH ARGS ", args 
-        full_args = self.socket.session['nickname'];
-        full_args.extend(args);
-        self.broadcast_event(event, *full_args)
+        self.broadcast_event(event, *args)
 
     def on_swan_emit(self, nickname, event, args):
         print "SENDING TO ", nickname, " EVENT ", event, " WITH ARGS ", args
-        full_args = self.socket.session['nickname'];
-        full_args.extend(args);
-        self.emit_to_nickname(nickname, event, full_args)
+        self.emit_to_nickname(nickname, event, args)
 
     def on_swan_broadcast_but_me(self,event,args):
-        full_args = self.socket.session['nickname'];
-        full_args.extend(args);
-        self.broadcast_event_not_me(event, *full_args)
+        self.broadcast_event_not_me(event, *args)
 
     def on_swan_get_nicknames(self):
         self.emit_to_socket("swan_get_nicknames", self.socket, self.request['nicknames'])
