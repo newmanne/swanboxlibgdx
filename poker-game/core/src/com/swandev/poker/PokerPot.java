@@ -89,7 +89,10 @@ public class PokerPot {
 				amount = amount / stillIn.size();
 				for (k = 0; k < stillIn.size(); k++) {
 					stillIn.get(k).setMoney(stillIn.get(k).getMoney() + amount);
-					if (!winners.contains(stillIn.get(k))) {
+					if (i == tierList.size()-1 && j == tierList.get(i).size() - 1){
+						// do nothing
+					}
+					else if (!winners.contains(stillIn.get(k))) {
 						winners.add(stillIn.get(k));
 					}
 				}

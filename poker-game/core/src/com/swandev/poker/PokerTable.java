@@ -145,7 +145,12 @@ public class PokerTable {
 		// If everyone has checked (ie call value is 0 and the player who just
 		// played was last alive closest to dealer)
 		boolean shouldAdvance = false;
-
+		int numAllin = 0;
+		for (PlayerStats player : players) {
+			if (player.isAllIn()) {
+				numAllin++;
+			}
+		}
 		if (numChecksOrFoldsRequiredToAdvanceRounds == 0) {
 			Gdx.app.log("POKER", "Advancing rounds because everyone has checked or folded");
 			shouldAdvance = true;
@@ -159,6 +164,10 @@ public class PokerTable {
 				}
 			}
 			if (bets.size() == getNumRemainingPlayersInRound() && Sets.newHashSet(bets).size() == 1) {
+				if (getNumRemainingPlayersInRound() - numAllin <=1){
+					round = PokerRound.RIVER;
+					pokerGameScreen.uiForDrawCards(round);
+				}
 				shouldAdvance = true;
 			}
 		}
