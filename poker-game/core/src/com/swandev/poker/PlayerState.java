@@ -34,4 +34,12 @@ public class PlayerState {
 		this.card1 = PokerLib.CARD_BACK;
 		this.card2 = PokerLib.CARD_BACK;
 	}
+	
+	public void reset(){
+		card1 = PokerLib.CARD_BACK;
+		card2 = PokerLib.CARD_BACK;
+		chipValue = 100000;
+		betValue = 0;
+		callValue = 0;
+	}
 }
