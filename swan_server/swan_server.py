@@ -13,14 +13,8 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     player_sessid = [];
     game_player_sessid = [];
     count = 0;
-    colourSequence = list()
-    colour = ['red', 'blue', 'green']
     screenSocket = None
     hostSocket = None
-    roundrobin = 0;
-
-    def on_test(self):
-        print 'test works'
 
 #Connection/Disconnection Code
 ################################################################################################
@@ -95,56 +89,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
 
 
-
-
-#Definition of Events for Applications to start
-################################################################################################
-################################################################################################
-################################################################################################
-
-    def on_start_chatroom (self):
-        print 'Starting Chatroom'
-        self.broadcast_event('playing_chatroom')
-
-    def on_start_patterns (self):
-        print 'Starting Patterns'
-        self.broadcast_event('playing_patterns')
-
-
-################################################################################################
-################################################################################################
-################################################################################################
-    
-
-#Chatroom Related Events
-################################################################################################
-################################################################################################
-################################################################################################
-    def on_user_message(self, msg):
-        # tmp = msg.split("/")
-        # if len(tmp) >= 2:
-        #     tmp = tmp[1].split(" ")
-        #     tmp2 = msg.split(" ", 2)
-        #     if tmp[0] is "w":
-        #         if len(tmp2) >= 3:
-        #             for pair in SwanNamespace.player_sessid:
-        #                 if pair[1] == tmp2[1]:
-        #                     self.emit_to_socket('msg_to_room', pair[0], self.socket.session['nickname'], tmp2[2])                      
-        #     else:
-        #         self.emit_to_room('main_room', 'msg_to_room',
-        #         self.socket.session['nickname'], msg)           
-        # else:
-        print msg[0]
-        self.broadcast_event('msg_to_room',self.socket.session['nickname'], msg[0])
-        #self.emit_to_room(self, 'main_room' 'msg_to_room',
-        #self.socket.session['nickname'], msg)
-
-
-################################################################################################
-################################################################################################
-################################################################################################        
-
-
 #Mailbox Implementation
 ################################################################################################
 ################################################################################################
@@ -158,9 +102,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_swan_emit(self, nickname, event, args):
         print "SENDING TO ", nickname, " EVENT ", event, " WITH ARGS ", args
         self.emit_to_nickname(nickname, event, args)
-
-    def on_swan_broadcast_but_me(self,event,args):
-        self.broadcast_event_not_me(event, *args)
 
     def on_swan_get_nicknames(self):
         self.emit_to_socket("swan_get_nicknames", self.socket, self.request['nicknames'])
@@ -178,8 +119,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def recv_message(self, message):
         print "PING!!!", message
-
-
 
     def emit_to_nickname(self, name, event, args):
         if name == "Screen":
