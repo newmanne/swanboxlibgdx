@@ -29,6 +29,9 @@ public class JukeboxClientScreen extends SwanScreen {
 	boolean songSelected = false;
 	final com.badlogic.gdx.scenes.scene2d.ui.List<String> list;
 	private final JukeboxClient game;
+	private TextButton pause;
+	private TextButton play;
+	private TextButton next;
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
@@ -36,15 +39,6 @@ public class JukeboxClientScreen extends SwanScreen {
 		this.game = game;
 		final Skin skin = game.getAssets().getSkin();
 		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);
-		final ScrollPane scroller = new ScrollPane(list);
-		final Table table = new Table();
-		table.setFillParent(true);
-		// TODO: why does this if statement not work?
-		// if (getSocketIO().isHost()) {
-		addHostButtons(table);
-		// }
-		table.add(scroller).fill().expand();
-		stage.addActor(table);
 		list.addListener(new ChangeListener() {
 
 			// Unfortunately without this hack the user is prompted with a dialog the moment the screen opens
@@ -76,15 +70,21 @@ public class JukeboxClientScreen extends SwanScreen {
 				}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
 			}
 		});
-
+		final Table table = new Table();
+		table.setFillParent(true);
+		addHostButtons(table);
+		final ScrollPane scroller = new ScrollPane(list);
+		table.add(scroller).fill().expand();
+		stage.addActor(table);
 	}
 
 	private void addHostButtons(Table table) {
 		Gdx.app.log("JUKEBOX", "Adding buttons for host");
 		final Skin skin = game.getAssets().getSkin();
-		final TextButton pause = new EventSendingTextButton("PAUSE", skin, JukeboxLib.USER_PAUSE);
-		final TextButton play = new EventSendingTextButton("PLAY", skin, JukeboxLib.USER_PLAY);
-		final TextButton next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
+		// TODO: make a play/pause button, its dumb to have both
+		pause = new EventSendingTextButton("PAUSE", skin, JukeboxLib.USER_PAUSE);
+		play = new EventSendingTextButton("PLAY", skin, JukeboxLib.USER_PLAY);
+		next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
 		table.add(pause);
 		table.add(play);
 		table.add(next);
@@ -115,6 +115,9 @@ public class JukeboxClientScreen extends SwanScreen {
 	@Override
 	public void show() {
 		super.show();
+		play.setVisible(getSocketIO().isHost());
+		pause.setVisible(getSocketIO().isHost());
+		next.setVisible(getSocketIO().isHost());
 		Gdx.input.setInputProcessor(stage);
 		getSocketIO().emitToScreen(JukeboxLib.REQUEST_SONGLIST);
 		// TODO: until we resolve that bug...
