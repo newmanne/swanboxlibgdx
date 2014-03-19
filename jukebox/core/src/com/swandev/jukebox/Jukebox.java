@@ -1,11 +1,21 @@
 package com.swandev.jukebox;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.KeyNotFoundException;
+import org.jaudiotagger.tag.TagException;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
@@ -54,11 +64,31 @@ public class Jukebox {
 		}
 		final FileHandle[] files = Gdx.files.external(MUSIC_DIR).list();
 		for (final FileHandle file : files) {
-			final String fileName = file.nameWithoutExtension();
-			final Music song = Gdx.audio.newMusic(file);
-			final SongData songData = new SongData(fileName, song);
-			songs.put(songData.getSongName(), songData);
+			if (file.extension().equals("mp3")) {
+				try {
+					addSongToLibrary(file);
+				} catch (Exception e) { // yes, catchall exceptions are bad, blah blah blah
+					Gdx.app.log("JUKEBOX", "Error adding " + file.name() + " to the library", e);
+				}
+			}
 		}
+	}
+
+	private void addSongToLibrary(final FileHandle file) throws CannotReadException, IOException, TagException, ReadOnlyFileException, InvalidAudioFrameException, KeyNotFoundException {
+		final AudioFile audioFile = AudioFileIO.read(file.file());
+		final String title = audioFile.getTag().getFirst(FieldKey.TITLE);
+		final Music song = Gdx.audio.newMusic(file);
+		int duration = audioFile.getAudioHeader().getTrackLength();
+		String artist;
+		try {
+			artist = audioFile.getTag().getFirst(FieldKey.ARTIST);
+		} catch (KeyNotFoundException e) {
+			artist = "UNKNOWN";
+		}
+		final SongData songData = new SongData(title, song, duration, artist);
+		Gdx.app.log("JUKEBOX", "Adding to library: " + songData);
+		// TODO: handle duplicates?
+		songs.put(songData.toString(), songData);
 	}
 
 	public SongRequest getCurrentSongRequest() {
@@ -119,6 +149,13 @@ public class Jukebox {
 	public static class SongData {
 		private final String songName;
 		private final Music music;
+		private final int lengthInSeconds;
+		private final String artist;
+
+		@Override
+		public String toString() {
+			return songName + " (" + artist + ")";
+		}
 	}
 
 	@Data

@@ -60,8 +60,7 @@ public class JukeboxServerScreen extends SwanScreen {
 		stage.act(delta);
 		final SongData songData = jukebox.getCurrentSongData();
 		if (songData != null) {
-			// TODO: it seems like its returning seconds even though its supposed to return millis?
-			timeElapsed.setText(formatTime((long) jukebox.getCurrentSongData().getMusic().getPosition()));
+			timeElapsed.setText(formatTimeElapsed(songData));
 		}
 	}
 
@@ -131,8 +130,8 @@ public class JukeboxServerScreen extends SwanScreen {
 
 	}
 
-	private String formatTime(long seconds) {
-		return String.format("%d s", seconds);
+	private String formatTimeElapsed(SongData song) {
+		return String.format("%.1f / %d s", song.getMusic().getPosition(), song.getLengthInSeconds());
 	}
 
 	@Override
