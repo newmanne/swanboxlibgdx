@@ -36,7 +36,7 @@ public class JukeboxClient extends Game {
 		socketIO = new SocketIOState();
 		shapeRenderer = new ShapeRenderer();
 		connectScreen = new JukeboxClientConnectScreen(this, socketIO, spriteBatch, getAssets().getSkin());
-		jukeboxClientScreen = new JukeboxClientScreen(getSocketIO());
+		jukeboxClientScreen = new JukeboxClientScreen(getSocketIO(), this);
 		setScreen(connectScreen);
 	}
 

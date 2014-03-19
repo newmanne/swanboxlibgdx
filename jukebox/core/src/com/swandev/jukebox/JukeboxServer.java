@@ -4,20 +4,10 @@ import lombok.Getter;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.swandev.swanlib.screen.ServerConnectScreen;
 import com.swandev.swanlib.socket.SocketIOState;
 
-
 public class JukeboxServer extends Game {
-	
-	@Getter
-	private SpriteBatch spriteBatch;
-
-	@Getter
-	private ShapeRenderer shapeRenderer;
 
 	@Getter
 	private Assets assets;
@@ -29,17 +19,15 @@ public class JukeboxServer extends Game {
 	private ServerConnectScreen serverConnectScreen;
 
 	@Getter
-	private JukeboxScreen jukeboxScreen;
+	private JukeboxServerScreen jukeboxScreen;
 
 	@Override
 	public void create() {
-		spriteBatch = new SpriteBatch();
 		assets = new Assets();
 		socketIO = new SocketIOState();
 		serverConnectScreen = new JukeboxServerConnectScreen(this, getSocketIO());
-		jukeboxScreen = new JukeboxScreen(getSocketIO());
+		jukeboxScreen = new JukeboxServerScreen(getSocketIO(), this);
 		setScreen(serverConnectScreen);
-		// setScreen(pokerServerScreen);
 	}
 
 	@Override
@@ -47,7 +35,6 @@ public class JukeboxServer extends Game {
 		super.dispose();
 		serverConnectScreen.dispose();
 		jukeboxScreen.dispose();
-		spriteBatch.dispose();
 		assets.dispose();
 	}
 
@@ -59,10 +46,8 @@ public class JukeboxServer extends Game {
 
 		@Override
 		protected Screen getGameScreen() {
-			// TODO Auto-generated method stub
 			return ((JukeboxServer) game).getJukeboxScreen();
 		}
-
 
 	}
 
