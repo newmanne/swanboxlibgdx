@@ -104,14 +104,16 @@ public class Jukebox {
 		final SongData currentSong = getCurrentSongData();
 		if (currentSong != null) {
 			final Music music = currentSong.getMusic();
-			music.setOnCompletionListener(new OnCompletionListener() {
-
-				@Override
-				public void onCompletion(Music music) {
-					popPlaylist();
-				}
-			});
-			music.play();
+			if (!music.isPlaying()){
+				music.setOnCompletionListener(new OnCompletionListener() {
+	
+					@Override
+					public void onCompletion(Music music) {
+						popPlaylist();
+					}
+				});
+				music.play();
+			}
 		}
 	}
 
