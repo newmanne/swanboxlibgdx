@@ -370,7 +370,7 @@ public class HandScreen extends SwanScreen {
 		foldButton.setDisabled(false); // you can always fold
 		if ((state.betValue < state.callValue) && (state.chipValue >= (state.callValue - state.betValue))) {
 			callButton.setDisabled(false); // you can only call if you haven't bet up to the call value
-		} else {
+		}else if (state.betValue == state.callValue){
 			checkButton.setDisabled(false); // otherwise you will be able to check
 		}
 		if (state.chipValue > 0) {
