@@ -3,6 +3,7 @@ package com.swandev.jukebox;
 import io.socket.IOAcknowledge;
 
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 
@@ -16,6 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.google.common.collect.ImmutableMap;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.socket.SocketIOState;
@@ -28,8 +30,7 @@ public class JukeboxClientScreen extends SwanScreen {
 	boolean songSelected = false;
 	final com.badlogic.gdx.scenes.scene2d.ui.List<String> list;
 	private final JukeboxClient game;
-	private TextButton pause;
-	private TextButton play;
+	private TextButton playPause;
 	private TextButton next;
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
@@ -81,25 +82,49 @@ public class JukeboxClientScreen extends SwanScreen {
 		Gdx.app.log("JUKEBOX", "Adding buttons for host");
 		final Skin skin = game.getAssets().getSkin();
 		// TODO: make a play/pause button, its dumb to have both
-		pause = new EventSendingTextButton("PAUSE", skin, JukeboxLib.USER_PAUSE);
-		play = new EventSendingTextButton("PLAY", skin, JukeboxLib.USER_PLAY);
 		next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
-		table.add(pause);
-		table.add(play);
+		playPause = new PlayPauseButton(skin);
+		table.add(playPause);
 		table.add(next);
 		table.row();
 	}
 
 	public class EventSendingTextButton extends TextButton {
 
-		public EventSendingTextButton(String text, Skin skin, final String socketevent) {
+		protected String socketEvent;
+
+		public EventSendingTextButton(String text, Skin skin, final String socketEvent) {
 			super(text, skin);
+			this.socketEvent = socketEvent;
 			addListener(new ChangeListener() {
 
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
-					getSocketIO().emitToScreen(socketevent);
+					getSocketIO().emitToScreen(socketEvent);
 				}
+			});
+		}
+	}
+
+	public class PlayPauseButton extends TextButton {
+
+		final private static String play = "PLAY";
+		final private static String pause = "PAUSE";
+		private String state;
+		Map<String, String> stateToEvents = ImmutableMap.of(play, JukeboxLib.USER_PLAY, pause, JukeboxLib.USER_PAUSE);
+
+		public PlayPauseButton(Skin skin) {
+			super(pause, skin);
+			state = pause;
+			addListener(new ChangeListener() {
+
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					getSocketIO().emitToScreen(stateToEvents.get(state));
+					state = state.equals(pause) ? play : pause;
+					setText(state);
+				}
+
 			});
 		}
 	}
@@ -114,8 +139,7 @@ public class JukeboxClientScreen extends SwanScreen {
 	@Override
 	public void show() {
 		super.show();
-		play.setVisible(getSocketIO().isHost());
-		pause.setVisible(getSocketIO().isHost());
+		playPause.setVisible(getSocketIO().isHost());
 		next.setVisible(getSocketIO().isHost());
 		Gdx.input.setInputProcessor(stage);
 		getSocketIO().emitToScreen(JukeboxLib.REQUEST_SONGLIST);
