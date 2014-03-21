@@ -28,8 +28,12 @@ public class SocketIOState {
 	final EventEmitter eventEmitter;
 
 	@Getter
-	@Setter
 	private String nickname;
+
+	public void setNickname(String nickname) {
+		client.emit(CommonSocketIOEvents.NICKNAME_SET, nickname);
+		this.nickname = nickname;
+	}
 
 	@Getter
 	private List<String> nicknames = Lists.newArrayList();
@@ -89,7 +93,6 @@ public class SocketIOState {
 	public void connect(final String serverAddress, final String nickname, final boolean isScreen, final ConnectCallback connectCallback) throws MalformedURLException {
 		final SocketIO socketIO = new SocketIO(serverAddress);
 		this.client = socketIO;
-		// TODO: make this modular...
 		client.connect(new IOCallback() {
 
 			@Override
@@ -114,13 +117,13 @@ public class SocketIOState {
 			public void onDisconnect() {
 				Gdx.app.debug(CommonLogTags.SOCKET_IO, "Disconnected");
 				eventEmitter.clear();
+				connectCallback.onDisconnect();
 			}
 
 			@Override
 			public void onConnect() {
 				Gdx.app.debug(CommonLogTags.SOCKET_IO, "Connected to " + serverAddress);
 				if (!isScreen) {
-					client.emit(CommonSocketIOEvents.NICKNAME_SET, nickname);
 					setNickname(nickname);
 				} else {
 					client.emit(CommonSocketIOEvents.SCREEN_SET);

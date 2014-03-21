@@ -42,6 +42,11 @@ public abstract class ServerConnectScreen extends SwanScreen {
 						connectFailed = true;
 					}
 				}
+
+				@Override
+				public void onDisconnect() {
+
+				}
 			});
 		} catch (MalformedURLException e) {
 			Gdx.app.error(CommonLogTags.SOCKET_IO, "Malformed server address " + serverAddress);

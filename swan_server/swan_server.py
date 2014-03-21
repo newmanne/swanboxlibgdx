@@ -26,12 +26,16 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         SwanNamespace.screenSocket = self.socket
 
     def on_nickname_set(self, nickname):
+        if nickname in self.request['nicknames']:
+            print 'Player attempted to join with duplicate nickname: %s, booting' % nickname
+            self.emit('invalid_nickname')
+            return
+
         self.request['nicknames'].append(nickname)
         print self.request['nicknames']
         self.socket.session['nickname'] = nickname
         
         self.broadcast_event('announcement', '%s has connected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
         
         if (SwanNamespace.count == 0):
             SwanNamespace.hostSocket = self.socket
@@ -49,13 +53,16 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         print SwanNamespace.player_sessid
 
     def recv_disconnect(self):
+        if not self.socket.session.has_key('nickname'):
+            print 'An unidentified player (no nickname set) has disconnected'
+            return 
+
         # Remove nickname from the list.
         nickname = self.socket.session['nickname']
         
         #broadcast to everyone that someone has disconnected
         self.broadcast_event('client_disconnect', nickname)
         self.broadcast_event('announcement', '%s has disconnected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
         
         if nickname != 'Screen':
             SwanNamespace.player_sessid.remove([self.socket, nickname])
@@ -86,7 +93,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
 
     def on_swan_broadcast(self, event, args):
-
         print "BROADCASTING EVENT ", event, " WITH ARGS ", args 
         self.broadcast_event(event, *args)
 
