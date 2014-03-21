@@ -19,7 +19,6 @@ import com.swandev.swangame.socket.SocketIOEvents;
 import com.swandev.swangame.util.PatternCommon;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.util.SwanUtil;
 
 public class PatternServerScreen extends SwanScreen {
@@ -120,7 +119,7 @@ public class PatternServerScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(SocketIOEvents.UPDATE_SEQUENCE, new EventCallback() {
+		registerEvent(SocketIOEvents.UPDATE_SEQUENCE, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -137,8 +136,8 @@ public class PatternServerScreen extends SwanScreen {
 			}
 
 		};
-		getSocketIO().on(SocketIOEvents.INVALID_PATTERN, removeAPlayer);
-		getSocketIO().on(SocketIOEvents.CLIENT_DISCONNECT, removeAPlayer);
+		registerEvent(SocketIOEvents.INVALID_PATTERN, removeAPlayer);
+		registerEvent(SocketIOEvents.CLIENT_DISCONNECT, removeAPlayer);
 	}
 
 	private void takeTurn(boolean addNewColour) {
@@ -151,14 +150,6 @@ public class PatternServerScreen extends SwanScreen {
 
 	private String getRandomColour() {
 		return patternColors.get(SwanUtil.getRandom().nextInt(patternColors.size()));
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(SocketIOEvents.UPDATE_SEQUENCE);
-		eventEmitter.unregisterEvent(SocketIOEvents.GAME_OVER);
-		eventEmitter.unregisterEvent(SocketIOEvents.INVALID_PATTERN);
-		eventEmitter.unregisterEvent(SocketIOEvents.CLIENT_DISCONNECT);
 	}
 
 	@Override

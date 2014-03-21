@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 
 public class PokerGameScreen extends SwanScreen {
 
@@ -37,15 +36,14 @@ public class PokerGameScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(PokerLib.FOLD_REQUEST, new EventCallback() {
+		registerEvent(PokerLib.FOLD_REQUEST, new EventCallback() {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				final String player = (String) args[0];
 				pokerTable.foldPlayer(playerMap.get(player));
 			}
 		});
-
-		getSocketIO().on(PokerLib.BET_REQUEST, new EventCallback() {
+		registerEvent(PokerLib.BET_REQUEST, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -57,7 +55,6 @@ public class PokerGameScreen extends SwanScreen {
 				tables.get(playerName).setChipValue(player.getMoney());
 			}
 		});
-
 	}
 
 	public void uiForDrawCards(PokerRound round) {
@@ -138,12 +135,6 @@ public class PokerGameScreen extends SwanScreen {
 
 		stage.draw();
 		stage.act(delta);
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(PokerLib.FOLD_REQUEST);
-		eventEmitter.unregisterEvent(PokerLib.BET_REQUEST);
 	}
 
 	@Override
@@ -253,7 +244,6 @@ public class PokerGameScreen extends SwanScreen {
 	@Override
 	public void hide() {
 		// TODO Auto-generated method stub
-		
 
 	}
 

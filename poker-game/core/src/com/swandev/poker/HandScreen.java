@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 import com.swandev.poker.HandScreen.HandRenderer.CardImage;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.util.SwanUtil;
 
 public class HandScreen extends SwanScreen {
@@ -118,7 +117,7 @@ public class HandScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(PokerLib.DEAL_HAND, new EventCallback() {
+		registerEvent(PokerLib.DEAL_HAND, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -134,7 +133,7 @@ public class HandScreen extends SwanScreen {
 			}
 		});
 
-		getSocketIO().on(PokerLib.YOUR_TURN, new EventCallback() {
+		registerEvent(PokerLib.YOUR_TURN, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -146,7 +145,7 @@ public class HandScreen extends SwanScreen {
 			}
 		});
 
-		getSocketIO().on(PokerLib.ACTION_ACKNOWLEDGE, new EventCallback() {
+		registerEvent(PokerLib.ACTION_ACKNOWLEDGE, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -160,7 +159,7 @@ public class HandScreen extends SwanScreen {
 			}
 		});
 
-		getSocketIO().on(PokerLib.HAND_COMPLETE, new EventCallback() {
+		registerEvent(PokerLib.HAND_COMPLETE, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -181,22 +180,13 @@ public class HandScreen extends SwanScreen {
 				disableActionButtons();
 			}
 		});
-		getSocketIO().on(PokerLib.GAMEOVER, new EventCallback() {
+		registerEvent(PokerLib.GAMEOVER, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				game.setScreen(game.getConnectScreen());
 			}
 		});
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		// TODO Auto-generated method stub
-		eventEmitter.unregisterEvent(PokerLib.DEAL_HAND);
-		eventEmitter.unregisterEvent(PokerLib.YOUR_TURN);
-		eventEmitter.unregisterEvent(PokerLib.ACTION_ACKNOWLEDGE);
-		eventEmitter.unregisterEvent(PokerLib.GAMEOVER);
 	}
 
 	private void buildBackground(Skin skin) {
@@ -370,7 +360,7 @@ public class HandScreen extends SwanScreen {
 		foldButton.setDisabled(false); // you can always fold
 		if ((state.betValue < state.callValue) && (state.chipValue >= (state.callValue - state.betValue))) {
 			callButton.setDisabled(false); // you can only call if you haven't bet up to the call value
-		}else if (state.betValue == state.callValue){
+		} else if (state.betValue == state.callValue) {
 			checkButton.setDisabled(false); // otherwise you will be able to check
 		}
 		if (state.chipValue > 0) {

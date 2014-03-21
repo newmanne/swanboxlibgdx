@@ -18,7 +18,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.socket.SocketIOState;
 import com.swandev.swanlib.util.SwanUtil;
 
@@ -141,13 +140,13 @@ public class JukeboxClientScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(JukeboxLib.SONG_OVER, new EventCallback() {
+		registerEvent(JukeboxLib.SONG_OVER, new EventCallback() {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				songSelected = false;
 			}
 		});
-		getSocketIO().on(JukeboxLib.SEND_SONGLIST, new EventCallback() {
+		registerEvent(JukeboxLib.SEND_SONGLIST, new EventCallback() {
 			@Override
 			public void onEvent(IOAcknowledge arg0, Object... args) {
 				Gdx.app.log("JUKEBOX", "song list receieved!");
@@ -155,12 +154,6 @@ public class JukeboxClientScreen extends SwanScreen {
 				list.setItems(songs.toArray(new String[songs.size()]));
 			}
 		});
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(JukeboxLib.SONG_OVER);
-		eventEmitter.unregisterEvent(JukeboxLib.SEND_SONGLIST);
 	}
 
 }

@@ -24,7 +24,6 @@ import com.swandev.swangame.util.LogTags;
 import com.swandev.swangame.util.PatternCommon;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.util.SwanUtil;
 
 public class PatternClientScreen extends SwanScreen {
@@ -78,7 +77,7 @@ public class PatternClientScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(SocketIOEvents.PATTERN_REQUESTED, new EventCallback() {
+		registerEvent(SocketIOEvents.PATTERN_REQUESTED, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -89,7 +88,7 @@ public class PatternClientScreen extends SwanScreen {
 			}
 		});
 
-		getSocketIO().on(SocketIOEvents.GAME_OVER, new EventCallback() {
+		registerEvent(SocketIOEvents.GAME_OVER, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -103,12 +102,6 @@ public class PatternClientScreen extends SwanScreen {
 	public void hide() {
 		super.hide();
 		pattern.clear();
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(SocketIOEvents.PATTERN_REQUESTED);
-		eventEmitter.unregisterEvent(SocketIOEvents.GAME_OVER);
 	}
 
 	@Override

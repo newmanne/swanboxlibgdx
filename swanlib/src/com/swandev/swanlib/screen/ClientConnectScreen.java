@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
 import com.swandev.swanlib.socket.ConnectCallback;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.socket.SocketIOState;
 import com.swandev.swanlib.util.CommonLogTags;
 import com.swandev.swanlib.util.SwanUtil;
@@ -92,7 +91,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(CommonSocketIOEvents.ELECTED_CLIENT, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.ELECTED_CLIENT, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -101,7 +100,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			}
 
 		});
-		getSocketIO().on(CommonSocketIOEvents.ELECTED_HOST, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.ELECTED_HOST, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -111,7 +110,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			}
 
 		});
-		getSocketIO().on(CommonSocketIOEvents.GAME_START, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.GAME_START, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -119,7 +118,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			}
 
 		});
-		getSocketIO().on(CommonSocketIOEvents.ANNOUNCEMENT, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.ANNOUNCEMENT, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -199,14 +198,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			announcement.remove();
 		}
 		announcements.clear();
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_CLIENT);
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_HOST);
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.GAME_START);
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.ANNOUNCEMENT);
 	}
 
 	@Override

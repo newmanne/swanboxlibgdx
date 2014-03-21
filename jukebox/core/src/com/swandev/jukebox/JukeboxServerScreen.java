@@ -12,7 +12,6 @@ import com.swandev.jukebox.Jukebox.SongData;
 import com.swandev.jukebox.Jukebox.SongRequest;
 import com.swandev.swanlib.screen.SwanScreen;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.socket.SocketIOState;
 
 public class JukeboxServerScreen extends SwanScreen {
@@ -87,7 +86,7 @@ public class JukeboxServerScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(JukeboxLib.REQUEST_SONGLIST, new EventCallback() {
+		registerEvent(JukeboxLib.REQUEST_SONGLIST, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -95,8 +94,7 @@ public class JukeboxServerScreen extends SwanScreen {
 			}
 
 		});
-
-		getSocketIO().on(JukeboxLib.ADD_TO_PLAYLIST, new EventCallback() {
+		registerEvent(JukeboxLib.ADD_TO_PLAYLIST, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -107,7 +105,7 @@ public class JukeboxServerScreen extends SwanScreen {
 			}
 
 		});
-		getSocketIO().on(JukeboxLib.USER_PLAY, new EventCallback() {
+		registerEvent(JukeboxLib.USER_PLAY, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -115,8 +113,7 @@ public class JukeboxServerScreen extends SwanScreen {
 				cubeAnimation.resume();
 			}
 		});
-
-		getSocketIO().on(JukeboxLib.USER_PAUSE, new EventCallback() {
+		registerEvent(JukeboxLib.USER_PAUSE, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -138,15 +135,6 @@ public class JukeboxServerScreen extends SwanScreen {
 
 	private String formatTimeElapsed(SongData song) {
 		return String.format("%.1f / %d s", song.getMusic().getPosition(), song.getLengthInSeconds());
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(JukeboxLib.ADD_TO_PLAYLIST);
-		eventEmitter.unregisterEvent(JukeboxLib.REQUEST_SONGLIST);
-		eventEmitter.unregisterEvent(JukeboxLib.USER_NEXT);
-		eventEmitter.unregisterEvent(JukeboxLib.USER_PLAY);
-		eventEmitter.unregisterEvent(JukeboxLib.USER_PAUSE);
 	}
 
 }
