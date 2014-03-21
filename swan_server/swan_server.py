@@ -22,17 +22,8 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
     def on_screen_set(self):
         print 'Screen has connected'
-       # self.request['nicknames'].append('Screen')
         self.socket.session['nickname'] = 'Screen'
         SwanNamespace.screenSocket = self.socket
-
-    def on_nickname(self, nickname):
-        self.request['nicknames'].append(nickname)
-        self.socket.session['nickname'] = nickname
-        self.broadcast_event('announcement', '%s has connected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
-        # Just have them join a default-named room
-        self.join('main_room')
 
     def on_nickname_set(self, nickname):
         self.request['nicknames'].append(nickname)
@@ -204,9 +195,3 @@ if __name__ == '__main__':
     SocketIOServer(('0.0.0.0', 8080), Application(),
         resource="socket.io", policy_server=True,
         policy_listener=('0.0.0.0', 10843)).serve_forever()
-
-
-
-
-#Notes: 
-#- Should the game server determine the next player or the server?
