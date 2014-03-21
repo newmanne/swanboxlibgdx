@@ -23,6 +23,8 @@ import com.badlogic.gdx.math.Vector3;
 
 public class CubeAnimation {
 
+	// TODO: a lot of objects only make sense being in this class because this is the sole animation. If you ever had more, restructuring would make sense
+
 	public Environment lights;
 	public PerspectiveCamera cam;
 	public ModelBatch modelBatch;
@@ -32,10 +34,10 @@ public class CubeAnimation {
 	private final TweenManager tweenManager;
 	MutableFloat angle = new MutableFloat(0);
 	MutableFloat scale = new MutableFloat(1);
+	private final Timeline timeline;
 
 	public CubeAnimation() {
 		tweenManager = new TweenManager();
-		Tween.setCombinedAttributesLimit(4);
 		Tween.registerAccessor(Color.class, new ColorAccessor());
 		lights = new Environment();
 		lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
@@ -54,15 +56,24 @@ public class CubeAnimation {
 		model = modelBuilder.createBox(5f, 5f, 5f, new Material(ColorAttribute.createDiffuse(modelColor)), Usage.Position | Usage.Normal);
 		instance = new ModelInstance(model);
 		// @formatter:off
-		Timeline.createSequence()
-		.push(Tween.to(modelColor, ColorAccessor.R, 3f).target(1).ease(TweenEquations.easeNone).repeatYoyo(1, 0f).build())
-		.push(Tween.to(modelColor, ColorAccessor.G, 3f).target(1).ease(TweenEquations.easeNone).repeatYoyo(1, 0f).build())
-		.push(Tween.to(modelColor, ColorAccessor.B, 3f).target(1).ease(TweenEquations.easeNone).repeatYoyo(1, 0f).build())
-		.repeat(Tween.INFINITY, 0f).start(tweenManager);
-		
-		Tween.to(angle, 0, 3f).target(180).repeatYoyo(1, 0f).repeat(Tween.INFINITY, 0).start(tweenManager);
-		Tween.to(scale, 0, 6f).target(2).repeatYoyo(Tween.INFINITY, 0.5f).start(tweenManager);
+		timeline = Timeline.createParallel()
+				.beginSequence()
+					.push(Tween.to(modelColor, ColorAccessor.R, 3f).target(1).ease(TweenEquations.easeNone).repeatYoyo(1, 0f).build())
+					.push(Tween.to(modelColor, ColorAccessor.G, 3f).target(1).ease(TweenEquations.easeNone).repeatYoyo(1, 0f).build())
+					.push(Tween.to(modelColor, ColorAccessor.B, 3f).target(1).ease(TweenEquations.easeNone).repeatYoyo(1, 0f).build())
+				.end()
+				.push(Tween.to(angle, 0, 3f).target(180).repeatYoyo(1, 0f).build())
+				.push(Tween.to(scale, 0, 6f).target(2).repeatYoyo(1, 0f).build())
+				.repeat(Tween.INFINITY, 0f).start(tweenManager);
 		// @formatter:on
+	}
+
+	public void pause() {
+		timeline.pause();
+	}
+
+	public void resume() {
+		timeline.resume();
 	}
 
 	public void render() {

@@ -39,7 +39,7 @@ public class JukeboxServerScreen extends SwanScreen {
 		final Skin skin = game.getAssets().getSkin();
 		playListTable.clear();
 		final List<SongRequest> requests = jukebox.getPlayList();
-		playListTable.add(new Label("Time elapsed:", skin));
+		playListTable.add(new Label("Time elapsed: ", skin));
 		playListTable.add(timeElapsed);
 		playListTable.row();
 		playListTable.add(new Label("Song:", skin));
@@ -112,6 +112,7 @@ public class JukeboxServerScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				jukebox.play();
+				cubeAnimation.resume();
 			}
 		});
 
@@ -120,6 +121,7 @@ public class JukeboxServerScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				jukebox.pause();
+				cubeAnimation.pause();
 			}
 
 		});
