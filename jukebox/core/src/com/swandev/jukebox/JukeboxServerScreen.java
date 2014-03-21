@@ -22,11 +22,13 @@ public class JukeboxServerScreen extends SwanScreen {
 	private final Table playListTable;
 	private final JukeboxServer game;
 	private final Label timeElapsed;
+	private final CubeAnimation cubeAnimation;
 
 	public JukeboxServerScreen(SocketIOState socketIO, JukeboxServer game) {
 		super(socketIO);
 		this.game = game;
 		jukebox = new Jukebox(this);
+		cubeAnimation = new CubeAnimation();
 		stage = new Stage();
 		timeElapsed = new Label("", game.getAssets().getSkin());
 		playListTable = new Table();
@@ -56,6 +58,7 @@ public class JukeboxServerScreen extends SwanScreen {
 	@Override
 	public void render(float delta) {
 		super.render(delta);
+		cubeAnimation.render();
 		stage.draw();
 		stage.act(delta);
 		final SongData songData = jukebox.getCurrentSongData();
@@ -74,11 +77,12 @@ public class JukeboxServerScreen extends SwanScreen {
 	public void dispose() {
 		jukebox.dispose();
 		stage.dispose();
+		cubeAnimation.dispose();
 	}
 
 	@Override
 	public void resize(int width, int height) {
-		stage.setViewport(width, height, true);
+		stage.getViewport().update(width, height, true);
 	}
 
 	@Override

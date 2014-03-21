@@ -45,7 +45,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		super(socketIO);
 		this.game = game;
 		this.skin = skin;
-		this.stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, spritebatch);
+		this.stage = new Stage();
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
 		ipAddressField = new TextField(defaultIP, skin);
@@ -183,7 +183,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	@Override
 	public void resize(int width, int height) {
-		stage.setViewport(width, height, true);
+		stage.getViewport().update(width, height, true);
 	}
 
 	@Override
