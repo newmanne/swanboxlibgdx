@@ -39,6 +39,7 @@ dependencies {
     compile group: 'com.google.code.gson', name:'gson', version:'2.2.4'
     compile group: 'org.gottox', name: 'socketio', version:'1.0'
     compile group: 'aurelienribon.tweenengine', name: 'tween-engine-api', version: '6.3.3'
+    compile "org.apache.commons:commons-lang3:3.3.1"
     runtime files('libs/lombok-api.jar')
 }
 

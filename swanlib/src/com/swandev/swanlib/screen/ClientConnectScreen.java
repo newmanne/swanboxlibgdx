@@ -6,6 +6,9 @@ import io.socket.SocketIOException;
 import java.net.MalformedURLException;
 import java.util.List;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
+
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -18,6 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
 import com.swandev.swanlib.socket.ConnectCallback;
@@ -52,8 +56,9 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		portField = new TextField("8080", skin);
 		portField.setMessageText("Port");
-
-		nicknameField = new TextField("blinky", skin);
+		final List<String> sampleNames = ImmutableList.of("Blinky", "Pacman", "Robocop", "DemonSlayer", "HAL", "ChickenLittle", "HansSolo", "Yoshi", "LittleEngineThatCould", "Ghost", "GoLeafsGo", "Batman");
+		final String defaultName = sampleNames.get(RandomUtils.nextInt(0, sampleNames.size()));
+		nicknameField = new TextField(defaultName + RandomStringUtils.randomNumeric(3), skin);
 		nicknameField.setMessageText("Blinky");
 
 		connectButton = new TextButton("Connect", skin);
