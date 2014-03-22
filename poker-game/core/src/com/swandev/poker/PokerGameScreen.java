@@ -162,11 +162,15 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		buildBackground(skin);
 		buildCards();
 		buildPlayerTables(skin);
-
+		
 		pokerTable = new PokerTable(this, players);
-		pokerTable.newHand();
 	}
-
+	
+	@Override
+	protected void onEveryoneReady() {
+		pokerTable.newHand();
+		
+	}
 	private void buildCards() {
 		for (int i = 0; i < 5; ++i) {
 			cards[i] = new Image();
