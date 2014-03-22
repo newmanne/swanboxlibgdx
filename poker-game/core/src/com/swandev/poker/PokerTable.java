@@ -13,6 +13,9 @@ import com.google.common.collect.Sets;
 import com.swandev.poker.PokerGameScreen.PokerRound;
 
 public class PokerTable {
+	
+	public static int ANTE = 1000;
+	
 	PokerRound round;
 	@Getter
 	int callValue;
@@ -54,6 +57,12 @@ public class PokerTable {
 				for (Card card : player.getPrivateCards()) {
 					cardPictureValues.add(card.getImageNumber());
 				}
+				if (ANTE > player.getMoney()){
+					player.placeBet(ANTE, pot);
+				}else{
+					player.placeBet(player.getMoney(), pot);
+				}
+				pokerGameScreen.getSocketIO().swanEmit(PokerLib.SET_ANTE, player.getName(),  0, player.getMoney(), 0);
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), cardPictureValues, 0, player.getMoney(), 0);
 			} else {
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, player.getName());

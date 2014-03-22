@@ -118,6 +118,18 @@ public class HandScreen extends SwanScreen {
 				state.callValue = (Integer) args[3];
 			}
 		});
+		
+		registerEvent(PokerLib.SET_ANTE, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				state.chipValue = (Integer) args[1];
+				state.callValue = (Integer) args[2];
+				betLabel.setText(Integer.toString(state.betValue));
+				cashLabel.setText(Integer.toString(state.chipValue));
+				callLabel.setText(Integer.toString(state.callValue));
+			}
+		});
 
 		registerEvent(PokerLib.YOUR_TURN, new EventCallback() {
 

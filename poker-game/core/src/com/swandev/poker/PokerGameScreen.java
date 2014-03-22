@@ -19,10 +19,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 
-public class PokerGameScreen extends SwanScreen {
+public class PokerGameScreen extends SwanGameStartScreen {
 
 	private static final int STARTING_VALUE = 100000;
 
@@ -136,6 +136,12 @@ public class PokerGameScreen extends SwanScreen {
 		stage.draw();
 		stage.act(delta);
 	}
+	
+	@Override
+	protected void doRender(float delta) {
+		stage.draw();
+		stage.act(delta);
+	}
 
 	@Override
 	public void resize(int w, int h) {
@@ -152,6 +158,25 @@ public class PokerGameScreen extends SwanScreen {
 	@Override
 	public void show() {
 		super.show();
+		playerNames = Lists.newArrayList(getSocketIO().getNicknames());
+		List<PlayerStats> players = Lists.newArrayList();
+		for (String playerName : playerNames) {
+			PlayerStats playerStats = new PlayerStats(playerName, STARTING_VALUE);
+			playerMap.put(playerName, playerStats);
+			players.add(playerStats);
+		}
+
+		final Skin skin = game.getAssets().getSkin();
+		buildBackground(skin);
+		buildCards();
+		buildPlayerTables(skin);
+
+		pokerTable = new PokerTable(this, players);
+		pokerTable.newHand();
+	}
+	@Override
+	protected void doShow() {
+		// TODO Auto-generated method stub
 		playerNames = Lists.newArrayList(getSocketIO().getNicknames());
 		List<PlayerStats> players = Lists.newArrayList();
 		for (String playerName : playerNames) {
