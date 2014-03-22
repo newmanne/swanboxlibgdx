@@ -33,31 +33,31 @@ import com.swandev.swanlib.util.SwanUtil;
 
 public class HandScreen extends SwanGameStartScreen {
 	// *** Layout Coordinates ***//
-	private static final int COORD_SCALE = 50;
+	private static final float COORD_SCALE = 50f;
 	// Use the pixels per unit to define a grid and orient
 	// all the elements of the screen based on that grid.
-	private static final int CAMERA_WIDTH = 15 * COORD_SCALE; // how many boxes wide the screen is
-	private static final int CAMERA_HEIGHT = 10 * COORD_SCALE; // how many boxes high the screen is
+	private static final float CAMERA_WIDTH = 15f * COORD_SCALE; // how many boxes wide the screen is
+	private static final float CAMERA_HEIGHT = 10f * COORD_SCALE; // how many boxes high the screen is
 	
 	// orient the cards in the players hand
-	private static final int CARD_WIDTH = 4 * COORD_SCALE;
-	private static final int CARD_HEIGHT = 6 * COORD_SCALE;
-	private static final int CARD1_ORIGIN_X = 5 * COORD_SCALE;
-	private static final int CARD1_ORIGIN_Y = 3 * COORD_SCALE;
-	private static final int CARD2_ORIGIN_X = 9 * COORD_SCALE;
-	private static final int CARD2_ORIGIN_Y = 3 * COORD_SCALE;
+	private static final float CARD_WIDTH = 4f * COORD_SCALE;
+	private static final float CARD_HEIGHT = 6f * COORD_SCALE;
+	private static final float CARD1_ORIGIN_X = 5f * COORD_SCALE;
+	private static final float CARD1_ORIGIN_Y = 3f * COORD_SCALE;
+	private static final float CARD2_ORIGIN_X = 9f * COORD_SCALE;
+	private static final float CARD2_ORIGIN_Y = 3f * COORD_SCALE;
 
 	// orient the table of buttons for betting/folding
-	private static final int BUTTON_WIDTH = 3 * COORD_SCALE;
-	private static final int BUTTON_HEIGHT = 1 * COORD_SCALE;
-	private static final int BUTTON_PADDING_LEFT = 1 * COORD_SCALE;
-	private static final int BUTTON_PADDING_TOP = 1 * COORD_SCALE;
+	private static final float BUTTON_WIDTH = 3f * COORD_SCALE;
+	private static final float BUTTON_HEIGHT = 1f * COORD_SCALE;
+	private static final float BUTTON_PADDING_LEFT = 1f * COORD_SCALE;
+	private static final float BUTTON_PADDING_TOP = 1f * COORD_SCALE;
 
 	// orient the text boxes which show the amount of $$ owned and bet
-	private static final int MONEY_TEXT_WIDTH = 2 * COORD_SCALE;
-	private static final int MONEY_TEXT_HEIGHT = 1 * COORD_SCALE;
-	private static final int MONEY_TABLE_PADDING_RIGHT = (1 * COORD_SCALE / 2);
-	private static final int MONEY_TABLE_PADDING_BOTTOM = 1 * COORD_SCALE;
+	private static final float MONEY_TEXT_WIDTH = 2f * COORD_SCALE;
+	private static final float MONEY_TEXT_HEIGHT = 1f * COORD_SCALE;
+	private static final float MONEY_TABLE_PADDING_RIGHT = 0.5f * COORD_SCALE;
+	private static final float MONEY_TABLE_PADDING_BOTTOM = 1f * COORD_SCALE;
 
 	// These labels are members so we can dynamically change their values
 	// without looking them up in the stage
@@ -454,7 +454,7 @@ public class HandScreen extends SwanGameStartScreen {
 	public void resize(int width, int height) {
 		this.width = width;
 		this.height = height;
-		stage.getViewport().update(CAMERA_WIDTH, CAMERA_HEIGHT, false);
+		stage.getViewport().update(width, height, true);
 	}
 
 	@Override
