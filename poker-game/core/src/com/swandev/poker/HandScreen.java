@@ -46,6 +46,12 @@ public class HandScreen extends SwanGameStartScreen {
 	private static final float CARD1_ORIGIN_Y = 3f * COORD_SCALE;
 	private static final float CARD2_ORIGIN_X = 9f * COORD_SCALE;
 	private static final float CARD2_ORIGIN_Y = 3f * COORD_SCALE;
+	
+	// orient the image for hand complete
+	private static final float OVER_IMAGE_HEIGHT = 3f * COORD_SCALE;
+	private static final float OVER_IMAGE_WIDTH = 8f * COORD_SCALE;
+	private static final float OVER_IMAGE_X = 5f * COORD_SCALE;
+	private static final float OVER_IMAGE_Y = 4.5f * COORD_SCALE;
 
 	// orient the table of buttons for betting/folding
 	private static final float BUTTON_WIDTH = 3f * COORD_SCALE;
@@ -61,10 +67,11 @@ public class HandScreen extends SwanGameStartScreen {
 
 	// These labels are members so we can dynamically change their values
 	// without looking them up in the stage
-	private static Label cashLabel;
-	private static Label betLabel;
-	private static Label callLabel;
-	private static Label winLabel;
+	private Label cashLabel;
+	private Label betLabel;
+	private Label callLabel;
+	
+	private Image handOver;
 
 	// The hand is a member so we can dynamically change the values and the
 	// orientation (face-up v. face-down) of the cards
@@ -109,7 +116,7 @@ public class HandScreen extends SwanGameStartScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				state.clearHand();
-				winLabel.setVisible(false);
+				handOver.setVisible(false);
 				JSONArray jsonArray = (JSONArray) args[0];
 				List<Integer> hand = SwanUtil.parseJsonList(jsonArray);
 				state.receiveCard(hand.get(0));
@@ -171,9 +178,9 @@ public class HandScreen extends SwanGameStartScreen {
 				state.callValue = (Integer) args[2];
 				state.clearHand();
 				Boolean you_won = (Boolean) args[3];
-				String statusText = you_won ? "You Win!" : "You lose...";
-				winLabel.setText(statusText);
-				winLabel.setVisible(true);
+				String imgPath = you_won ? "images/you_win_banner.png" : "images/you_lose_xs.png";
+				handOver.setDrawable(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal(imgPath)))));
+				handOver.setVisible(true);
 
 				betLabel.setText(Integer.toString(state.betValue));
 				cashLabel.setText(Integer.toString(state.chipValue));
@@ -328,18 +335,15 @@ public class HandScreen extends SwanGameStartScreen {
 		stage.addActor(buttonTable);
 	}
 
-	private void buildWinLabel(Skin skin) {
-		winLabel = new Label("You lose...", skin);
-		winLabel.setVisible(false);
+	private void buildHandOver(Skin skin) {
+		handOver = new Image();
+		handOver.setVisible(false);
 
-		Table winTable = new Table(skin);
-		winTable.center().top();
-
-		winTable.add(winLabel).width(CARD_WIDTH).height(MONEY_TEXT_HEIGHT);
-		winTable.row();
-
-		winTable.setFillParent(true);
-		stage.addActor(winTable);
+		handOver.setX(OVER_IMAGE_X);
+		handOver.setY(OVER_IMAGE_Y);
+		handOver.setWidth(OVER_IMAGE_WIDTH);
+		handOver.setHeight(OVER_IMAGE_HEIGHT);
+		stage.addActor(handOver);
 	}
 
 	private void disableActionButtons() {
@@ -485,7 +489,7 @@ public class HandScreen extends SwanGameStartScreen {
 		buildMoneyText(skin);
 		buildButtonTable(skin);
 		buildCards(skin);
-		buildWinLabel(skin);
+		buildHandOver(skin);
 
 		// This call should be made at the end of a response to a "Your Turn" message, after
 		// changing the PlayerState appropriately.
