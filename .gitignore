@@ -3,3 +3,6 @@
 .gradle
 *.class
 *.db
+*.db
+pattern-game/android/assets/Thumbs.db
+pattern-game/android/assets/Thumbs.db
