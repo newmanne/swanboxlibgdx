@@ -22,6 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
@@ -46,11 +47,14 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final Label waitingText;
 	private final List<Label> announcements = Lists.newArrayList();
 
+	private final float VIRTUAL_WIDTH = 800;
+	private final float VIRTUAL_HEIGHT = 600;
+
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch, final Skin skin) {
 		super(socketIO);
 		this.game = game;
 		this.skin = skin;
-		this.stage = new Stage();
+		this.stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
 		ipAddressField = new TextField(defaultIP, skin);
@@ -110,7 +114,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		buildTable(skin, ipAddressLabel, portLabel, nicknameLabel, waitingText);
 		stage.addActor(table);
-
 	}
 
 	@Override
@@ -215,7 +218,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 					connectButton.setVisible(true);
 					ipAddressField.setDisabled(false);
 					portField.setDisabled(false);
-
 				}
 			});
 		} catch (MalformedURLException e) {
