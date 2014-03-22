@@ -107,10 +107,12 @@ public class PokerPot {
 				
 				for (k = 0; k < stillIn.size(); k++) {
 					stillIn.get(k).setMoney(stillIn.get(k).getMoney() + amount);
-					if (i == tierList.size()-1 && j == tierList.get(i).size() - 1){
+					if (!(tierList.size() == 1) && i == tierList.size()-1 && j == tierList.get(i).size() - 1){
 						// do nothing
+						Gdx.app.log("poker", "adding nothing list");
 					}
 					else if (!winners.contains(stillIn.get(k))) {
+						
 						Gdx.app.log("poker", "adding winners list");
 						winners.add(stillIn.get(k));
 					}
