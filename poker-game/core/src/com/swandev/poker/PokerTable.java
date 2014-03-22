@@ -60,8 +60,8 @@ public class PokerTable {
 				}else{
 					player.placeBet(player.getMoney(), pot);
 				}
-				pokerGameScreen.getSocketIO().swanEmit(PokerLib.SET_ANTE, player.getName(),  player.getBet(), player.getMoney(), 0);
-				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), cardPictureValues, 0, player.getMoney(), 0);
+				pokerGameScreen.getSocketIO().swanEmit(PokerLib.SET_ANTE, player.getName(),  player.getBet(), player.getMoney(), 0, player.getTotalBet());
+				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), cardPictureValues, 0, player.getMoney(), 0, player.getTotalBet());
 			} else {
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, player.getName());
 			}
@@ -75,7 +75,7 @@ public class PokerTable {
 			currentPlayer = nextUnfoldedAlivePlayer(dealer);
 			pokerGameScreen.uiForPreFlop();
 			PlayerStats playerStats = players.get(currentPlayer);
-			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue, playerStats.getTotalBet());
 		}
 	}
 
@@ -121,7 +121,7 @@ public class PokerTable {
 			currentPlayer.placeBet(amount, pot);
 			callValue = Math.max(callValue, currentPlayer.getBet());
 		}
-		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, currentPlayer.getName(), currentPlayer.getBet(), currentPlayer.getMoney(), callValue);
+		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, currentPlayer.getName(), currentPlayer.getBet(), currentPlayer.getMoney(), callValue, currentPlayer.getTotalBet());
 		nextPlayer();
 	}
 
@@ -144,7 +144,7 @@ public class PokerTable {
 		} else {
 			currentPlayer = nextUnfoldedAlivePlayer(currentPlayer);
 			PlayerStats playerStats = players.get(currentPlayer);
-			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue, playerStats.getTotalBet());
 		}
 	}
 
@@ -197,7 +197,7 @@ public class PokerTable {
 			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
 			currentPlayer = nextUnfoldedAlivePlayer(dealer);
 			PlayerStats playerStats = players.get(currentPlayer);
-			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue);
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue, playerStats.getTotalBet());
 
 		}
 	}
@@ -224,7 +224,7 @@ public class PokerTable {
 		Gdx.app.log("poker", "Winning hands " + showdownPlayers.get(0).getHand());
 		for (PlayerStats player : players) {
 			player.setAlive(player.getMoney() > PokerLib.ANTE);
-			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, winners.contains(player));
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, 0, winners.contains(player));
 		}
 		// TODO: check for GameOver condition (1 alive player)
 		pokerGameScreen.uiBetweenHands();

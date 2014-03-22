@@ -128,6 +128,7 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[1];
 				state.chipValue = (Integer) args[2];
 				state.callValue = (Integer) args[3];
+				state.totalBetValue = (Integer) args[4];
 				myHand.setCardVisibility(true);
 			}
 		});
@@ -139,7 +140,8 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
-				betLabel.setText(Integer.toString(state.betValue));
+				state.totalBetValue = (Integer) args[3];
+				betLabel.setText(Integer.toString(state.totalBetValue));
 				cashLabel.setText(Integer.toString(state.chipValue));
 				callLabel.setText(Integer.toString(state.callValue));
 			}
@@ -164,7 +166,8 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
-				betLabel.setText(new Integer(state.betValue).toString());
+				state.totalBetValue = (Integer) args[3];
+				betLabel.setText(new Integer(state.totalBetValue).toString());
 				cashLabel.setText(new Integer(state.chipValue).toString());
 				callLabel.setText(new Integer(state.callValue).toString());
 				disableActionButtons();
@@ -180,13 +183,14 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
+				state.totalBetValue = (Integer) args[3];
 				state.clearHand();
-				Boolean you_won = (Boolean) args[3];
+				Boolean you_won = (Boolean) args[4];
 				String imgPath = you_won ? "images/you_win_banner.png" : "images/you_lose_xs.png";
 				handOver.setDrawable(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal(imgPath)))));
 				handOver.setVisible(true);
 
-				betLabel.setText(Integer.toString(state.betValue));
+				betLabel.setText(Integer.toString(state.totalBetValue));
 				cashLabel.setText(Integer.toString(state.chipValue));
 				callLabel.setText(Integer.toString(state.callValue));
 				disableActionButtons();
@@ -371,6 +375,8 @@ public class HandScreen extends SwanGameStartScreen {
 			callButton.setDisabled(false); // you can only call if you haven't bet up to the call value
 		} else if (state.betValue == state.callValue) {
 			checkButton.setDisabled(false); // otherwise you will be able to check
+		} else if (state.totalBetValue == PokerLib.ANTE){
+			checkButton.setDisabled(false);
 		}
 		if (state.chipValue > 0) {
 			allInButton.setDisabled(false);
