@@ -5,7 +5,6 @@ import lombok.Getter;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.swandev.swanlib.screen.ClientConnectScreen;
 import com.swandev.swanlib.socket.SocketIOState;
 
@@ -35,7 +34,7 @@ public class PokerGameClient extends Game {
 		assets = new Assets();
 		socketIO = new SocketIOState();
 		shapeRenderer = new ShapeRenderer();
-		connectScreen = new PokerClientConnectScreen(this, socketIO, spriteBatch, getAssets().getSkin());
+		connectScreen = new PokerClientConnectScreen(this, socketIO, spriteBatch);
 		handScreen = new HandScreen(this);
 		// setScreen(handScreen);
 		setScreen(connectScreen);
@@ -52,8 +51,8 @@ public class PokerGameClient extends Game {
 
 	public static class PokerClientConnectScreen extends ClientConnectScreen {
 
-		public PokerClientConnectScreen(PokerGameClient game, SocketIOState socketIO, SpriteBatch spritebatch, Skin skin) {
-			super(game, socketIO, spritebatch, skin);
+		public PokerClientConnectScreen(PokerGameClient game, SocketIOState socketIO, SpriteBatch spritebatch) {
+			super(game, socketIO, spritebatch);
 		}
 
 		@Override
