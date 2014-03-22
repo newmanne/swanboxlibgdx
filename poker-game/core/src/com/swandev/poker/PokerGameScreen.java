@@ -121,7 +121,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		ppuX = width / CAMERA_WIDTH;
 		ppuY = height / CAMERA_HEIGHT;
 
-		stage = new Stage(width, height, false, game.getSpriteBatch());
+		stage = new Stage();
 
 		cardToImage = PokerLib.getCardTextures();
 
@@ -152,7 +152,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		ppuY = height / CAMERA_HEIGHT;
 		backgroundImage.setWidth(width);
 		backgroundImage.setHeight(height);
-		stage.setViewport(width, height, true);
+		stage.getViewport().update(width, height, true);
 	}
 
 	@Override

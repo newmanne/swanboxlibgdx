@@ -24,39 +24,40 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.Maps;
 import com.swandev.poker.HandScreen.HandRenderer.CardImage;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.util.SwanUtil;
 
-public class HandScreen extends SwanScreen {
+public class HandScreen extends SwanGameStartScreen {
 	// *** Layout Coordinates ***//
-	private static final float COORD_SCALE = 50f;
+	private static final int COORD_SCALE = 50;
 	// Use the pixels per unit to define a grid and orient
 	// all the elements of the screen based on that grid.
-	private static final float CAMERA_WIDTH = 15f * COORD_SCALE; // how many boxes wide the screen is
-	private static final float CAMERA_HEIGHT = 10f * COORD_SCALE; // how many boxes high the screen is
+	private static final int CAMERA_WIDTH = 15 * COORD_SCALE; // how many boxes wide the screen is
+	private static final int CAMERA_HEIGHT = 10 * COORD_SCALE; // how many boxes high the screen is
 	
 	// orient the cards in the players hand
-	private static final float CARD_WIDTH = 4f * COORD_SCALE;
-	private static final float CARD_HEIGHT = 6f * COORD_SCALE;
-	private static final float CARD1_ORIGIN_X = 5f * COORD_SCALE;
-	private static final float CARD1_ORIGIN_Y = 3f * COORD_SCALE;
-	private static final float CARD2_ORIGIN_X = 9f * COORD_SCALE;
-	private static final float CARD2_ORIGIN_Y = 3f * COORD_SCALE;
+	private static final int CARD_WIDTH = 4 * COORD_SCALE;
+	private static final int CARD_HEIGHT = 6 * COORD_SCALE;
+	private static final int CARD1_ORIGIN_X = 5 * COORD_SCALE;
+	private static final int CARD1_ORIGIN_Y = 3 * COORD_SCALE;
+	private static final int CARD2_ORIGIN_X = 9 * COORD_SCALE;
+	private static final int CARD2_ORIGIN_Y = 3 * COORD_SCALE;
 
 	// orient the table of buttons for betting/folding
-	private static final float BUTTON_WIDTH = 3f * COORD_SCALE;
-	private static final float BUTTON_HEIGHT = 1f * COORD_SCALE;
-	private static final float BUTTON_PADDING_LEFT = 1f * COORD_SCALE;
-	private static final float BUTTON_PADDING_TOP = 1f * COORD_SCALE;
+	private static final int BUTTON_WIDTH = 3 * COORD_SCALE;
+	private static final int BUTTON_HEIGHT = 1 * COORD_SCALE;
+	private static final int BUTTON_PADDING_LEFT = 1 * COORD_SCALE;
+	private static final int BUTTON_PADDING_TOP = 1 * COORD_SCALE;
 
 	// orient the text boxes which show the amount of $$ owned and bet
-	private static final float MONEY_TEXT_WIDTH = 2f * COORD_SCALE;
-	private static final float MONEY_TEXT_HEIGHT = 1f * COORD_SCALE;
-	private static final float MONEY_TABLE_PADDING_RIGHT = 0.5f * COORD_SCALE;
-	private static final float MONEY_TABLE_PADDING_BOTTOM = 1f * COORD_SCALE;
+	private static final int MONEY_TEXT_WIDTH = 2 * COORD_SCALE;
+	private static final int MONEY_TEXT_HEIGHT = 1 * COORD_SCALE;
+	private static final int MONEY_TABLE_PADDING_RIGHT = (1 * COORD_SCALE / 2);
+	private static final int MONEY_TABLE_PADDING_BOTTOM = 1 * COORD_SCALE;
 
 	// These labels are members so we can dynamically change their values
 	// without looking them up in the stage
@@ -97,7 +98,7 @@ public class HandScreen extends SwanScreen {
 		width = Gdx.graphics.getWidth();
 		height = Gdx.graphics.getHeight();
 		Gdx.app.log("SIZE_DEBUG", "Constructing to "+ width + "x" + height);
-		stage = new Stage(width, height, true, game.getSpriteBatch());
+		stage = new Stage(new StretchViewport(CAMERA_WIDTH, CAMERA_HEIGHT));
 		state = new PlayerState();
 	}
 
@@ -382,9 +383,7 @@ public class HandScreen extends SwanScreen {
 	}
 
 	@Override
-	public void render(float delta) {
-		// Minimal action taken inside the render loop
-		super.render(delta);
+	public void doRender(float delta) {
 		stage.draw();
 		stage.act(delta);
 	}
@@ -455,12 +454,11 @@ public class HandScreen extends SwanScreen {
 	public void resize(int width, int height) {
 		this.width = width;
 		this.height = height;
-		stage.setViewport(CAMERA_WIDTH, CAMERA_HEIGHT, false, 0, 0, this.width, this.height);
+		stage.getViewport().update(CAMERA_WIDTH, CAMERA_HEIGHT, false);
 	}
 
 	@Override
-	public void show() {
-		super.show();
+	public void doShow() {
 		state.reset();
 		myHand = new HandRenderer(state);
 
