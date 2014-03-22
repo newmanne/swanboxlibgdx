@@ -93,7 +93,8 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				socketIO.swanBroadcast(CommonSocketIOEvents.GAME_START);
+				// this is a special event, emit directly to server
+				socketIO.getClient().emit(CommonSocketIOEvents.GAME_START);
 			}
 
 		});

@@ -18,12 +18,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.google.common.collect.ImmutableMap;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.socket.SocketIOState;
 import com.swandev.swanlib.util.SwanUtil;
 
-public class JukeboxClientScreen extends SwanScreen {
+public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	final Stage stage;
 	// whether or not a user has a song selected
@@ -130,29 +130,6 @@ public class JukeboxClientScreen extends SwanScreen {
 	}
 
 	@Override
-	public void render(float delta) {
-		super.render(delta);
-		stage.draw();
-		stage.act(delta);
-	}
-
-	@Override
-	public void show() {
-		super.show();
-		playPause.setVisible(getSocketIO().isHost());
-		next.setVisible(getSocketIO().isHost());
-		Gdx.input.setInputProcessor(stage);
-		getSocketIO().emitToScreen(JukeboxLib.REQUEST_SONGLIST);
-		// TODO: until we resolve that bug...
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Gdx.app.log("JUKEBOX", "Requesting song list from server...");
-	}
-
-	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
 	}
@@ -180,4 +157,22 @@ public class JukeboxClientScreen extends SwanScreen {
 		});
 	}
 
+	@Override
+	protected void doRender(float delta) {
+		stage.draw();
+		stage.act(delta);
+	}
+
+	@Override
+	public void doShow() {
+		playPause.setVisible(getSocketIO().isHost());
+		next.setVisible(getSocketIO().isHost());
+		Gdx.input.setInputProcessor(stage);
+	}
+
+	@Override
+	protected void onEveryoneReady() {
+		getSocketIO().emitToScreen(JukeboxLib.REQUEST_SONGLIST);
+		Gdx.app.log("JUKEBOX", "Requesting song list from server...");
+	}
 }

@@ -126,6 +126,7 @@ public class SocketIOState {
 				if (!isScreen) {
 					setNickname(nickname);
 				} else {
+					SocketIOState.this.nickname = SCREEN_NAME;
 					client.emit(CommonSocketIOEvents.SCREEN_SET);
 				}
 				connectCallback.onConnect(null);

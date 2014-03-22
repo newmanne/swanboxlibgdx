@@ -22,11 +22,11 @@ import com.swandev.pattern.PatternClientGame;
 import com.swandev.swangame.socket.SocketIOEvents;
 import com.swandev.swangame.util.LogTags;
 import com.swandev.swangame.util.PatternCommon;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.util.SwanUtil;
 
-public class PatternClientScreen extends SwanScreen {
+public class PatternClientScreen extends SwanGameStartScreen {
 
 	private final PatternClientGame game;
 	private final Stage stage;
@@ -57,22 +57,8 @@ public class PatternClientScreen extends SwanScreen {
 	}
 
 	@Override
-	public void render(float delta) {
-		super.render(delta);
-		stage.draw();
-		stage.act(delta);
-	}
-
-	@Override
 	public void resize(int width, int height) {
 		stage.setViewport(width, height, true);
-	}
-
-	@Override
-	public void show() {
-		super.show();
-		setButtonDisables(true);
-		Gdx.input.setInputProcessor(stage);
 	}
 
 	@Override
@@ -145,6 +131,18 @@ public class PatternClientScreen extends SwanScreen {
 				}
 			});
 		}
+	}
+
+	@Override
+	protected void doRender(float delta) {
+		stage.draw();
+		stage.act(delta);
+	}
+
+	@Override
+	protected void doShow() {
+		setButtonDisables(true);
+		Gdx.input.setInputProcessor(stage);
 	}
 
 }

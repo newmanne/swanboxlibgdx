@@ -15,6 +15,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     count = 0;
     screenSocket = None
     hostSocket = None
+    acks_before_game_start = 0;
 
 #Connection/Disconnection Code
 ################################################################################################
@@ -27,7 +28,7 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def on_nickname_set(self, nickname):
         if nickname in self.request['nicknames']:
-            print 'Player attempted to join with duplicate nickname: %s, booting' % nickname
+            print 'Player attempted to join with duplicate nickname: %s, telling player to retry with new name' % nickname
             self.emit('invalid_nickname')
             return
 
@@ -51,6 +52,20 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
         SwanNamespace.player_sessid.append([self.socket, nickname])
         print SwanNamespace.player_sessid
+
+
+    def on_game_start(self):
+        print 'Game started request received. Waiting on acks'
+        SwanNamespace.acks_before_game_start = list(self.request['nicknames']) + ['Screen']
+        self.broadcast_event('game_start')
+
+    def on_player_ready(self, nickname):
+        SwanNamespace.acks_before_game_start.remove(nickname)
+        if len(SwanNamespace.acks_before_game_start) == 0:
+            print 'Everyone ready to start'
+            self.broadcast_event('everyone_ready')
+        else:
+            print "%s is ready, still waiting on %s" % (nickname, SwanNamespace.acks_before_game_start)
 
     def recv_disconnect(self):
         if not self.socket.session.has_key('nickname'):

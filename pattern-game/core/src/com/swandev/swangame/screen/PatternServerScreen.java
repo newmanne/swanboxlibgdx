@@ -17,11 +17,11 @@ import com.google.common.collect.Lists;
 import com.swandev.pattern.PatternServerGame;
 import com.swandev.swangame.socket.SocketIOEvents;
 import com.swandev.swangame.util.PatternCommon;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.util.SwanUtil;
 
-public class PatternServerScreen extends SwanScreen {
+public class PatternServerScreen extends SwanGameStartScreen {
 
 	private static final float PATTERN_DELAY = 1;
 	final PatternServerGame game;
@@ -54,25 +54,6 @@ public class PatternServerScreen extends SwanScreen {
 		shapeRenderer.end();
 	}
 
-	@Override
-	public void render(float delta) {
-		super.render(delta);
-		Gdx.gl.glLineWidth(Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.1f);
-
-		camera.update();
-
-		if (shouldDisplayPattern) {
-			displayPattern(delta);
-		}
-
-		final SpriteBatch spriteBatch = game.getSpriteBatch();
-		spriteBatch.setProjectionMatrix(camera.combined);
-
-		spriteBatch.begin();
-		renderCenteredText(currentPlayer + " it is your turn!");
-		spriteBatch.end();
-	}
-
 	private void displayPattern(float delta) {
 		ShapeRenderer shapeRenderer = game.getShapeRenderer();
 		shapeRenderer.setProjectionMatrix(camera.combined);
@@ -97,14 +78,6 @@ public class PatternServerScreen extends SwanScreen {
 		final BitmapFont font = game.getAssets().getFont();
 		final TextBounds bounds = font.getBounds(text);
 		font.draw(spriteBatch, text, camera.viewportWidth / 2 - bounds.width / 2, camera.viewportHeight / 2 + bounds.height / 2);
-	}
-
-	@Override
-	public void show() {
-		super.show();
-		pattern = Lists.newArrayList(getRandomColour());
-		shouldDisplayPattern = true;
-		currentPlayer = game.getSocketIO().getNicknames().get(0);
 	}
 
 	private void advanceGameAfterLosingPlayer(String player) {
@@ -156,6 +129,31 @@ public class PatternServerScreen extends SwanScreen {
 	public void dispose() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	protected void doRender(float delta) {
+		Gdx.gl.glLineWidth(Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.1f);
+
+		camera.update();
+
+		if (shouldDisplayPattern) {
+			displayPattern(delta);
+		}
+
+		final SpriteBatch spriteBatch = game.getSpriteBatch();
+		spriteBatch.setProjectionMatrix(camera.combined);
+
+		spriteBatch.begin();
+		renderCenteredText(currentPlayer + " it is your turn!");
+		spriteBatch.end();
+	}
+
+	@Override
+	protected void doShow() {
+		pattern = Lists.newArrayList(getRandomColour());
+		shouldDisplayPattern = true;
+		currentPlayer = game.getSocketIO().getNicknames().get(0);
 	}
 
 }

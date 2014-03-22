@@ -12,5 +12,7 @@ public class CommonSocketIOEvents {
 	public static final String ANNOUNCEMENT = "announcement";
 	public static final String GAME_START = "game_start";
 	public static final String INVALID_NICKNAME = "invalid_nickname";
+	public static final String PLAYER_READY = "player_ready";
+	public static final String EVERYONE_READY = "everyone_ready";
 
 }

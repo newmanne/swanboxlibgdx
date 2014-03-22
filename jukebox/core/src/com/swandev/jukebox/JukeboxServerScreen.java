@@ -10,11 +10,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.swandev.jukebox.Jukebox.SongData;
 import com.swandev.jukebox.Jukebox.SongRequest;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.socket.SocketIOState;
 
-public class JukeboxServerScreen extends SwanScreen {
+public class JukeboxServerScreen extends SwanGameStartScreen {
 
 	private final Jukebox jukebox;
 	private final Stage stage;
@@ -32,6 +32,22 @@ public class JukeboxServerScreen extends SwanScreen {
 		timeElapsed = new Label("", game.getAssets().getSkin());
 		playListTable = new Table();
 		stage.addActor(playListTable);
+	}
+
+	@Override
+	protected void doRender(float delta) {
+		cubeAnimation.render();
+		stage.draw();
+		stage.act(delta);
+		final SongData songData = jukebox.getCurrentSongData();
+		if (songData != null) {
+			timeElapsed.setText(formatTimeElapsed(songData));
+		}
+	}
+
+	@Override
+	public void doShow() {
+		jukebox.reset();
 	}
 
 	public void uiUpdatePlayList() {
@@ -52,24 +68,6 @@ public class JukeboxServerScreen extends SwanScreen {
 			playListTable.row();
 		}
 		playListTable.setFillParent(true);
-	}
-
-	@Override
-	public void render(float delta) {
-		super.render(delta);
-		cubeAnimation.render();
-		stage.draw();
-		stage.act(delta);
-		final SongData songData = jukebox.getCurrentSongData();
-		if (songData != null) {
-			timeElapsed.setText(formatTimeElapsed(songData));
-		}
-	}
-
-	@Override
-	public void show() {
-		super.show();
-		jukebox.reset();
 	}
 
 	@Override

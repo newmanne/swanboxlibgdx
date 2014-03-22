@@ -25,9 +25,9 @@ public abstract class SwanScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
+		// TODO: These opengl lines should probably be removed, they aren't really the responsibility of this class...
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
 		socketIO.flushEvents();
 	}
 
