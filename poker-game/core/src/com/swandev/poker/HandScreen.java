@@ -117,6 +117,7 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[1];
 				state.chipValue = (Integer) args[2];
 				state.callValue = (Integer) args[3];
+				myHand.setCardVisibility(true);
 			}
 		});
 		
@@ -178,6 +179,8 @@ public class HandScreen extends SwanGameStartScreen {
 				cashLabel.setText(Integer.toString(state.chipValue));
 				callLabel.setText(Integer.toString(state.callValue));
 				disableActionButtons();
+				
+				myHand.setCardVisibility(false);
 			}
 		});
 		registerEvent(PokerLib.GAMEOVER, new EventCallback() {
@@ -297,6 +300,7 @@ public class HandScreen extends SwanGameStartScreen {
 		buttonTable.add(callButton);
 		buttonTable.row();
 
+		/* Check Button takes no action and passes priority to the next player */
 		checkButton = new TextButton("Check", skin);
 		checkButton.setColor(Color.YELLOW);
 		checkButton.addListener(new ChangeListener() {
@@ -308,6 +312,7 @@ public class HandScreen extends SwanGameStartScreen {
 		buttonTable.add(checkButton);
 		buttonTable.row();
 
+		/* Fold Button gives up on the current bet and leaves this player out of this round */
 		foldButton = new TextButton("Fold", skin);
 		foldButton.setColor(Color.GRAY);
 		foldButton.addListener(new ChangeListener() {
@@ -410,13 +415,19 @@ public class HandScreen extends SwanGameStartScreen {
 			card1 = new CardImage();
 			card2 = new CardImage();
 			setCardDrawables(PokerLib.CARD_BACK, PokerLib.CARD_BACK);
+			setCardVisibility(false);
 			state = s;
 			startY = -1f;
 		}
 
-		void setCardDrawables(int card1Value, int card2Value) {
+		public void setCardDrawables(int card1Value, int card2Value) {
 			card1.setDrawable(new TextureRegionDrawable(cardTextureMap.get(card1Value)));
 			card2.setDrawable(new TextureRegionDrawable(cardTextureMap.get(card2Value)));
+		}
+		
+		public void setCardVisibility(boolean visible){
+			card1.setVisible(visible);
+			card2.setVisible(visible);
 		}
 
 		public class CardImage extends Image {
