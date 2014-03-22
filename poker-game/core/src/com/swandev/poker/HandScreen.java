@@ -124,6 +124,7 @@ public class HandScreen extends SwanGameStartScreen {
 			
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
+				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
 				betLabel.setText(Integer.toString(state.betValue));

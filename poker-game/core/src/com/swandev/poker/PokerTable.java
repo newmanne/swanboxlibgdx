@@ -57,12 +57,12 @@ public class PokerTable {
 				for (Card card : player.getPrivateCards()) {
 					cardPictureValues.add(card.getImageNumber());
 				}
-				if (ANTE > player.getMoney()){
+				if (ANTE < player.getMoney()){
 					player.placeBet(ANTE, pot);
 				}else{
 					player.placeBet(player.getMoney(), pot);
 				}
-				pokerGameScreen.getSocketIO().swanEmit(PokerLib.SET_ANTE, player.getName(),  0, player.getMoney(), 0);
+				pokerGameScreen.getSocketIO().swanEmit(PokerLib.SET_ANTE, player.getName(),  player.getBet(), player.getMoney(), 0);
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), cardPictureValues, 0, player.getMoney(), 0);
 			} else {
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, player.getName());
