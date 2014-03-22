@@ -107,10 +107,10 @@ public class PokerGameScreen extends SwanScreen {
 	private final Stage stage;
 	private final Image[] cards = new Image[5];
 	private final Map<String, PlayerTable> tables = Maps.newHashMap();
-	private final int width;
-	private final int height;
-	private final float ppuX;
-	private final float ppuY;
+	private int width;
+	private int height;
+	private float ppuX;
+	private float ppuY;
 	private Image backgroundImage;
 
 	public PokerGameScreen(PokerGameServer game) {
@@ -147,9 +147,15 @@ public class PokerGameScreen extends SwanScreen {
 	}
 
 	@Override
-	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
-
+	public void resize(int w, int h) {
+		Gdx.app.log("SIZE_DEBUG", "Resizing to "+ w + "x" + h);
+		this.width = w;
+		this.height = h;
+		ppuX = width / CAMERA_WIDTH;
+		ppuY = height / CAMERA_HEIGHT;
+		backgroundImage.setWidth(width);
+		backgroundImage.setHeight(height);
+		stage.setViewport(width, height, true);
 	}
 
 	@Override

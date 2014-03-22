@@ -28,6 +28,9 @@ public class PokerGameClient extends Game {
 
 	@Getter
 	private HandScreen handScreen;
+	
+	@Getter
+	private LayoutTestScreen testScreen;
 
 	@Override
 	public void create() {
@@ -37,8 +40,8 @@ public class PokerGameClient extends Game {
 		shapeRenderer = new ShapeRenderer();
 		connectScreen = new PokerClientConnectScreen(this, socketIO, spriteBatch, getAssets().getSkin());
 		handScreen = new HandScreen(this);
-		// setScreen(handScreen);
-		setScreen(connectScreen);
+		setScreen(handScreen);
+		//setScreen(connectScreen);
 	}
 
 	@Override
