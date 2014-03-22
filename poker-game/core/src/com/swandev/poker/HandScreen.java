@@ -494,25 +494,34 @@ public class HandScreen extends SwanGameStartScreen {
 		//Make the Decrement Button
 		final ImageButton decrementButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/decr_up.png")))),
 				new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/decr_down.png")))));
+		decrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() - PokerLib.ANTE));
+		
+		//Make the Increment Button
+		final ImageButton incrementButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/incr_up.png")))),
+				new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/incr_down.png")))));
+		incrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() + PokerLib.ANTE));
+		
+		//Now add the listeners, since they can enable/disable each other		
 		decrementButton.addListener(new ChangeListener(){
 
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				myRaise.setValue(myRaise.getValue() - PokerLib.ANTE);
 				raiseValueLabel.setText(myRaise.getValue().toString());
+				decrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() - PokerLib.ANTE));
+				incrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() + PokerLib.ANTE));
 			}
 			
 		});
 		
-		//Make the Increment Button
-		ImageButton incrementButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/incr_up.png")))),
-				new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/incr_down.png")))));
 		incrementButton.addListener(new ChangeListener(){
 
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				myRaise.setValue(myRaise.getValue() + PokerLib.ANTE);
 				raiseValueLabel.setText(myRaise.getValue().toString());
+				decrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() - PokerLib.ANTE));
+				incrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() + PokerLib.ANTE));
 			}
 			
 		});
@@ -522,6 +531,10 @@ public class HandScreen extends SwanGameStartScreen {
 		raiseDialog.getContentTable().add(incrementButton).height(BUTTON_HEIGHT).width(BUTTON_HEIGHT);
 		
 		raiseDialog.show(stage);
+	}
+	
+	public boolean cannotRaiseValue(int raiseValue){
+		return (raiseValue < PokerLib.ANTE) || (state.chipValue < state.callValue + state.betValue + raiseValue);
 	}
 
 	@Override
