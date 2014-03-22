@@ -12,13 +12,21 @@ import com.google.common.collect.Lists;
 public class PokerPot {
 
 	int value;
+	
+	private boolean isLeftover;
+	private int leftover;
 
 	public void add(int amount) {
 		value += amount;
 	}
 
 	public void reset() {
-		value = 0;
+		if (isLeftover){
+			value = leftover;
+		}else {
+			value = 0;
+		}
+		leftover = 0;
 	}
 
 	public List<PlayerStats> payout(List<PlayerStats> rankList, List<PlayerStats> foldedList) {
@@ -86,7 +94,13 @@ public class PokerPot {
 
 					}
 				}
+				int leftover = amount%stillIn.size() * PokerLib.ANTE;
+				if (leftover > 0){
+					this.isLeftover = true;
+					this.leftover += leftover;
+				}
 				amount = amount / stillIn.size();
+				
 				for (k = 0; k < stillIn.size(); k++) {
 					stillIn.get(k).setMoney(stillIn.get(k).getMoney() + amount);
 					if (i == tierList.size()-1 && j == tierList.get(i).size() - 1){

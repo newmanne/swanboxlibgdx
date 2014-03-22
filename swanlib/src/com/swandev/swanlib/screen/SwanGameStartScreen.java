@@ -48,7 +48,6 @@ public abstract class SwanGameStartScreen extends SwanScreen {
 		getSocketIO().getClient().emit(CommonSocketIOEvents.PLAYER_READY, getSocketIO().getNickname());
 	}
 
-	protected void onEveryoneReady() {
-	};
+	protected  abstract void onEveryoneReady();
 
 }

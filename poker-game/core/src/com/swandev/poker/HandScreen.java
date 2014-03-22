@@ -24,47 +24,54 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.Maps;
 import com.swandev.poker.HandScreen.HandRenderer.CardImage;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.util.SwanUtil;
 
-public class HandScreen extends SwanScreen {
+public class HandScreen extends SwanGameStartScreen {
 	// *** Layout Coordinates ***//
+	private static final float COORD_SCALE = 50f;
 	// Use the pixels per unit to define a grid and orient
 	// all the elements of the screen based on that grid.
-	private static final float CAMERA_WIDTH = 15f; // how many boxes wide the screen is
-	private static final float CAMERA_HEIGHT = 10f; // how many boxes high the screen is
-	private float ppuX; // pixels per unit on the X axis
-	private float ppuY; // pixels per unit on the Y axis
-
+	private static final float CAMERA_WIDTH = 15f * COORD_SCALE; // how many boxes wide the screen is
+	private static final float CAMERA_HEIGHT = 10f * COORD_SCALE; // how many boxes high the screen is
+	
 	// orient the cards in the players hand
-	private static final float CARD_WIDTH = 4f;
-	private static final float CARD_HEIGHT = 6f;
-	private static final float CARD1_ORIGIN_X = 5f;
-	private static final float CARD1_ORIGIN_Y = 3f;
-	private static final float CARD2_ORIGIN_X = 9f;
-	private static final float CARD2_ORIGIN_Y = 3f;
+	private static final float CARD_WIDTH = 4f * COORD_SCALE;
+	private static final float CARD_HEIGHT = 6f * COORD_SCALE;
+	private static final float CARD1_ORIGIN_X = 5f * COORD_SCALE;
+	private static final float CARD1_ORIGIN_Y = 3f * COORD_SCALE;
+	private static final float CARD2_ORIGIN_X = 9f * COORD_SCALE;
+	private static final float CARD2_ORIGIN_Y = 3f * COORD_SCALE;
+	
+	// orient the image for hand complete
+	private static final float OVER_IMAGE_HEIGHT = 3f * COORD_SCALE;
+	private static final float OVER_IMAGE_WIDTH = 8f * COORD_SCALE;
+	private static final float OVER_IMAGE_X = 5f * COORD_SCALE;
+	private static final float OVER_IMAGE_Y = 4.5f * COORD_SCALE;
 
 	// orient the table of buttons for betting/folding
-	private static final float BUTTON_WIDTH = 3f;
-	private static final float BUTTON_HEIGHT = 1f;
-	private static final float BUTTON_PADDING_LEFT = 1f;
-	private static final float BUTTON_PADDING_TOP = 1f;
+	private static final float BUTTON_WIDTH = 3f * COORD_SCALE;
+	private static final float BUTTON_HEIGHT = 1f * COORD_SCALE;
+	private static final float BUTTON_PADDING_LEFT = 1f * COORD_SCALE;
+	private static final float BUTTON_PADDING_TOP = 1f * COORD_SCALE;
 
 	// orient the text boxes which show the amount of $$ owned and bet
-	private static final float MONEY_TEXT_WIDTH = 2f;
-	private static final float MONEY_TEXT_HEIGHT = 1f;
-	private static final float MONEY_TABLE_PADDING_RIGHT = 0.5f;
-	private static final float MONEY_TABLE_PADDING_BOTTOM = 1f;
+	private static final float MONEY_TEXT_WIDTH = 2f * COORD_SCALE;
+	private static final float MONEY_TEXT_HEIGHT = 1f * COORD_SCALE;
+	private static final float MONEY_TABLE_PADDING_RIGHT = 0.5f * COORD_SCALE;
+	private static final float MONEY_TABLE_PADDING_BOTTOM = 1f * COORD_SCALE;
 
 	// These labels are members so we can dynamically change their values
 	// without looking them up in the stage
-	private static Label cashLabel;
-	private static Label betLabel;
-	private static Label callLabel;
-	private static Label winLabel;
+	private Label cashLabel;
+	private Label betLabel;
+	private Label callLabel;
+	
+	private Image handOver;
 
 	// The hand is a member so we can dynamically change the values and the
 	// orientation (face-up v. face-down) of the cards
@@ -87,32 +94,19 @@ public class HandScreen extends SwanScreen {
 	/** Textures **/
 	private Map<Integer, TextureRegion> cardTextureMap = Maps.newHashMap();
 
-	/** Animations **/
-	// private Animation rollLeftAnimation;
-	// private Animation rollRightAnimation;
-
 	private int width;
 	private int height;
-
-	public void setSize(int w, int h) {
-		this.width = w;
-		this.height = h;
-		ppuX = width / CAMERA_WIDTH;
-		ppuY = height / CAMERA_HEIGHT;
-		backgroundImage.setWidth(width);
-		backgroundImage.setHeight(height);
-	}
 
 	public HandScreen(PokerGameClient game) {
 		super(game.getSocketIO());
 		this.game = game;
-		this.cardTextureMap = PokerLib.getCardTextures();
+		cardTextureMap = PokerLib.getCardTextures();
 
-		this.stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, game.getSpriteBatch());
-		this.state = new PlayerState();
-		ppuX = Gdx.graphics.getWidth() / CAMERA_WIDTH;
-		ppuY = Gdx.graphics.getHeight() / CAMERA_HEIGHT;
-
+		width = Gdx.graphics.getWidth();
+		height = Gdx.graphics.getHeight();
+		Gdx.app.log("SIZE_DEBUG", "Constructing to "+ width + "x" + height);
+		stage = new Stage(new StretchViewport(CAMERA_WIDTH, CAMERA_HEIGHT));
+		state = new PlayerState();
 	}
 
 	@Override
@@ -122,7 +116,7 @@ public class HandScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				state.clearHand();
-				winLabel.setVisible(false);
+				handOver.setVisible(false);
 				JSONArray jsonArray = (JSONArray) args[0];
 				List<Integer> hand = SwanUtil.parseJsonList(jsonArray);
 				state.receiveCard(hand.get(0));
@@ -130,6 +124,20 @@ public class HandScreen extends SwanScreen {
 				state.betValue = (Integer) args[1];
 				state.chipValue = (Integer) args[2];
 				state.callValue = (Integer) args[3];
+				myHand.setCardVisibility(true);
+			}
+		});
+		
+		registerEvent(PokerLib.SET_ANTE, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				state.betValue = (Integer) args[0];
+				state.chipValue = (Integer) args[1];
+				state.callValue = (Integer) args[2];
+				betLabel.setText(Integer.toString(state.betValue));
+				cashLabel.setText(Integer.toString(state.chipValue));
+				callLabel.setText(Integer.toString(state.callValue));
 			}
 		});
 
@@ -170,14 +178,16 @@ public class HandScreen extends SwanScreen {
 				state.callValue = (Integer) args[2];
 				state.clearHand();
 				Boolean you_won = (Boolean) args[3];
-				String statusText = you_won ? "You won!" : "You lost!";
-				winLabel.setText(statusText);
-				winLabel.setVisible(true);
+				String imgPath = you_won ? "images/you_win_banner.png" : "images/you_lose_xs.png";
+				handOver.setDrawable(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal(imgPath)))));
+				handOver.setVisible(true);
 
 				betLabel.setText(Integer.toString(state.betValue));
 				cashLabel.setText(Integer.toString(state.chipValue));
 				callLabel.setText(Integer.toString(state.callValue));
 				disableActionButtons();
+				
+				myHand.setCardVisibility(false);
 			}
 		});
 		registerEvent(PokerLib.GAMEOVER, new EventCallback() {
@@ -194,8 +204,8 @@ public class HandScreen extends SwanScreen {
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/background.png"))));
 		backgroundImage.setX(0);
 		backgroundImage.setY(0);
-		backgroundImage.setWidth(width);
-		backgroundImage.setHeight(height);
+		backgroundImage.setWidth(CAMERA_WIDTH);
+		backgroundImage.setHeight(CAMERA_HEIGHT);
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
 	}
@@ -207,17 +217,17 @@ public class HandScreen extends SwanScreen {
 		// Note: If you want to overlap the cards because you're cool like that, just change the
 		// origins such that they overlap and the one added second (card2) is "in front" of the first one.
 		CardImage card1Image = myHand.getCard1();
-		card1Image.setX(CARD1_ORIGIN_X * ppuX);
-		card1Image.setY(CARD1_ORIGIN_Y * ppuY);
-		card1Image.setWidth(CARD_WIDTH * ppuX);
-		card1Image.setHeight(CARD_HEIGHT * ppuY);
+		card1Image.setX(CARD1_ORIGIN_X);
+		card1Image.setY(CARD1_ORIGIN_Y);
+		card1Image.setWidth(CARD_WIDTH);
+		card1Image.setHeight(CARD_HEIGHT);
 		stage.addActor(card1Image);
 
 		CardImage card2Image = myHand.getCard2();
-		card2Image.setX(CARD2_ORIGIN_X * ppuX);
-		card2Image.setY(CARD2_ORIGIN_Y * ppuY);
-		card2Image.setWidth(CARD_WIDTH * ppuX);
-		card2Image.setHeight(CARD_HEIGHT * ppuY);
+		card2Image.setX(CARD2_ORIGIN_X);
+		card2Image.setY(CARD2_ORIGIN_Y);
+		card2Image.setWidth(CARD_WIDTH);
+		card2Image.setHeight(CARD_HEIGHT);
 		stage.addActor(card2Image);
 	}
 
@@ -227,20 +237,20 @@ public class HandScreen extends SwanScreen {
 		// The second of each pair is a member of the Screen and is updated along with the PlayerState.
 		Table moneyTextTable = new Table(skin);
 
-		moneyTextTable.defaults().width(MONEY_TEXT_WIDTH * ppuX);
-		moneyTextTable.defaults().height(MONEY_TEXT_HEIGHT * ppuY);
+		moneyTextTable.defaults().width(MONEY_TEXT_WIDTH);
+		moneyTextTable.defaults().height(MONEY_TEXT_HEIGHT);
 		moneyTextTable.bottom().right();
-		moneyTextTable.padRight(MONEY_TABLE_PADDING_RIGHT * ppuX).padBottom(MONEY_TABLE_PADDING_BOTTOM * ppuY);
+		moneyTextTable.padRight(MONEY_TABLE_PADDING_RIGHT).padBottom(MONEY_TABLE_PADDING_BOTTOM);
 
 		Label callText = new Label("Call:", skin);
 		callLabel = new Label(new Integer(state.callValue).toString(), skin);
 		moneyTextTable.add(callText);
-		moneyTextTable.add(callLabel).padRight(MONEY_TABLE_PADDING_RIGHT * ppuX);
+		moneyTextTable.add(callLabel).padRight(MONEY_TABLE_PADDING_RIGHT);
 
 		Label cashText = new Label("Cash:", skin);
 		cashLabel = new Label(new Integer(state.chipValue).toString(), skin);
 		moneyTextTable.add(cashText);
-		moneyTextTable.add(cashLabel).padRight(MONEY_TABLE_PADDING_RIGHT * ppuX);
+		moneyTextTable.add(cashLabel).padRight(MONEY_TABLE_PADDING_RIGHT);
 
 		Label betText = new Label("Bet:", skin);
 		betLabel = new Label(new Integer(state.betValue).toString(), skin);
@@ -248,7 +258,7 @@ public class HandScreen extends SwanScreen {
 		moneyTextTable.add(betLabel);
 
 		moneyTextTable.setFillParent(true);
-
+		moneyTextTable.debug();
 		stage.addActor(moneyTextTable);
 	}
 
@@ -256,12 +266,10 @@ public class HandScreen extends SwanScreen {
 		// Adds a table of action buttons in the top-left corner of the screen
 		Table buttonTable = new Table(skin);
 
-		buttonTable.defaults().width(BUTTON_WIDTH * ppuX);
-		buttonTable.defaults().height(BUTTON_HEIGHT * ppuY);
+		buttonTable.defaults().width(BUTTON_WIDTH);
+		buttonTable.defaults().height(BUTTON_HEIGHT);
 		buttonTable.top().left();
-		buttonTable.padLeft(BUTTON_PADDING_LEFT * ppuX).padTop(BUTTON_PADDING_TOP * ppuY);
-
-		// Note that this section should be deleted completely once we are dealt cards from the dealer
+		buttonTable.padLeft(BUTTON_PADDING_LEFT).padTop(BUTTON_PADDING_TOP);
 
 		/* All-In Button Requests a bet which is equal to the total cash the player owns */
 		allInButton = new TextButton("All In!", skin);
@@ -299,6 +307,7 @@ public class HandScreen extends SwanScreen {
 		buttonTable.add(callButton);
 		buttonTable.row();
 
+		/* Check Button takes no action and passes priority to the next player */
 		checkButton = new TextButton("Check", skin);
 		checkButton.setColor(Color.YELLOW);
 		checkButton.addListener(new ChangeListener() {
@@ -310,6 +319,7 @@ public class HandScreen extends SwanScreen {
 		buttonTable.add(checkButton);
 		buttonTable.row();
 
+		/* Fold Button gives up on the current bet and leaves this player out of this round */
 		foldButton = new TextButton("Fold", skin);
 		foldButton.setColor(Color.GRAY);
 		foldButton.addListener(new ChangeListener() {
@@ -322,23 +332,18 @@ public class HandScreen extends SwanScreen {
 		buttonTable.row();
 
 		buttonTable.setFillParent(true);
-
 		stage.addActor(buttonTable);
 	}
 
-	private void buildWinLabel(Skin skin) {
-		winLabel = new Label("You lost!", skin);
-		winLabel.setVisible(false);
+	private void buildHandOver(Skin skin) {
+		handOver = new Image();
+		handOver.setVisible(false);
 
-		Table winTable = new Table(skin);
-		winTable.center().top();
-
-		winTable.add(winLabel).width(CARD_WIDTH * ppuX).height(MONEY_TEXT_HEIGHT * ppuY);
-		winTable.row();
-
-		winTable.setFillParent(true);
-
-		stage.addActor(winTable);
+		handOver.setX(OVER_IMAGE_X);
+		handOver.setY(OVER_IMAGE_Y);
+		handOver.setWidth(OVER_IMAGE_WIDTH);
+		handOver.setHeight(OVER_IMAGE_HEIGHT);
+		stage.addActor(handOver);
 	}
 
 	private void disableActionButtons() {
@@ -385,14 +390,10 @@ public class HandScreen extends SwanScreen {
 		// disable the buttons while you wait for the ack; the valid ones will be re-enabled on a YOUR_TURN
 		// method or in response to an INVALID_ACTION call (shouldn't happen if the buttons were enabled properly)
 		disableActionButtons();
-
-		// END OF FUNCTION (once the socket stuff is integrated)
 	}
 
 	@Override
-	public void render(float delta) {
-		// Minimal action taken inside the render loop
-		super.render(delta);
+	public void doRender(float delta) {
 		stage.draw();
 		stage.act(delta);
 	}
@@ -418,13 +419,19 @@ public class HandScreen extends SwanScreen {
 			card1 = new CardImage();
 			card2 = new CardImage();
 			setCardDrawables(PokerLib.CARD_BACK, PokerLib.CARD_BACK);
+			setCardVisibility(false);
 			state = s;
 			startY = -1f;
 		}
 
-		void setCardDrawables(int card1Value, int card2Value) {
+		public void setCardDrawables(int card1Value, int card2Value) {
 			card1.setDrawable(new TextureRegionDrawable(cardTextureMap.get(card1Value)));
 			card2.setDrawable(new TextureRegionDrawable(cardTextureMap.get(card2Value)));
+		}
+		
+		public void setCardVisibility(boolean visible){
+			card1.setVisible(visible);
+			card2.setVisible(visible);
 		}
 
 		public class CardImage extends Image {
@@ -461,12 +468,18 @@ public class HandScreen extends SwanScreen {
 
 	@Override
 	public void resize(int width, int height) {
-		stage.setViewport(width, height, true);
+		this.width = width;
+		this.height = height;
+		stage.getViewport().update(width, height, true);
+	}
+	
+	@Override
+	protected void onEveryoneReady() {
+			
 	}
 
 	@Override
-	public void show() {
-		super.show();
+	public void doShow() {
 		state.reset();
 		myHand = new HandRenderer(state);
 
@@ -478,10 +491,10 @@ public class HandScreen extends SwanScreen {
 		// for the background since it needs to be behind everything else, but also
 		// determines who's in front in some weird resizing cases.
 		buildBackground(skin);
-		buildCards(skin);
 		buildMoneyText(skin);
 		buildButtonTable(skin);
-		buildWinLabel(skin);
+		buildCards(skin);
+		buildHandOver(skin);
 
 		// This call should be made at the end of a response to a "Your Turn" message, after
 		// changing the PlayerState appropriately.

@@ -19,10 +19,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 
-public class PokerGameScreen extends SwanScreen {
+public class PokerGameScreen extends SwanGameStartScreen {
 
 	private static final int STARTING_VALUE = 100000;
 
@@ -104,10 +104,10 @@ public class PokerGameScreen extends SwanScreen {
 	private final Stage stage;
 	private final Image[] cards = new Image[5];
 	private final Map<String, PlayerTable> tables = Maps.newHashMap();
-	private final int width;
-	private final int height;
-	private final float ppuX;
-	private final float ppuY;
+	private int width;
+	private int height;
+	private float ppuX;
+	private float ppuY;
 	private Image backgroundImage;
 
 	public PokerGameScreen(PokerGameServer game) {
@@ -121,31 +121,35 @@ public class PokerGameScreen extends SwanScreen {
 		ppuX = width / CAMERA_WIDTH;
 		ppuY = height / CAMERA_HEIGHT;
 
-		stage = new Stage(width, height, false, game.getSpriteBatch());
+		stage = new Stage();
 
 		cardToImage = PokerLib.getCardTextures();
 
 		xMid = width / 2;
 		yMid = height / 2;
 	}
-
+	
 	@Override
-	public void render(float delta) {
-		super.render(delta);
-
+	protected void doRender(float delta) {
 		stage.draw();
 		stage.act(delta);
 	}
 
 	@Override
-	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
-
+	public void resize(int w, int h) {
+		Gdx.app.log("SIZE_DEBUG", "Resizing to "+ w + "x" + h);
+		this.width = w;
+		this.height = h;
+		ppuX = width / CAMERA_WIDTH;
+		ppuY = height / CAMERA_HEIGHT;
+		backgroundImage.setWidth(width);
+		backgroundImage.setHeight(height);
+		stage.getViewport().update(width, height, true);
 	}
 
 	@Override
-	public void show() {
-		super.show();
+	protected void doShow() {
+		// TODO Auto-generated method stub
 		playerNames = Lists.newArrayList(getSocketIO().getNicknames());
 		List<PlayerStats> players = Lists.newArrayList();
 		for (String playerName : playerNames) {
@@ -158,11 +162,15 @@ public class PokerGameScreen extends SwanScreen {
 		buildBackground(skin);
 		buildCards();
 		buildPlayerTables(skin);
-
+		
 		pokerTable = new PokerTable(this, players);
-		pokerTable.newHand();
 	}
-
+	
+	@Override
+	protected void onEveryoneReady() {
+		pokerTable.newHand();
+		
+	}
 	private void buildCards() {
 		for (int i = 0; i < 5; ++i) {
 			cards[i] = new Image();

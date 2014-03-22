@@ -13,6 +13,7 @@ import com.google.common.collect.Sets;
 import com.swandev.poker.PokerGameScreen.PokerRound;
 
 public class PokerTable {
+	
 	PokerRound round;
 	@Getter
 	int callValue;
@@ -33,7 +34,7 @@ public class PokerTable {
 
 	public void newHand() {
 		Gdx.app.log("poker", "Starting a new round of poker!");
-		callValue = 0;
+		callValue = PokerLib.ANTE;
 		deck.reset();
 		round = PokerRound.PREFLOP;
 		pot.reset();
@@ -54,6 +55,12 @@ public class PokerTable {
 				for (Card card : player.getPrivateCards()) {
 					cardPictureValues.add(card.getImageNumber());
 				}
+				if (PokerLib.ANTE < player.getMoney()){
+					player.placeBet(PokerLib.ANTE, pot);
+				}else{
+					player.placeBet(player.getMoney(), pot);
+				}
+				pokerGameScreen.getSocketIO().swanEmit(PokerLib.SET_ANTE, player.getName(),  player.getBet(), player.getMoney(), 0);
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), cardPictureValues, 0, player.getMoney(), 0);
 			} else {
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, player.getName());
@@ -158,12 +165,14 @@ public class PokerTable {
 			// If everyone alive still in has bet the same (non-zero) amount,
 			// the round should end
 			List<Integer> bets = Lists.newArrayList();
+			List<Integer> totalBet = Lists.newArrayList();
 			for (PlayerStats player : players) {
 				if (player.isAlive() && !player.isFolded() && player.getBet() > 0) {
 					bets.add(player.getBet());
+					totalBet.add(player.getTotalBet());
 				}
 			}
-			if (bets.size() == getNumRemainingPlayersInRound() && Sets.newHashSet(bets).size() == 1) {
+			if (bets.size() == getNumRemainingPlayersInRound() && Sets.newHashSet(bets).size() == 1 && !totalBet.get(0).equals(PokerLib.ANTE)) {
 				if (getNumRemainingPlayersInRound() - numAllin <=1){
 					round = PokerRound.RIVER;
 					pokerGameScreen.uiForDrawCards(round);
@@ -214,7 +223,7 @@ public class PokerTable {
 		List<PlayerStats> winners = Lists.newArrayList(pot.payout(showdownPlayers, foldedList));
 		Gdx.app.log("poker", "Winning hands " + showdownPlayers.get(0).getHand());
 		for (PlayerStats player : players) {
-			player.setAlive(player.getMoney() > 0);
+			player.setAlive(player.getMoney() > PokerLib.ANTE);
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, winners.contains(player));
 		}
 		// TODO: check for GameOver condition (1 alive player)
