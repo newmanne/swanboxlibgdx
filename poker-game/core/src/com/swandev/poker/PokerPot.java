@@ -6,6 +6,7 @@ import java.util.List;
 
 import lombok.Data;
 
+import com.badlogic.gdx.Gdx;
 import com.google.common.collect.Lists;
 
 @Data
@@ -13,8 +14,8 @@ public class PokerPot {
 
 	int value;
 	
-	private boolean isLeftover;
-	private int leftover;
+	private boolean isLeftover = false;
+	private int leftover = 0;
 
 	public void add(int amount) {
 		value += amount;
@@ -94,11 +95,14 @@ public class PokerPot {
 
 					}
 				}
-				int leftover = amount%stillIn.size() * PokerLib.ANTE;
+				
+				int leftover = amount%(stillIn.size() * PokerLib.ANTE);
 				if (leftover > 0){
 					this.isLeftover = true;
 					this.leftover += leftover;
+					amount -= leftover;
 				}
+				
 				amount = amount / stillIn.size();
 				
 				for (k = 0; k < stillIn.size(); k++) {
@@ -107,6 +111,7 @@ public class PokerPot {
 						// do nothing
 					}
 					else if (!winners.contains(stillIn.get(k))) {
+						Gdx.app.log("poker", "adding winners list");
 						winners.add(stillIn.get(k));
 					}
 				}
