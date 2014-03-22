@@ -25,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -68,6 +69,10 @@ public class HandScreen extends SwanGameStartScreen {
 	private static final float MONEY_TEXT_HEIGHT = 1f * COORD_SCALE;
 	private static final float MONEY_TABLE_PADDING_RIGHT = 0.5f * COORD_SCALE;
 	private static final float MONEY_TABLE_PADDING_BOTTOM = 1f * COORD_SCALE;
+	
+	// size the buttons for the raise dialog
+	private static final float RAISE_TEXT_HEIGHT = 2f * COORD_SCALE; //width should adjust with the text
+	private static final float RAISE_BUTTON_WIDTH = 2f * COORD_SCALE; //height is the same as width
 
 	// These labels are members so we can dynamically change their values
 	// without looking them up in the stage
@@ -375,9 +380,8 @@ public class HandScreen extends SwanGameStartScreen {
 			callButton.setDisabled(false); // you can only call if you haven't bet up to the call value
 		} else if (state.betValue == state.callValue) {
 			checkButton.setDisabled(false); // otherwise you will be able to check
-		} else if (state.totalBetValue == PokerLib.ANTE){
-			checkButton.setDisabled(false);
 		}
+		
 		if (state.chipValue > 0) {
 			allInButton.setDisabled(false);
 		}
@@ -485,18 +489,14 @@ public class HandScreen extends SwanGameStartScreen {
 			@Override
 			protected void result(Object result) {
 				if (result.equals(true) && myRaise.getValue() > 0) {
-					requestBet(Math.max(state.betValue, state.callValue) + myRaise.getValue() - state.betValue);
+					requestBet(state.callValue + myRaise.getValue());
 				}
 			}
-		}.button("Submit", true).button("Cancel", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false);
-		
-		Label raiseTextLabel = new Label("Current Raise:", skin);
-		raiseDialog.getContentTable().add(raiseTextLabel);
+		}.button("Cancel", false).button("Submit", true).key(Keys.ENTER, true).key(Keys.ESCAPE, false);
 		
 		final Label raiseValueLabel = new Label(myRaise.getValue().toString(), skin);
-		raiseDialog.getContentTable().add(raiseValueLabel);
-		raiseDialog.getContentTable().row();
-
+		raiseValueLabel.setAlignment(Align.center);
+		
 		//Make the Decrement Button
 		final ImageButton decrementButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/decr_up.png")))),
 				new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/decr_down.png")))));
@@ -533,14 +533,15 @@ public class HandScreen extends SwanGameStartScreen {
 		});
 		
 		//Add them to the Dialog table
-		raiseDialog.getContentTable().add(decrementButton).height(BUTTON_HEIGHT).width(BUTTON_HEIGHT);
-		raiseDialog.getContentTable().add(incrementButton).height(BUTTON_HEIGHT).width(BUTTON_HEIGHT);
+		raiseDialog.getContentTable().add(decrementButton).height(RAISE_BUTTON_WIDTH).width(RAISE_BUTTON_WIDTH);
+		raiseDialog.getContentTable().add(raiseValueLabel).height(RAISE_TEXT_HEIGHT).minWidth(RAISE_TEXT_HEIGHT);
+		raiseDialog.getContentTable().add(incrementButton).height(RAISE_BUTTON_WIDTH).width(RAISE_BUTTON_WIDTH);
 		
 		raiseDialog.show(stage);
 	}
 	
 	public boolean cannotRaiseValue(int raiseValue){
-		return (raiseValue < PokerLib.ANTE) || (state.chipValue < state.callValue + state.betValue + raiseValue);
+		return (raiseValue < PokerLib.ANTE) || (state.chipValue < state.callValue + raiseValue);
 	}
 
 	@Override
