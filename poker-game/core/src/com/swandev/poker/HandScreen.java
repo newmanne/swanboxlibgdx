@@ -472,6 +472,11 @@ public class HandScreen extends SwanGameStartScreen {
 		this.height = height;
 		stage.getViewport().update(width, height, true);
 	}
+	
+	@Override
+	protected void onEveryoneReady() {
+			
+	}
 
 	@Override
 	public void doShow() {

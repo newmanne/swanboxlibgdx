@@ -14,8 +14,6 @@ import com.swandev.poker.PokerGameScreen.PokerRound;
 
 public class PokerTable {
 	
-	public static int ANTE = 1000;
-	
 	PokerRound round;
 	@Getter
 	int callValue;
@@ -36,7 +34,7 @@ public class PokerTable {
 
 	public void newHand() {
 		Gdx.app.log("poker", "Starting a new round of poker!");
-		callValue = 0;
+		callValue = PokerLib.ANTE;
 		deck.reset();
 		round = PokerRound.PREFLOP;
 		pot.reset();
@@ -57,8 +55,8 @@ public class PokerTable {
 				for (Card card : player.getPrivateCards()) {
 					cardPictureValues.add(card.getImageNumber());
 				}
-				if (ANTE < player.getMoney()){
-					player.placeBet(ANTE, pot);
+				if (PokerLib.ANTE < player.getMoney()){
+					player.placeBet(PokerLib.ANTE, pot);
 				}else{
 					player.placeBet(player.getMoney(), pot);
 				}
