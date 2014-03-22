@@ -13,14 +13,9 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     player_sessid = [];
     game_player_sessid = [];
     count = 0;
-    colourSequence = list()
-    colour = ['red', 'blue', 'green']
     screenSocket = None
     hostSocket = None
-    roundrobin = 0;
-
-    def on_test(self):
-        print 'test works'
+    acks_before_game_start = 0;
 
 #Connection/Disconnection Code
 ################################################################################################
@@ -28,25 +23,20 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
     def on_screen_set(self):
         print 'Screen has connected'
-       # self.request['nicknames'].append('Screen')
         self.socket.session['nickname'] = 'Screen'
         SwanNamespace.screenSocket = self.socket
 
-    def on_nickname(self, nickname):
-        self.request['nicknames'].append(nickname)
-        self.socket.session['nickname'] = nickname
-        self.broadcast_event('announcement', '%s has connected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
-        # Just have them join a default-named room
-        self.join('main_room')
-
     def on_nickname_set(self, nickname):
+        if nickname in self.request['nicknames']:
+            print 'Player attempted to join with duplicate nickname: %s, telling player to retry with new name' % nickname
+            self.emit('invalid_nickname')
+            return
+
         self.request['nicknames'].append(nickname)
         print self.request['nicknames']
         self.socket.session['nickname'] = nickname
         
         self.broadcast_event('announcement', '%s has connected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
         
         if (SwanNamespace.count == 0):
             SwanNamespace.hostSocket = self.socket
@@ -63,14 +53,31 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         SwanNamespace.player_sessid.append([self.socket, nickname])
         print SwanNamespace.player_sessid
 
+
+    def on_game_start(self):
+        print 'Game started request received. Waiting on acks'
+        SwanNamespace.acks_before_game_start = list(self.request['nicknames']) + ['Screen']
+        self.broadcast_event('game_start')
+
+    def on_player_ready(self, nickname):
+        SwanNamespace.acks_before_game_start.remove(nickname)
+        if len(SwanNamespace.acks_before_game_start) == 0:
+            print 'Everyone ready to start'
+            self.broadcast_event('everyone_ready')
+        else:
+            print "%s is ready, still waiting on %s" % (nickname, SwanNamespace.acks_before_game_start)
+
     def recv_disconnect(self):
+        if not self.socket.session.has_key('nickname'):
+            print 'An unidentified player (no nickname set) has disconnected'
+            return 
+
         # Remove nickname from the list.
         nickname = self.socket.session['nickname']
         
         #broadcast to everyone that someone has disconnected
         self.broadcast_event('client_disconnect', nickname)
         self.broadcast_event('announcement', '%s has disconnected' % nickname)
-        self.broadcast_event('nicknames', self.request['nicknames'])
         
         if nickname != 'Screen':
             SwanNamespace.player_sessid.remove([self.socket, nickname])
@@ -95,56 +102,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 ################################################################################################
 
 
-
-
-#Definition of Events for Applications to start
-################################################################################################
-################################################################################################
-################################################################################################
-
-    def on_start_chatroom (self):
-        print 'Starting Chatroom'
-        self.broadcast_event('playing_chatroom')
-
-    def on_start_patterns (self):
-        print 'Starting Patterns'
-        self.broadcast_event('playing_patterns')
-
-
-################################################################################################
-################################################################################################
-################################################################################################
-    
-
-#Chatroom Related Events
-################################################################################################
-################################################################################################
-################################################################################################
-    def on_user_message(self, msg):
-        # tmp = msg.split("/")
-        # if len(tmp) >= 2:
-        #     tmp = tmp[1].split(" ")
-        #     tmp2 = msg.split(" ", 2)
-        #     if tmp[0] is "w":
-        #         if len(tmp2) >= 3:
-        #             for pair in SwanNamespace.player_sessid:
-        #                 if pair[1] == tmp2[1]:
-        #                     self.emit_to_socket('msg_to_room', pair[0], self.socket.session['nickname'], tmp2[2])                      
-        #     else:
-        #         self.emit_to_room('main_room', 'msg_to_room',
-        #         self.socket.session['nickname'], msg)           
-        # else:
-        print msg[0]
-        self.broadcast_event('msg_to_room',self.socket.session['nickname'], msg[0])
-        #self.emit_to_room(self, 'main_room' 'msg_to_room',
-        #self.socket.session['nickname'], msg)
-
-
-################################################################################################
-################################################################################################
-################################################################################################        
-
-
 #Mailbox Implementation
 ################################################################################################
 ################################################################################################
@@ -157,9 +114,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_swan_emit(self, nickname, event, args):
         print "SENDING TO ", nickname, " EVENT ", event, " WITH ARGS ", args
         self.emit_to_nickname(nickname, event, args)
-
-    def on_swan_broadcast_but_me(self,event,args):
-        self.broadcast_event_not_me(event, *args)
 
     def on_swan_get_nicknames(self):
         self.emit_to_socket("swan_get_nicknames", self.socket, self.request['nicknames'])
@@ -177,8 +131,6 @@ class SwanNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     def recv_message(self, message):
         print "PING!!!", message
-
-
 
     def emit_to_nickname(self, name, event, args):
         if name == "Screen":
@@ -264,9 +216,3 @@ if __name__ == '__main__':
     SocketIOServer(('0.0.0.0', 8080), Application(),
         resource="socket.io", policy_server=True,
         policy_listener=('0.0.0.0', 10843)).serve_forever()
-
-
-
-
-#Notes: 
-#- Should the game server determine the next player or the server?

@@ -87,4 +87,12 @@ public class PokerLib {
 	/*
 	 * Sender: PokerServer Receiver: HandScreen Purpose: Indicate that the hand is over and refresh the client's PlayerState. Also indicate to the players whether they won or lost; presumably some animation/pop-up will occur on the client side in response. The Client will wait for the next DEAL_HAND message, and the server begins a new hand. Additional data: - $_state (three Integers) - you_won (boolean)
 	 */
+	
+	public static final String GAMEOVER = "gameover";
+	/*
+	 * Sender: PokerServer
+	 * Reciever: HandScreen
+	 * Purpose: Signal game is over, and returns the device to connect screen
+	 */
+	 
 }

@@ -17,12 +17,11 @@ import com.google.common.collect.Lists;
 import com.swandev.pattern.PatternServerGame;
 import com.swandev.swangame.socket.SocketIOEvents;
 import com.swandev.swangame.util.PatternCommon;
-import com.swandev.swanlib.screen.SwanScreen;
+import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.util.SwanUtil;
 
-public class PatternServerScreen extends SwanScreen {
+public class PatternServerScreen extends SwanGameStartScreen {
 
 	private static final float PATTERN_DELAY = 1;
 	final PatternServerGame game;
@@ -55,25 +54,6 @@ public class PatternServerScreen extends SwanScreen {
 		shapeRenderer.end();
 	}
 
-	@Override
-	public void render(float delta) {
-		super.render(delta);
-		Gdx.gl.glLineWidth(Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.1f);
-
-		camera.update();
-
-		if (shouldDisplayPattern) {
-			displayPattern(delta);
-		}
-
-		final SpriteBatch spriteBatch = game.getSpriteBatch();
-		spriteBatch.setProjectionMatrix(camera.combined);
-
-		spriteBatch.begin();
-		renderCenteredText(currentPlayer + " it is your turn!");
-		spriteBatch.end();
-	}
-
 	private void displayPattern(float delta) {
 		ShapeRenderer shapeRenderer = game.getShapeRenderer();
 		shapeRenderer.setProjectionMatrix(camera.combined);
@@ -100,14 +80,6 @@ public class PatternServerScreen extends SwanScreen {
 		font.draw(spriteBatch, text, camera.viewportWidth / 2 - bounds.width / 2, camera.viewportHeight / 2 + bounds.height / 2);
 	}
 
-	@Override
-	public void show() {
-		super.show();
-		pattern = Lists.newArrayList(getRandomColour());
-		shouldDisplayPattern = true;
-		currentPlayer = game.getSocketIO().getNicknames().get(0);
-	}
-
 	private void advanceGameAfterLosingPlayer(String player) {
 		getSocketIO().getNicknames().remove(player);
 		if (getSocketIO().getNicknames().isEmpty()) {
@@ -120,7 +92,7 @@ public class PatternServerScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(SocketIOEvents.UPDATE_SEQUENCE, new EventCallback() {
+		registerEvent(SocketIOEvents.UPDATE_SEQUENCE, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -137,8 +109,8 @@ public class PatternServerScreen extends SwanScreen {
 			}
 
 		};
-		getSocketIO().on(SocketIOEvents.INVALID_PATTERN, removeAPlayer);
-		getSocketIO().on(SocketIOEvents.CLIENT_DISCONNECT, removeAPlayer);
+		registerEvent(SocketIOEvents.INVALID_PATTERN, removeAPlayer);
+		registerEvent(SocketIOEvents.CLIENT_DISCONNECT, removeAPlayer);
 	}
 
 	private void takeTurn(boolean addNewColour) {
@@ -154,17 +126,34 @@ public class PatternServerScreen extends SwanScreen {
 	}
 
 	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(SocketIOEvents.UPDATE_SEQUENCE);
-		eventEmitter.unregisterEvent(SocketIOEvents.GAME_OVER);
-		eventEmitter.unregisterEvent(SocketIOEvents.INVALID_PATTERN);
-		eventEmitter.unregisterEvent(SocketIOEvents.CLIENT_DISCONNECT);
-	}
-
-	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	protected void doRender(float delta) {
+		Gdx.gl.glLineWidth(Math.max(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) * 0.1f);
+
+		camera.update();
+
+		if (shouldDisplayPattern) {
+			displayPattern(delta);
+		}
+
+		final SpriteBatch spriteBatch = game.getSpriteBatch();
+		spriteBatch.setProjectionMatrix(camera.combined);
+
+		spriteBatch.begin();
+		renderCenteredText(currentPlayer + " it is your turn!");
+		spriteBatch.end();
+	}
+
+	@Override
+	protected void doShow() {
+		pattern = Lists.newArrayList(getRandomColour());
+		shouldDisplayPattern = true;
+		currentPlayer = game.getSocketIO().getNicknames().get(0);
 	}
 
 }

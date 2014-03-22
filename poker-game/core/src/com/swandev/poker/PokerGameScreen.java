@@ -37,15 +37,14 @@ public class PokerGameScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(PokerLib.FOLD_REQUEST, new EventCallback() {
+		registerEvent(PokerLib.FOLD_REQUEST, new EventCallback() {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				final String player = (String) args[0];
 				pokerTable.foldPlayer(playerMap.get(player));
 			}
 		});
-
-		getSocketIO().on(PokerLib.BET_REQUEST, new EventCallback() {
+		registerEvent(PokerLib.BET_REQUEST, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -57,7 +56,6 @@ public class PokerGameScreen extends SwanScreen {
 				tables.get(playerName).setChipValue(player.getMoney());
 			}
 		});
-
 	}
 
 	public void uiForDrawCards(PokerRound round) {

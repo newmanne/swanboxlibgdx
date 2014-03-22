@@ -13,7 +13,6 @@ import com.badlogic.gdx.Screen;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
 import com.swandev.swanlib.socket.ConnectCallback;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.socket.SocketIOState;
 import com.swandev.swanlib.util.CommonLogTags;
 import com.swandev.swanlib.util.SwanUtil;
@@ -42,6 +41,11 @@ public abstract class ServerConnectScreen extends SwanScreen {
 					if (ex != null) {
 						connectFailed = true;
 					}
+				}
+
+				@Override
+				public void onDisconnect() {
+
 				}
 			});
 		} catch (MalformedURLException e) {
@@ -74,21 +78,16 @@ public abstract class ServerConnectScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(CommonSocketIOEvents.GAME_START, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.GAME_START, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				gameStarted = true;
 				getSocketIO().requestNicknames();
-			
+
 			}
 		});
 
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.GAME_START);
 	}
 
 	@Override

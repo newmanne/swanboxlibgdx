@@ -27,7 +27,7 @@ public class JukeboxClient extends Game {
 	private ClientConnectScreen connectScreen;
 
 	@Getter
-	private JukeboxScreen jukeboxScreen;
+	private JukeboxClientScreen jukeboxClientScreen;
 
 	@Override
 	public void create() {
@@ -36,15 +36,15 @@ public class JukeboxClient extends Game {
 		socketIO = new SocketIOState();
 		shapeRenderer = new ShapeRenderer();
 		connectScreen = new JukeboxClientConnectScreen(this, socketIO, spriteBatch, getAssets().getSkin());
-		jukeboxScreen = new JukeboxScreen(getSocketIO());
-		setScreen(jukeboxScreen);
+		jukeboxClientScreen = new JukeboxClientScreen(getSocketIO(), this);
+		setScreen(connectScreen);
 	}
 
 	@Override
 	public void dispose() {
 		super.dispose();
 		connectScreen.dispose();
-		jukeboxScreen.dispose();
+		jukeboxClientScreen.dispose();
 		spriteBatch.dispose();
 		assets.dispose();
 	}
@@ -57,7 +57,7 @@ public class JukeboxClient extends Game {
 
 		@Override
 		protected void switchToGame() {
-			game.setScreen(((JukeboxClient) game).getJukeboxScreen());
+			game.setScreen(((JukeboxClient) game).getJukeboxClientScreen());
 		}
 	}
 }

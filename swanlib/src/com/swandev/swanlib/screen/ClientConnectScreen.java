@@ -6,23 +6,27 @@ import io.socket.SocketIOException;
 import java.net.MalformedURLException;
 import java.util.List;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
+
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
 import com.swandev.swanlib.socket.ConnectCallback;
 import com.swandev.swanlib.socket.EventCallback;
-import com.swandev.swanlib.socket.EventEmitter;
 import com.swandev.swanlib.socket.SocketIOState;
 import com.swandev.swanlib.util.CommonLogTags;
 import com.swandev.swanlib.util.SwanUtil;
@@ -37,6 +41,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final TextField nicknameField;
 	private final TextButton connectButton;
 	private final TextButton gameStart;
+	private final TextButton updateButton;
 	private Table table;
 	private final Label waitingText;
 	private final List<Label> announcements = Lists.newArrayList();
@@ -45,7 +50,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		super(socketIO);
 		this.game = game;
 		this.skin = skin;
-		this.stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), false, spritebatch);
+		this.stage = new Stage();
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
 		ipAddressField = new TextField(defaultIP, skin);
@@ -53,8 +58,9 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		portField = new TextField("8080", skin);
 		portField.setMessageText("Port");
-
-		nicknameField = new TextField("blinky", skin);
+		final List<String> sampleNames = ImmutableList.of("Blinky", "Pacman", "Robocop", "DemonSlayer", "HAL", "ChickenLittle", "HansSolo", "Yoshi", "LittleEngineThatCould", "Ghost", "GoLeafsGo", "Batman");
+		final String defaultName = sampleNames.get(RandomUtils.nextInt(0, sampleNames.size()));
+		nicknameField = new TextField(defaultName + RandomStringUtils.randomNumeric(3), skin);
 		nicknameField.setMessageText("Blinky");
 
 		connectButton = new TextButton("Connect", skin);
@@ -62,16 +68,33 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				connectButton.setDisabled(true);
-				connect();
+				connectButton.setVisible(true);
+				if (!getSocketIO().isConnected()) {
+					connect();
+				}
 			}
 		});
+		updateButton = new TextButton("Update Nickname", skin);
+		updateButton.addListener(new ChangeListener() {
+
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				getSocketIO().setNickname(nicknameField.getText());
+				updateButton.setVisible(false);
+				updateButton.setDisabled(true);
+			}
+
+		});
+		updateButton.setDisabled(true);
+		updateButton.setVisible(false);
 
 		gameStart = new TextButton("Start", skin);
 		gameStart.addListener(new ChangeListener() {
 
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				socketIO.swanBroadcast(CommonSocketIOEvents.GAME_START);
+				// this is a special event, emit directly to server
+				socketIO.getClient().emit(CommonSocketIOEvents.GAME_START);
 			}
 
 		});
@@ -92,7 +115,17 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	@Override
 	protected void registerEvents() {
-		getSocketIO().on(CommonSocketIOEvents.ELECTED_CLIENT, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.INVALID_NICKNAME, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				new Dialog("Invalid nickname", skin).text("Please pick a different nickname").button("OK").show(stage);
+				updateButton.setDisabled(false);
+				updateButton.setVisible(true);
+				nicknameField.setDisabled(false);
+			}
+		});
+		registerEvent(CommonSocketIOEvents.ELECTED_CLIENT, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -101,7 +134,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			}
 
 		});
-		getSocketIO().on(CommonSocketIOEvents.ELECTED_HOST, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.ELECTED_HOST, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -111,7 +144,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			}
 
 		});
-		getSocketIO().on(CommonSocketIOEvents.GAME_START, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.GAME_START, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -119,7 +152,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			}
 
 		});
-		getSocketIO().on(CommonSocketIOEvents.ANNOUNCEMENT, new EventCallback() {
+		registerEvent(CommonSocketIOEvents.ANNOUNCEMENT, new EventCallback() {
 
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
@@ -149,6 +182,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		table.row();
 
 		table.add(connectButton);
+		table.add(updateButton);
 		table.add(gameStart);
 		table.row();
 
@@ -166,7 +200,22 @@ public abstract class ClientConnectScreen extends SwanScreen {
 				public void onConnect(SocketIOException ex) {
 					if (ex != null) {
 						connectButton.setDisabled(false);
+					} else {
+						connectButton.setVisible(false);
+						ipAddressField.setDisabled(true);
+						portField.setDisabled(true);
+						nicknameField.setDisabled(true);
 					}
+				}
+
+				@Override
+				public void onDisconnect() {
+					connectButton.setText("Connect");
+					connectButton.setDisabled(false);
+					connectButton.setVisible(true);
+					ipAddressField.setDisabled(false);
+					portField.setDisabled(false);
+
 				}
 			});
 		} catch (MalformedURLException e) {
@@ -183,7 +232,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	@Override
 	public void resize(int width, int height) {
-		stage.setViewport(width, height, true);
+		stage.getViewport().update(width, height, true);
 	}
 
 	@Override
@@ -199,14 +248,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			announcement.remove();
 		}
 		announcements.clear();
-	}
-
-	@Override
-	protected void unregisterEvents(EventEmitter eventEmitter) {
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_CLIENT);
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.ELECTED_HOST);
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.GAME_START);
-		eventEmitter.unregisterEvent(CommonSocketIOEvents.ANNOUNCEMENT);
 	}
 
 	@Override
