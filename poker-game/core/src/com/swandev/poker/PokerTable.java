@@ -36,7 +36,7 @@ public class PokerTable {
 
 	public void newHand() {
 		Gdx.app.log("poker", "Starting a new round of poker!");
-		callValue = 0;
+		callValue = ANTE;
 		deck.reset();
 		round = PokerRound.PREFLOP;
 		pot.reset();
