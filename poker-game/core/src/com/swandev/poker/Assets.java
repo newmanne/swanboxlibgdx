@@ -20,7 +20,6 @@ public class Assets {
 		font.setColor(Color.WHITE);
 
 		this.skin = new Skin(Gdx.files.internal("uiskin.json"));
-
 	}
 
 	public void dispose() {

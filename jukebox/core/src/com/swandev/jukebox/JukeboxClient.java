@@ -5,7 +5,6 @@ import lombok.Getter;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.swandev.swanlib.screen.ClientConnectScreen;
 import com.swandev.swanlib.socket.SocketIOState;
 
@@ -35,7 +34,7 @@ public class JukeboxClient extends Game {
 		assets = new Assets();
 		socketIO = new SocketIOState();
 		shapeRenderer = new ShapeRenderer();
-		connectScreen = new JukeboxClientConnectScreen(this, socketIO, spriteBatch, getAssets().getSkin());
+		connectScreen = new JukeboxClientConnectScreen(this, socketIO, spriteBatch);
 		jukeboxClientScreen = new JukeboxClientScreen(getSocketIO(), this);
 		setScreen(connectScreen);
 	}
@@ -51,8 +50,8 @@ public class JukeboxClient extends Game {
 
 	public static class JukeboxClientConnectScreen extends ClientConnectScreen {
 
-		public JukeboxClientConnectScreen(JukeboxClient game, SocketIOState socketIO, SpriteBatch spritebatch, Skin skin) {
-			super(game, socketIO, spritebatch, skin);
+		public JukeboxClientConnectScreen(JukeboxClient game, SocketIOState socketIO, SpriteBatch spritebatch) {
+			super(game, socketIO, spritebatch);
 		}
 
 		@Override

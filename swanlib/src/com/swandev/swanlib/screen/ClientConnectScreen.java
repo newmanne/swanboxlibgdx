@@ -12,16 +12,20 @@ import org.apache.commons.lang3.RandomUtils;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
@@ -46,11 +50,17 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final Label waitingText;
 	private final List<Label> announcements = Lists.newArrayList();
 
-	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch, final Skin skin) {
+	private final float VIRTUAL_WIDTH = 800;
+	private final float VIRTUAL_HEIGHT = 600;
+	
+	
+	private Image backgroundImage;
+
+	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch) {
 		super(socketIO);
 		this.game = game;
-		this.skin = skin;
-		this.stage = new Stage();
+		this.skin = new Skin(Gdx.files.classpath("skins/uiskin.json"));
+		this.stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
 		ipAddressField = new TextField(defaultIP, skin);
@@ -107,10 +117,10 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		waitingText = new Label("Waiting for host to select the game", skin);
 		waitingText.setVisible(false);
-
+		buildBackground(skin);
+		
 		buildTable(skin, ipAddressLabel, portLabel, nicknameLabel, waitingText);
 		stage.addActor(table);
-
 	}
 
 	@Override
@@ -165,6 +175,20 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		});
 	}
+	
+	
+	private void buildBackground(Skin skin) {
+		// Adds a background texture to the stage
+		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.classpath("backgrounds/swanBackground2.jpg"))));
+		backgroundImage.setX(0);
+		backgroundImage.setY(0);
+		backgroundImage.setWidth(VIRTUAL_WIDTH);
+		backgroundImage.setHeight(VIRTUAL_HEIGHT);
+		backgroundImage.setFillParent(true);
+		stage.addActor(backgroundImage);
+	}
+	
+	
 
 	private void buildTable(final Skin skin, final Label ipAddressLabel, final Label portLabel, final Label nicknameLabel, final Label waitingText) {
 		table = new Table(skin);
@@ -215,7 +239,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 					connectButton.setVisible(true);
 					ipAddressField.setDisabled(false);
 					portField.setDisabled(false);
-
 				}
 			});
 		} catch (MalformedURLException e) {
