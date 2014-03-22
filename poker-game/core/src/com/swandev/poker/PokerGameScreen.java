@@ -128,14 +128,6 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		xMid = width / 2;
 		yMid = height / 2;
 	}
-
-	@Override
-	public void render(float delta) {
-		super.render(delta);
-
-		stage.draw();
-		stage.act(delta);
-	}
 	
 	@Override
 	protected void doRender(float delta) {
@@ -155,25 +147,6 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		stage.getViewport().update(width, height, true);
 	}
 
-	@Override
-	public void show() {
-		super.show();
-		playerNames = Lists.newArrayList(getSocketIO().getNicknames());
-		List<PlayerStats> players = Lists.newArrayList();
-		for (String playerName : playerNames) {
-			PlayerStats playerStats = new PlayerStats(playerName, STARTING_VALUE);
-			playerMap.put(playerName, playerStats);
-			players.add(playerStats);
-		}
-
-		final Skin skin = game.getAssets().getSkin();
-		buildBackground(skin);
-		buildCards();
-		buildPlayerTables(skin);
-
-		pokerTable = new PokerTable(this, players);
-		pokerTable.newHand();
-	}
 	@Override
 	protected void doShow() {
 		// TODO Auto-generated method stub
