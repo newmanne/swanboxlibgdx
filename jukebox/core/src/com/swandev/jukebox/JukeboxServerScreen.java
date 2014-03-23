@@ -29,6 +29,7 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 		jukebox = new Jukebox(this);
 		cubeAnimation = new CubeAnimation();
 		stage = new Stage();
+		
 		timeElapsed = new Label("", game.getAssets().getSkin());
 		playListTable = new Table();
 		stage.addActor(playListTable);
@@ -133,6 +134,12 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 
 	private String formatTimeElapsed(SongData song) {
 		return String.format("%.1f / %d s", song.getMusic().getPosition(), song.getLengthInSeconds());
+	}
+
+	@Override
+	protected void onEveryoneReady() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override

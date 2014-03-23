@@ -7,7 +7,8 @@ public class PlayerState {
 
 	public int chipValue;
 	public int betValue;
-
+	public int totalBetValue;
+	
 	public int callValue;
 
 	public PlayerState() {

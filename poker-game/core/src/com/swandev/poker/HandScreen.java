@@ -7,20 +7,25 @@ import java.util.Map;
 
 import lombok.Getter;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -64,6 +69,10 @@ public class HandScreen extends SwanGameStartScreen {
 	private static final float MONEY_TEXT_HEIGHT = 1f * COORD_SCALE;
 	private static final float MONEY_TABLE_PADDING_RIGHT = 0.5f * COORD_SCALE;
 	private static final float MONEY_TABLE_PADDING_BOTTOM = 1f * COORD_SCALE;
+	
+	// size the buttons for the raise dialog
+	private static final float RAISE_TEXT_HEIGHT = 2f * COORD_SCALE; //width should adjust with the text
+	private static final float RAISE_BUTTON_WIDTH = 2f * COORD_SCALE; //height is the same as width
 
 	// These labels are members so we can dynamically change their values
 	// without looking them up in the stage
@@ -124,6 +133,7 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[1];
 				state.chipValue = (Integer) args[2];
 				state.callValue = (Integer) args[3];
+				state.totalBetValue = (Integer) args[4];
 				myHand.setCardVisibility(true);
 			}
 		});
@@ -135,7 +145,8 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
-				betLabel.setText(Integer.toString(state.betValue));
+				state.totalBetValue = (Integer) args[3];
+				betLabel.setText(Integer.toString(state.totalBetValue));
 				cashLabel.setText(Integer.toString(state.chipValue));
 				callLabel.setText(Integer.toString(state.callValue));
 			}
@@ -160,7 +171,8 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
-				betLabel.setText(new Integer(state.betValue).toString());
+				state.totalBetValue = (Integer) args[3];
+				betLabel.setText(new Integer(state.totalBetValue).toString());
 				cashLabel.setText(new Integer(state.chipValue).toString());
 				callLabel.setText(new Integer(state.callValue).toString());
 				disableActionButtons();
@@ -176,13 +188,14 @@ public class HandScreen extends SwanGameStartScreen {
 				state.betValue = (Integer) args[0];
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
+				state.totalBetValue = (Integer) args[3];
 				state.clearHand();
-				Boolean you_won = (Boolean) args[3];
+				Boolean you_won = (Boolean) args[4];
 				String imgPath = you_won ? "images/you_win_banner.png" : "images/you_lose_xs.png";
 				handOver.setDrawable(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal(imgPath)))));
 				handOver.setVisible(true);
 
-				betLabel.setText(Integer.toString(state.betValue));
+				betLabel.setText(Integer.toString(state.totalBetValue));
 				cashLabel.setText(Integer.toString(state.chipValue));
 				callLabel.setText(Integer.toString(state.callValue));
 				disableActionButtons();
@@ -289,7 +302,7 @@ public class HandScreen extends SwanGameStartScreen {
 		raiseButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				requestBet(state.callValue + 1000 - state.betValue);
+				getRaiseValueAndRequest();
 			}
 		});
 		buttonTable.add(raiseButton);
@@ -368,6 +381,7 @@ public class HandScreen extends SwanGameStartScreen {
 		} else if (state.betValue == state.callValue) {
 			checkButton.setDisabled(false); // otherwise you will be able to check
 		}
+		
 		if (state.chipValue > 0) {
 			allInButton.setDisabled(false);
 		}
@@ -465,6 +479,70 @@ public class HandScreen extends SwanGameStartScreen {
 			}
 		}
 	}
+	
+	private void getRaiseValueAndRequest(){
+		final MutableInt myRaise = new MutableInt(0);
+		Skin skin = game.getAssets().getSkin();
+		myRaise.setValue(PokerLib.ANTE);
+		
+		Dialog raiseDialog = new Dialog("Choose a Raise Value!", skin, "dialog") {
+			@Override
+			protected void result(Object result) {
+				if (result.equals(true) && myRaise.getValue() > 0) {
+					requestBet(state.callValue + myRaise.getValue());
+				}
+			}
+		}.button("Cancel", false).button("Submit", true).key(Keys.ENTER, true).key(Keys.ESCAPE, false);
+		
+		final Label raiseValueLabel = new Label(myRaise.getValue().toString(), skin);
+		raiseValueLabel.setAlignment(Align.center);
+		
+		//Make the Decrement Button
+		final ImageButton decrementButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/decr_up.png")))),
+				new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/decr_down.png")))));
+		decrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() - PokerLib.ANTE));
+		
+		//Make the Increment Button
+		final ImageButton incrementButton = new ImageButton(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/incr_up.png")))),
+				new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/incr_down.png")))));
+		incrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() + PokerLib.ANTE));
+		
+		//Now add the listeners, since they can enable/disable each other		
+		decrementButton.addListener(new ChangeListener(){
+
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				myRaise.setValue(myRaise.getValue() - PokerLib.ANTE);
+				raiseValueLabel.setText(myRaise.getValue().toString());
+				decrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() - PokerLib.ANTE));
+				incrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() + PokerLib.ANTE));
+			}
+			
+		});
+		
+		incrementButton.addListener(new ChangeListener(){
+
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				myRaise.setValue(myRaise.getValue() + PokerLib.ANTE);
+				raiseValueLabel.setText(myRaise.getValue().toString());
+				decrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() - PokerLib.ANTE));
+				incrementButton.setDisabled(cannotRaiseValue(myRaise.getValue() + PokerLib.ANTE));
+			}
+			
+		});
+		
+		//Add them to the Dialog table
+		raiseDialog.getContentTable().add(decrementButton).height(RAISE_BUTTON_WIDTH).width(RAISE_BUTTON_WIDTH);
+		raiseDialog.getContentTable().add(raiseValueLabel).height(RAISE_TEXT_HEIGHT).minWidth(RAISE_TEXT_HEIGHT);
+		raiseDialog.getContentTable().add(incrementButton).height(RAISE_BUTTON_WIDTH).width(RAISE_BUTTON_WIDTH);
+		
+		raiseDialog.show(stage);
+	}
+	
+	public boolean cannotRaiseValue(int raiseValue){
+		return (raiseValue < PokerLib.ANTE) || (state.chipValue < state.callValue + raiseValue);
+	}
 
 	@Override
 	public void resize(int width, int height) {
@@ -475,7 +553,9 @@ public class HandScreen extends SwanGameStartScreen {
 	
 	@Override
 	protected void onEveryoneReady() {
-			
+		//We don't care when everyone's ready as long as the server does. Since everything is
+		//coordinated by the server, we won't be prompted for an action unless the server decides
+		//it's OK.
 	}
 
 	@Override

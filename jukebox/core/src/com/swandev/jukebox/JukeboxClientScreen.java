@@ -9,14 +9,20 @@ import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableMap;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
@@ -32,10 +38,19 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final JukeboxClient game;
 	private TextButton playPause;
 	private TextButton next;
+	
+	Table table;
+	
+	private final float VIRTUAL_WIDTH = 800;
+	private final float VIRTUAL_HEIGHT = 600;
+	private Batch spritebatch;
+	
+	
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
-		stage = new Stage();
+		
+		stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
 		this.game = game;
 		final Skin skin = game.getAssets().getSkin();
 		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);
@@ -70,11 +85,22 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
 			}
 		});
-		final Table table = new Table();
+		//final Table table = new Table();
+		table = new Table();
 		table.setFillParent(true);
-		addHostButtons(table);
+		
 		final ScrollPane scroller = new ScrollPane(list);
-		table.add(scroller).fill().expand();
+		
+		final Group group = new Group();
+		scroller.setFillParent(true);
+		
+		Image backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("jukeboxBackground.jpg"))));
+		backgroundImage.setFillParent(true);
+		group.addActor(backgroundImage);
+		group.addActor(scroller);
+		table.add(group).fill().expand().colspan(2);
+		table.row();
+		addHostButtons(table);
 		stage.addActor(table);
 	}
 
@@ -84,8 +110,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		// TODO: make a play/pause button, its dumb to have both
 		next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
 		playPause = new PlayPauseButton(skin);
-		table.add(playPause);
-		table.add(next);
+		table.add(playPause).height(100).width(100).center();
+		table.add(next).height(100).width(100).center();
 		table.row();
 	}
 
@@ -160,6 +186,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	@Override
 	protected void doRender(float delta) {
 		stage.draw();
+		table.debug();
+		table.drawDebug(stage);
 		stage.act(delta);
 	}
 
