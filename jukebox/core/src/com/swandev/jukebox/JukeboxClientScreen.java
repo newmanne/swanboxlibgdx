@@ -98,9 +98,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final Group group = new Group();
 		scroller.setFillParent(true);
 
-		Image backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("jukeboxBackground.jpg"))));
-		backgroundImage.setFillParent(true);
-		group.addActor(backgroundImage);
 		group.addActor(scroller);
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
