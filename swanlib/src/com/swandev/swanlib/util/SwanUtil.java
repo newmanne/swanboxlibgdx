@@ -15,12 +15,8 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
 import com.google.common.collect.Lists;
 
 public class SwanUtil {
@@ -66,7 +62,8 @@ public class SwanUtil {
 		return generatedFont;
 	}
 
-	public static void resizeFonts(List<Actor> actors, FreeTypeFontGenerator fontGenerator, int size, float virtualWidth, float virtualHeight, Skin skin) {
+	/** Resizes the font of everyone in this list to the given font size. WARNING: if two actors share the same style reference, BOTH will be affected */
+	public static void resizeFonts(List<Actor> actors, FreeTypeFontGenerator fontGenerator, int size, float virtualWidth, float virtualHeight) {
 		float wScale = 1.0f * Gdx.graphics.getWidth() / virtualWidth;
 		float hScale = 1.0f * Gdx.graphics.getHeight() / virtualHeight;
 		if (wScale < 1) {
@@ -78,27 +75,24 @@ public class SwanUtil {
 		BitmapFont generatedFont = generateFont(fontGenerator, (int) (size * Math.max(wScale, hScale)));
 		generatedFont.setScale((float) (1.0 / wScale), (float) (1.0 / hScale));
 
-		// TODO: this implicitly assumes that everything uses a skin, uses the "default" style, and that every object with text has the same size text. Probably should challenge some of these assumptions...
 		// TODO: there may be more types we need to add to this list
-		TextFieldStyle textFieldStyle = skin.get(TextFieldStyle.class);
-		LabelStyle labelStyle = skin.get(LabelStyle.class);
-		TextButtonStyle textButtonStyle = skin.get(TextButtonStyle.class);
-
-		textFieldStyle.font = generatedFont;
-		labelStyle.font = generatedFont;
-		textButtonStyle.font = generatedFont;
-
 		for (Actor actor : actors) {
 			if (actor instanceof TextField) {
 				TextField textfield = (TextField) actor;
-				textfield.setStyle(textFieldStyle);
+				textfield.getStyle().font = generatedFont;
+				textfield.setStyle(textfield.getStyle());
 				// for some reason doing this makes it render properly
 				textfield.setText(textfield.getText());
 			} else if (actor instanceof Label) {
-				((Label) actor).setStyle(labelStyle);
+				Label label = (Label) actor;
+				label.getStyle().font = generatedFont;
+				label.setStyle(label.getStyle());
 			} else if (actor instanceof TextButton) {
-				((TextButton) actor).setStyle(textButtonStyle);
+				TextButton textButton = (TextButton) actor;
+				textButton.getStyle().font = generatedFont;
+				textButton.setStyle(textButton.getStyle());
 			}
 		}
 	}
+
 }

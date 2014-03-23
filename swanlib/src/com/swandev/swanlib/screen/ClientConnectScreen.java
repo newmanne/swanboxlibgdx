@@ -266,7 +266,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
-		SwanUtil.resizeFonts(fontActors, fontGenerator, defaultFontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, skin);
+		SwanUtil.resizeFonts(fontActors, fontGenerator, defaultFontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 	}
 
 	@Override
