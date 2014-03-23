@@ -6,10 +6,7 @@ buildscript {
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     }
-
-    dependencies {
-        classpath "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
-    }
+    
 }
 
 apply plugin: "java"
@@ -22,14 +19,10 @@ ext.appName = "swanlib"
 
 sourceCompatibility = 1.6
 
-configurations {
-	provided
-}
-
 repositories {
+    mavenLocal();
     mavenCentral()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    mavenLocal();
 }
 
 dependencies {
@@ -49,12 +42,4 @@ sourceSets.main.resources.srcDirs = [ "resources/" ]
 
 eclipse.project {
     name = appName + "-core"
-}
-
-import com.badlogic.gdx.tools.texturepacker.TexturePacker
-task texturePacker << {
-  if (project.ext.has('texturePacker')) {
-    logger.info "Calling TexturePacker: "+texturePacker
-    TexturePacker.process(texturePacker[0], texturePacker[1], texturePacker[2])
-  }
 }
