@@ -77,8 +77,9 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
 		Label currentSongLabel = new Label("Current Song: ", skin);
 		table.add(nameLabel).colspan(2);
-		table.row().height(nameLabel.getHeight() * 3);
+		table.row();
 
+		table.row().height(nameLabel.getHeight() * 3);
 		currentSongInfo = new Label(currentSong, skin);
 		table.add(currentSongLabel);
 		table.add(currentSongInfo).left();
