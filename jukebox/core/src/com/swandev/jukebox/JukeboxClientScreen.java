@@ -41,7 +41,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private ImageButton playPause;
 	private ImageButton next;
 	
-	Table table;
+	final Table table;
 	
 	private final float VIRTUAL_WIDTH = 600;
 	private final float VIRTUAL_HEIGHT = 800;
@@ -52,7 +52,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
-		
+
 		stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
 		this.game = game;
 		final Skin skin = game.getAssets().getSkin();
@@ -88,17 +88,19 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
 			}
 		});
-		//final Table table = new Table();
+		// final Table table = new Table();
 		table = new Table();
 		table.setFillParent(true);
+
 		final ScrollPane scroller = new ScrollPane(list);
-		
+
 		final Group group = new Group();
 		scroller.setFillParent(true);
-		
-		//Image backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/jukeboxBackground.jpg"))));
-		//backgroundImage.setFillParent(true);
-		//group.addActor(backgroundImage);
+
+
+		Image backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("jukeboxBackground.jpg"))));
+		backgroundImage.setFillParent(true);
+		group.addActor(backgroundImage);
 		group.addActor(scroller);
 		
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);

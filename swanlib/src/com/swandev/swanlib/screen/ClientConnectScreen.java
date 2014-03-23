@@ -15,6 +15,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
@@ -24,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableList;
@@ -37,6 +39,9 @@ import com.swandev.swanlib.util.SwanUtil;
 
 public abstract class ClientConnectScreen extends SwanScreen {
 
+	private static final int LABEL_FIELD_PADDING = 20;
+	private static final int FIELD_WIDTH = 400;
+	private static final int defaultFontSize = 30;
 	protected final Game game;
 	private final Stage stage;
 	private final Skin skin;
@@ -48,18 +53,23 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final TextButton updateButton;
 	private Table table;
 	private final Label waitingText;
-	private final List<Label> announcements = Lists.newArrayList();
 
 	private final float VIRTUAL_WIDTH = 800;
 	private final float VIRTUAL_HEIGHT = 600;
-	
-	
+	private final FreeTypeFontGenerator fontGenerator;
+	private final Label ipAddressLabel;
+	private final Label portLabel;
+	private final Label nicknameLabel;
+	private final Label announcementLabel;
+
 	private Image backgroundImage;
+	private final List<Actor> fontActors;
 
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch) {
 		super(socketIO);
 		this.game = game;
 		this.skin = new Skin(Gdx.files.classpath("skins/uiskin.json"));
+		fontGenerator = new FreeTypeFontGenerator(Gdx.files.classpath("fonts/arial.ttf"));
 		this.stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
@@ -78,7 +88,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				connectButton.setDisabled(true);
-				connectButton.setVisible(true);
+				connectButton.setVisible(false);
 				if (!getSocketIO().isConnected()) {
 					connect();
 				}
@@ -111,16 +121,20 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		gameStart.setVisible(false);
 		gameStart.setDisabled(true);
 
-		final Label ipAddressLabel = new Label("IP Address", skin);
-		final Label portLabel = new Label("Port", skin);
-		final Label nicknameLabel = new Label("Nickname", skin);
+		ipAddressLabel = new Label("IP Address", skin);
+		portLabel = new Label("Port", skin);
+		nicknameLabel = new Label("Nickname", skin);
+		announcementLabel = new Label("", skin);
 
 		waitingText = new Label("Waiting for host to select the game", skin);
 		waitingText.setVisible(false);
 		buildBackground(skin);
-		
-		buildTable(skin, ipAddressLabel, portLabel, nicknameLabel, waitingText);
+
+		buildTable(skin);
 		stage.addActor(table);
+
+		// keep track of anyone whose fonts need to be resized properly. could use some cleaning up
+		fontActors = Lists.<Actor> newArrayList(ipAddressField, portField, nicknameField, ipAddressLabel, portLabel, nicknameLabel, waitingText, announcementLabel, connectButton, updateButton, gameStart);
 	}
 
 	@Override
@@ -167,16 +181,11 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				final String announcement = (String) args[0];
-				Label label = new Label(announcement, skin);
-				announcements.add(label);
-				table.add(label);
-				table.row();
+				announcementLabel.setText(announcement);
 			}
-
 		});
 	}
-	
-	
+
 	private void buildBackground(Skin skin) {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.classpath("backgrounds/swanBackground2.jpg"))));
@@ -187,30 +196,31 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
 	}
-	
-	
 
-	private void buildTable(final Skin skin, final Label ipAddressLabel, final Label portLabel, final Label nicknameLabel, final Label waitingText) {
+	private void buildTable(final Skin skin) {
 		table = new Table(skin);
-
-		table.add(ipAddressLabel);
-		table.add(ipAddressField);
+		table.defaults().align(Align.left);
+		table.add(ipAddressLabel).padRight(LABEL_FIELD_PADDING);
+		table.add(ipAddressField).prefWidth(FIELD_WIDTH);
 		table.row();
 
-		table.add(portLabel);
-		table.add(portField);
+		table.add(portLabel).padRight(LABEL_FIELD_PADDING);
+		table.add(portField).prefWidth(FIELD_WIDTH);
 		table.row();
 
-		table.add(nicknameLabel);
-		table.add(nicknameField);
+		table.add(nicknameLabel).padRight(LABEL_FIELD_PADDING);
+		table.add(nicknameField).prefWidth(FIELD_WIDTH);
 		table.row();
 
 		table.add(connectButton);
-		table.add(updateButton);
 		table.add(gameStart);
 		table.row();
-
-		table.add(waitingText);
+		table.add(updateButton).colspan(2);
+		table.row();
+		table.add(waitingText).colspan(2);
+		table.row();
+		table.add(announcementLabel).colspan(2);
+		table.center();
 
 		table.setFillParent(true);
 	}
@@ -256,6 +266,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
+		SwanUtil.resizeFonts(fontActors, fontGenerator, defaultFontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, skin);
 	}
 
 	@Override
@@ -266,16 +277,14 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	@Override
 	public void hide() {
+		announcementLabel.setText("");
 		super.hide();
-		for (Label announcement : announcements) {
-			announcement.remove();
-		}
-		announcements.clear();
 	}
 
 	@Override
 	public void dispose() {
 		stage.dispose();
+		fontGenerator.dispose();
 	}
 
 	protected abstract void switchToGame();
