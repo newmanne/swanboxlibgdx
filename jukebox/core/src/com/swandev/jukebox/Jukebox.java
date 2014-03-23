@@ -113,6 +113,7 @@ public class Jukebox {
 					}
 				});
 				music.play();
+				jukeboxServerScreen.getSocketIO().swanBroadcast(JukeboxLib.CURRENT_SONG, getCurrentSongData().toString());
 			}
 		}
 	}

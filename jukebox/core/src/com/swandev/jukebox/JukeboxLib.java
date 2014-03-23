@@ -10,5 +10,6 @@ public class JukeboxLib {
 	public static final String USER_NEXT = "user_next";
 	public static final String SONG_OVER = "song_over";
 	public static final String SCREEN_READY = "screen_ready";
+	public static final String CURRENT_SONG = "current_song";
 	
 }

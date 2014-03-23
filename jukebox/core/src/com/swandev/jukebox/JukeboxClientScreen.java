@@ -42,6 +42,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final JukeboxClient game;
 	private ImageButton playPause;
 	private ImageButton next;
+	private String currentSong;
+	private Label currentSongInfo;
 
 	private final int fontSize = 20;
 	private final Table table;
@@ -50,6 +52,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final float VIRTUAL_HEIGHT = 800;
 
 	private final List<Actor> fontActors;
+
 
 	private Image backgroundImage;
 	
@@ -65,55 +68,22 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		this.game = game;
 		skin = game.getAssets().getSkin();
 		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);
-		
-		
-		
-		/*list.addListener(new ClickListener() {
 
-			// Unfortunately without this hack the user is prompted with a dialog the moment the screen opens
-			boolean first = false;
-
-			@Override
-			public void clicked(InputEvent event, float x , float y) {
-				if (songSelected) {
-					new Dialog("Can't select this song now", skin, "dialog").text("You already have a song queued to be played").button("OK").show(stage);
-				} else {
-					selectSong(list.getSelected());
-				}
-			}
-
-			private void selectSong(final String songName) {
-				new Dialog("Select this song?", skin, "dialog") {
-					@Override
-					protected void result(Object result) {
-						if (result.equals(true)) {
-							Gdx.app.log("JUKEBOX", "Song " + songName + " selected to be played");
-							getSocketIO().emitToScreen(JukeboxLib.ADD_TO_PLAYLIST, getSocketIO().getNickname(), songName);
-							songSelected = true;
-						}
-					}
-				}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
-			}
-		});*/
-		
-		
-		
-		
-		// final Table table = new Table();
 		table = new Table();
 		table.setFillParent(true);
 		//table.debug();
 
-		/*final ScrollPane scroller = new ScrollPane(list);
-
-		final Group group = new Group();
-		scroller.setFillParent(true);
-		group.addActor(scroller);*/
-		
 		songGroup = new Group();
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
+		Label currentSongLabel = new Label("Current Song: ", skin);
 		table.add(nameLabel).colspan(2);
+		table.row().height(nameLabel.getHeight() * 3);
+		
+		
+		currentSongInfo = new Label(currentSong, skin);
+		table.add(currentSongLabel).left();
+		table.add(currentSongInfo).left();
 		table.row();
 		table.add(songGroup).fill().expand().colspan(2);
 		table.row();
@@ -121,7 +91,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		buildBackground(skin);
 		stage.addActor(table);
 
-		fontActors = Lists.<Actor> newArrayList(list, nameLabel);
+		//how do we we set the current song label to fixed font??
+		fontActors = Lists.<Actor> newArrayList(list, nameLabel, currentSongLabel, currentSongInfo);
 	}
 
 	private void buildBackground(Skin skin) {
@@ -217,6 +188,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				songSelected = false;
+				currentSongInfo.setText("");
 			}
 		});
 		registerEvent(JukeboxLib.SEND_SONGLIST, new EventCallback() {
@@ -228,6 +200,15 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				buildSongList();
 			}
 		});
+		
+		registerEvent(JukeboxLib.CURRENT_SONG, new EventCallback() {
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				currentSongInfo.setText((CharSequence) args[0]);
+			}
+		});
+		
+		
 	}
 	
 	private void buildSongList(){
@@ -249,8 +230,10 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			//songInfo.add(test).expandX().left().padLeft(10);
 			songInfo.setFillParent(true);
 			
+			fontActors.add(nameLabel);
+			
+			
 			group.addActor(songInfo);
-						
 			group.addListener(new ClickListener() {
 
 				@Override
