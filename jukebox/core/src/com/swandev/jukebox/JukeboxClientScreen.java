@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -22,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableMap;
@@ -44,8 +46,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final int fontSize = 20;
 	private final Table table;
 
-	private final float VIRTUAL_WIDTH = 600;
-	private final float VIRTUAL_HEIGHT = 800;
+	private final float VIRTUAL_WIDTH = 800;
+	private final float VIRTUAL_HEIGHT = 600;
 
 	private final List<Actor> fontActors;
 
@@ -57,18 +59,15 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), game.getSpriteBatch());
 		this.game = game;
 		final Skin skin = game.getAssets().getSkin();
-		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);
-		list.addListener(new ChangeListener() {
+		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);		
+		
+		list.addListener(new ClickListener() {
 
 			// Unfortunately without this hack the user is prompted with a dialog the moment the screen opens
 			boolean first = false;
 
 			@Override
-			public void changed(ChangeEvent event, Actor actor) {
-				if (!first) {
-					first = true;
-					return;
-				}
+			public void clicked(InputEvent event, float x , float y) {
 				if (songSelected) {
 					new Dialog("Can't select this song now", skin, "dialog").text("You already have a song queued to be played").button("OK").show(stage);
 				} else {
@@ -89,6 +88,10 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
 			}
 		});
+		
+		
+		
+		
 		// final Table table = new Table();
 		table = new Table();
 		table.setFillParent(true);
@@ -98,9 +101,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final Group group = new Group();
 		scroller.setFillParent(true);
 
-		Image backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("jukeboxBackground.jpg"))));
-		backgroundImage.setFillParent(true);
-		group.addActor(backgroundImage);
 		group.addActor(scroller);
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
