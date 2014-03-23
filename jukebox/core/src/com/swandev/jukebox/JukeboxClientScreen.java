@@ -17,11 +17,13 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableMap;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
@@ -36,15 +38,16 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	boolean songSelected = false;
 	final com.badlogic.gdx.scenes.scene2d.ui.List<String> list;
 	private final JukeboxClient game;
-	private TextButton playPause;
-	private TextButton next;
+	private ImageButton playPause;
+	private ImageButton next;
 	
 	Table table;
 	
-	private final float VIRTUAL_WIDTH = 800;
-	private final float VIRTUAL_HEIGHT = 600;
+	private final float VIRTUAL_WIDTH = 600;
+	private final float VIRTUAL_HEIGHT = 800;
 	private Batch spritebatch;
 	
+	private Image backgroundImage;
 	
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
@@ -88,22 +91,37 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		//final Table table = new Table();
 		table = new Table();
 		table.setFillParent(true);
-		
 		final ScrollPane scroller = new ScrollPane(list);
 		
 		final Group group = new Group();
 		scroller.setFillParent(true);
 		
-		Image backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("jukeboxBackground.jpg"))));
-		backgroundImage.setFillParent(true);
-		group.addActor(backgroundImage);
+		//Image backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/jukeboxBackground.jpg"))));
+		//backgroundImage.setFillParent(true);
+		//group.addActor(backgroundImage);
 		group.addActor(scroller);
+		
+		Label nameLabel = new Label("Swanbox Jukebox:", skin);
+		table.add(nameLabel).colspan(2);
+		table.row();
 		table.add(group).fill().expand().colspan(2);
 		table.row();
 		addHostButtons(table);
+		buildBackground(skin);
 		stage.addActor(table);
 	}
 
+	
+	private void buildBackground(Skin skin) {
+		// Adds a background texture to the stage
+		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/jukeboxBackground.jpg"))));
+		backgroundImage.setX(0);
+		backgroundImage.setY(0);
+		backgroundImage.setWidth(VIRTUAL_WIDTH - 10);
+		backgroundImage.setHeight(VIRTUAL_HEIGHT - 10);
+		backgroundImage.setFillParent(true);
+		stage.addActor(backgroundImage);
+	}
 	private void addHostButtons(Table table) {
 		Gdx.app.log("JUKEBOX", "Adding buttons for host");
 		final Skin skin = game.getAssets().getSkin();
@@ -115,24 +133,28 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		table.row();
 	}
 
-	public class EventSendingTextButton extends TextButton {
+	public class EventSendingTextButton extends ImageButton {
 
 		protected String socketEvent;
 
 		public EventSendingTextButton(String text, Skin skin, final String socketEvent) {
-			super(text, skin);
+			super(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/next_up.png")))),
+				      new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/next_down.png")))));
 			this.socketEvent = socketEvent;
 			addListener(new ChangeListener() {
 
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
 					getSocketIO().emitToScreen(socketEvent);
+					playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png"))));
+					playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png"))));
+					
 				}
 			});
 		}
 	}
 
-	public class PlayPauseButton extends TextButton {
+	public class PlayPauseButton extends ImageButton {
 
 		final private static String play = "PLAY";
 		final private static String pause = "PAUSE";
@@ -140,7 +162,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Map<String, String> stateToEvents = ImmutableMap.of(play, JukeboxLib.USER_PLAY, pause, JukeboxLib.USER_PAUSE);
 
 		public PlayPauseButton(Skin skin) {
-			super(pause, skin);
+			super(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png")))),
+			      new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png")))));
 			state = pause;
 			addListener(new ChangeListener() {
 
@@ -148,11 +171,22 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				public void changed(ChangeEvent event, Actor actor) {
 					getSocketIO().emitToScreen(stateToEvents.get(state));
 					state = state.equals(pause) ? play : pause;
-					setText(state);
+					changePlayPauseButton(state);
+					
 				}
-
 			});
 		}
+	}
+	
+	public void changePlayPauseButton(String state){
+		if (state.equals("PAUSE")){
+			playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png"))));
+			playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png"))));
+		}else{
+			playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/play_up.png"))));
+			playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/play_down.png"))));
+		}
+		
 	}
 
 	@Override
@@ -186,8 +220,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	@Override
 	protected void doRender(float delta) {
 		stage.draw();
-		table.debug();
-		table.drawDebug(stage);
 		stage.act(delta);
 	}
 
