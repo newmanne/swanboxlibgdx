@@ -13,28 +13,23 @@ import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
 import com.swandev.swanlib.socket.ConnectCallback;
 import com.swandev.swanlib.socket.EventCallback;
@@ -46,7 +41,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	private static final int LABEL_FIELD_PADDING = 20;
 	private static final int FIELD_WIDTH = 400;
-	private static final float defaultFontSize = 30;
+	private static final int defaultFontSize = 30;
 	protected final Game game;
 	private final Stage stage;
 	private final Skin skin;
@@ -68,6 +63,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final Label announcementLabel;
 
 	private Image backgroundImage;
+	private final List<Actor> fontActors;
 
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch) {
 		super(socketIO);
@@ -136,6 +132,9 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		buildTable(skin);
 		stage.addActor(table);
+
+		// keep track of anyone whose fonts need to be resized properly. could use some cleaning up
+		fontActors = Lists.<Actor> newArrayList(ipAddressField, portField, nicknameField, ipAddressLabel, portLabel, nicknameLabel, waitingText, announcementLabel, connectButton, updateButton, gameStart);
 	}
 
 	@Override
@@ -267,45 +266,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
-		resizeFonts();
-	}
-
-	private void resizeFonts() {
-		float wScale = 1.0f * Gdx.graphics.getWidth() / VIRTUAL_WIDTH;
-		float hScale = 1.0f * Gdx.graphics.getHeight() / VIRTUAL_HEIGHT;
-		if (wScale < 1) {
-			wScale = 1;
-		}
-		if (hScale < 1) {
-			hScale = 1;
-		}
-		BitmapFont generatedFont = generateFont((int) (defaultFontSize * Math.max(wScale, hScale)));
-		generatedFont.setScale((float) (1.0 / wScale), (float) (1.0 / hScale));
-
-		TextFieldStyle textFieldStyle = skin.get(TextFieldStyle.class);
-		textFieldStyle.font = generatedFont;
-		ipAddressField.setStyle(textFieldStyle);
-		portField.setStyle(textFieldStyle);
-		nicknameField.setStyle(textFieldStyle);
-		ipAddressField.setText(ipAddressField.getText());
-		portField.setText(portField.getText());
-		nicknameField.setText(nicknameField.getText());
-
-		LabelStyle labelStyle = skin.get(LabelStyle.class);
-		labelStyle.font = generatedFont;
-		ipAddressLabel.setStyle(labelStyle);
-		portLabel.setStyle(labelStyle);
-		nicknameLabel.setStyle(labelStyle);
-		waitingText.setStyle(labelStyle);
-		announcementLabel.setStyle(labelStyle);
-
-		TextButtonStyle textButtonStyle = skin.get(TextButtonStyle.class);
-		textButtonStyle.font = generatedFont;
-		connectButton.setStyle(textButtonStyle);
-		updateButton.setStyle(textButtonStyle);
-		gameStart.setStyle(textButtonStyle);
-
-		table.invalidateHierarchy();
+		SwanUtil.resizeFonts(fontActors, fontGenerator, defaultFontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, skin);
 	}
 
 	@Override
@@ -324,15 +285,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	public void dispose() {
 		stage.dispose();
 		fontGenerator.dispose();
-	}
-
-	public BitmapFont generateFont(int size) {
-		FreeTypeFontParameter freeTypeFontParameter = new FreeTypeFontParameter();
-		freeTypeFontParameter.size = size;
-		freeTypeFontParameter.magFilter = TextureFilter.Linear;
-		freeTypeFontParameter.minFilter = TextureFilter.Linear;
-		BitmapFont generatedFont = fontGenerator.generateFont(freeTypeFontParameter);
-		return generatedFont;
 	}
 
 	protected abstract void switchToGame();
