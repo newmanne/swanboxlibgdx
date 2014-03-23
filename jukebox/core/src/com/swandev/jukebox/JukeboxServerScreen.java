@@ -135,4 +135,10 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 		return String.format("%.1f / %d s", song.getMusic().getPosition(), song.getLengthInSeconds());
 	}
 
+	@Override
+	protected void onEveryoneReady() {
+		// TODO Auto-generated method stub
+
+	}
+
 }

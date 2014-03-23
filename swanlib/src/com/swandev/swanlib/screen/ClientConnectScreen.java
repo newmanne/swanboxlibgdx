@@ -12,19 +12,26 @@ import org.apache.commons.lang3.RandomUtils;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldStyle;
+import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
 import com.swandev.swanlib.socket.ConnectCallback;
 import com.swandev.swanlib.socket.EventCallback;
@@ -34,6 +41,9 @@ import com.swandev.swanlib.util.SwanUtil;
 
 public abstract class ClientConnectScreen extends SwanScreen {
 
+	private static final int LABEL_FIELD_PADDING = 20;
+	private static final int FIELD_WIDTH = 400;
+	private static final float defaultFontSize = 30;
 	protected final Game game;
 	private final Stage stage;
 	private final Skin skin;
@@ -45,15 +55,20 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final TextButton updateButton;
 	private Table table;
 	private final Label waitingText;
-	private final List<Label> announcements = Lists.newArrayList();
 
 	private final float VIRTUAL_WIDTH = 800;
 	private final float VIRTUAL_HEIGHT = 600;
+	private final FreeTypeFontGenerator fontGenerator;
+	private final Label ipAddressLabel;
+	private final Label portLabel;
+	private final Label nicknameLabel;
+	private final Label announcementLabel;
 
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch) {
 		super(socketIO);
 		this.game = game;
 		this.skin = new Skin(Gdx.files.classpath("skins/uiskin.json"));
+		fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("arial.ttf"));
 		this.stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
@@ -105,14 +120,15 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		gameStart.setVisible(false);
 		gameStart.setDisabled(true);
 
-		final Label ipAddressLabel = new Label("IP Address", skin);
-		final Label portLabel = new Label("Port", skin);
-		final Label nicknameLabel = new Label("Nickname", skin);
+		ipAddressLabel = new Label("IP Address", skin);
+		portLabel = new Label("Port", skin);
+		nicknameLabel = new Label("Nickname", skin);
+		announcementLabel = new Label("", skin);
 
 		waitingText = new Label("Waiting for host to select the game", skin);
 		waitingText.setVisible(false);
 
-		buildTable(skin, ipAddressLabel, portLabel, nicknameLabel, waitingText);
+		buildTable(skin);
 		stage.addActor(table);
 	}
 
@@ -160,36 +176,35 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				final String announcement = (String) args[0];
-				Label label = new Label(announcement, skin);
-				announcements.add(label);
-				table.add(label);
-				table.row();
+				announcementLabel.setText(announcement);
 			}
-
 		});
 	}
 
-	private void buildTable(final Skin skin, final Label ipAddressLabel, final Label portLabel, final Label nicknameLabel, final Label waitingText) {
+	private void buildTable(final Skin skin) {
 		table = new Table(skin);
-
-		table.add(ipAddressLabel);
-		table.add(ipAddressField);
+		table.defaults().align(Align.left);
+		table.add(ipAddressLabel).padRight(LABEL_FIELD_PADDING);
+		table.add(ipAddressField).prefWidth(FIELD_WIDTH);
 		table.row();
 
-		table.add(portLabel);
-		table.add(portField);
+		table.add(portLabel).padRight(LABEL_FIELD_PADDING);
+		table.add(portField).prefWidth(FIELD_WIDTH);
 		table.row();
 
-		table.add(nicknameLabel);
-		table.add(nicknameField);
+		table.add(nicknameLabel).padRight(LABEL_FIELD_PADDING);
+		table.add(nicknameField).prefWidth(FIELD_WIDTH);
 		table.row();
 
 		table.add(connectButton);
-		table.add(updateButton);
 		table.add(gameStart);
 		table.row();
-
-		table.add(waitingText);
+		table.add(updateButton).colspan(2);
+		table.row();
+		table.add(waitingText).colspan(2);
+		table.row();
+		table.add(announcementLabel).colspan(2);
+		table.center();
 
 		table.setFillParent(true);
 	}
@@ -235,6 +250,45 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
+		resizeFonts();
+	}
+
+	private void resizeFonts() {
+		float wScale = 1.0f * Gdx.graphics.getWidth() / VIRTUAL_WIDTH;
+		float hScale = 1.0f * Gdx.graphics.getHeight() / VIRTUAL_HEIGHT;
+		if (wScale < 1) {
+			wScale = 1;
+		}
+		if (hScale < 1) {
+			hScale = 1;
+		}
+		BitmapFont generatedFont = generateFont((int) (defaultFontSize * Math.max(wScale, hScale)));
+		generatedFont.setScale((float) (1.0 / wScale), (float) (1.0 / hScale));
+
+		TextFieldStyle textFieldStyle = skin.get(TextFieldStyle.class);
+		textFieldStyle.font = generatedFont;
+		ipAddressField.setStyle(textFieldStyle);
+		portField.setStyle(textFieldStyle);
+		nicknameField.setStyle(textFieldStyle);
+		ipAddressField.setText(ipAddressField.getText());
+		portField.setText(portField.getText());
+		nicknameField.setText(nicknameField.getText());
+
+		LabelStyle labelStyle = skin.get(LabelStyle.class);
+		labelStyle.font = generatedFont;
+		ipAddressLabel.setStyle(labelStyle);
+		portLabel.setStyle(labelStyle);
+		nicknameLabel.setStyle(labelStyle);
+		waitingText.setStyle(labelStyle);
+		announcementLabel.setStyle(labelStyle);
+
+		TextButtonStyle textButtonStyle = skin.get(TextButtonStyle.class);
+		textButtonStyle.font = generatedFont;
+		connectButton.setStyle(textButtonStyle);
+		updateButton.setStyle(textButtonStyle);
+		gameStart.setStyle(textButtonStyle);
+
+		table.invalidateHierarchy();
 	}
 
 	@Override
@@ -245,16 +299,22 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	@Override
 	public void hide() {
+		announcementLabel.setText("");
 		super.hide();
-		for (Label announcement : announcements) {
-			announcement.remove();
-		}
-		announcements.clear();
 	}
 
 	@Override
 	public void dispose() {
 		stage.dispose();
+	}
+
+	public BitmapFont generateFont(int size) {
+		FreeTypeFontParameter freeTypeFontParameter = new FreeTypeFontParameter();
+		freeTypeFontParameter.size = size;
+		freeTypeFontParameter.magFilter = TextureFilter.Linear;
+		freeTypeFontParameter.minFilter = TextureFilter.Linear;
+		BitmapFont generatedFont = fontGenerator.generateFont(freeTypeFontParameter);
+		return generatedFont;
 	}
 
 	protected abstract void switchToGame();
