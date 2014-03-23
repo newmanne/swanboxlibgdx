@@ -112,7 +112,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		buildBackground(skin);
 		stage.addActor(table);
 
-		fontActors = Lists.<Actor> newArrayList(list, playPause, next);
+		fontActors = Lists.<Actor> newArrayList(list, nameLabel);
 	}
 
 	private void buildBackground(Skin skin) {
