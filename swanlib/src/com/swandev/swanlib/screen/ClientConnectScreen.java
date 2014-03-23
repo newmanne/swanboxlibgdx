@@ -73,7 +73,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		super(socketIO);
 		this.game = game;
 		this.skin = new Skin(Gdx.files.classpath("skins/uiskin.json"));
-		fontGenerator = new FreeTypeFontGenerator(Gdx.files.internal("arial.ttf"));
+		fontGenerator = new FreeTypeFontGenerator(Gdx.files.classpath("fonts/arial.ttf"));
 		this.stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
@@ -92,7 +92,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				connectButton.setDisabled(true);
-				connectButton.setVisible(true);
+				connectButton.setVisible(false);
 				if (!getSocketIO().isConnected()) {
 					connect();
 				}
@@ -323,6 +323,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	@Override
 	public void dispose() {
 		stage.dispose();
+		fontGenerator.dispose();
 	}
 
 	public BitmapFont generateFont(int size) {
