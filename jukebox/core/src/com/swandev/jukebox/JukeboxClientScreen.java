@@ -40,17 +40,16 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final JukeboxClient game;
 	private ImageButton playPause;
 	private ImageButton next;
-	
-	private final int fontSize = 20;
 
-	
+	private final int fontSize = 20;
+	private final Table table;
+
 	private final float VIRTUAL_WIDTH = 600;
 	private final float VIRTUAL_HEIGHT = 800;
 
 	private final List<Actor> fontActors;
-	
+
 	private Image backgroundImage;
-	
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
@@ -99,12 +98,11 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final Group group = new Group();
 		scroller.setFillParent(true);
 
-
 		Image backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("jukeboxBackground.jpg"))));
 		backgroundImage.setFillParent(true);
 		group.addActor(backgroundImage);
 		group.addActor(scroller);
-		
+
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
 		table.add(nameLabel).colspan(2);
 		table.row();
@@ -117,7 +115,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		fontActors = Lists.<Actor> newArrayList(list, playPause, next);
 	}
 
-	
 	private void buildBackground(Skin skin) {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/jukeboxBackground.jpg"))));
@@ -128,6 +125,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
 	}
+
 	private void addHostButtons(Table table) {
 		Gdx.app.log("JUKEBOX", "Adding buttons for host");
 		final Skin skin = game.getAssets().getSkin();
@@ -144,8 +142,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		protected String socketEvent;
 
 		public EventSendingTextButton(String text, Skin skin, final String socketEvent) {
-			super(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/next_up.png")))),
-				      new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/next_down.png")))));
+			super(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/next_up.png")))), new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/next_down.png")))));
 			this.socketEvent = socketEvent;
 			addListener(new ChangeListener() {
 
@@ -154,7 +151,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 					getSocketIO().emitToScreen(socketEvent);
 					playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png"))));
 					playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png"))));
-					
+
 				}
 			});
 		}
@@ -168,8 +165,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Map<String, String> stateToEvents = ImmutableMap.of(play, JukeboxLib.USER_PLAY, pause, JukeboxLib.USER_PAUSE);
 
 		public PlayPauseButton(Skin skin) {
-			super(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png")))),
-			      new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png")))));
+			super(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png")))), new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png")))));
 			state = pause;
 			addListener(new ChangeListener() {
 
@@ -178,21 +174,21 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 					getSocketIO().emitToScreen(stateToEvents.get(state));
 					state = state.equals(pause) ? play : pause;
 					changePlayPauseButton(state);
-					
+
 				}
 			});
 		}
 	}
-	
-	public void changePlayPauseButton(String state){
-		if (state.equals("PAUSE")){
+
+	public void changePlayPauseButton(String state) {
+		if (state.equals("PAUSE")) {
 			playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png"))));
 			playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png"))));
-		}else{
+		} else {
 			playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/play_up.png"))));
 			playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/play_down.png"))));
 		}
-		
+
 	}
 
 	@Override
