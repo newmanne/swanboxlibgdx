@@ -10,7 +10,6 @@ import org.json.JSONArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
@@ -24,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.socket.SocketIOState;
@@ -39,16 +39,19 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private TextButton playPause;
 	private TextButton next;
 
+	private final int fontSize = 20;
+
 	Table table;
 
 	private final float VIRTUAL_WIDTH = 800;
 	private final float VIRTUAL_HEIGHT = 600;
-	private Batch spritebatch;
+
+	private final List<Actor> fontActors;
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
 
-		stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
+		stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), game.getSpriteBatch());
 		this.game = game;
 		final Skin skin = game.getAssets().getSkin();
 		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);
@@ -100,6 +103,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		table.row();
 		addHostButtons(table);
 		stage.addActor(table);
+
+		fontActors = Lists.<Actor> newArrayList(list, playPause, next);
 	}
 
 	private void addHostButtons(Table table) {
@@ -156,6 +161,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
+		SwanUtil.resizeFonts(fontActors, game.getAssets().getFontGenerator(), fontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 	}
 
 	@Override

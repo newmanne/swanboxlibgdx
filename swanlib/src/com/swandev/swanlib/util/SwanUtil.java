@@ -91,6 +91,10 @@ public class SwanUtil {
 				TextButton textButton = (TextButton) actor;
 				textButton.getStyle().font = generatedFont;
 				textButton.setStyle(textButton.getStyle());
+			} else if (actor instanceof com.badlogic.gdx.scenes.scene2d.ui.List<?>) {
+				com.badlogic.gdx.scenes.scene2d.ui.List<?> list = (com.badlogic.gdx.scenes.scene2d.ui.List<?>) actor;
+				list.getStyle().font = generatedFont;
+				list.setStyle(list.getStyle());
 			}
 		}
 	}
