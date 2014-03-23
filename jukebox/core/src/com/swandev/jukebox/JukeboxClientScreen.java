@@ -68,10 +68,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 			@Override
 			public void clicked(InputEvent event, float x , float y) {
-				if (!first) {
-					first = true;
-					return;
-				}
 				if (songSelected) {
 					new Dialog("Can't select this song now", skin, "dialog").text("You already have a song queued to be played").button("OK").show(stage);
 				} else {
