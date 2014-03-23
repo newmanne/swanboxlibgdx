@@ -21,6 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -78,9 +79,10 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
 		Label currentSongLabel = new Label("Current Song: ", skin);
 		table.add(nameLabel).colspan(2);
+		table.row();
+	
+		
 		table.row().height(nameLabel.getHeight() * 3);
-		
-		
 		currentSongInfo = new Label(currentSong, skin);
 		table.add(currentSongLabel).left();
 		table.add(currentSongInfo).left();
@@ -231,8 +233,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			songInfo.setFillParent(true);
 			
 			fontActors.add(nameLabel);
-			
-			
+		
 			group.addActor(songInfo);
 			group.addListener(new ClickListener() {
 
