@@ -12,9 +12,11 @@ import org.apache.commons.lang3.RandomUtils;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -64,8 +66,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final Label portLabel;
 	private final Label nicknameLabel;
 	private final Label announcementLabel;
-	
-	
+
 	private Image backgroundImage;
 
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch) {
@@ -132,7 +133,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		waitingText = new Label("Waiting for host to select the game", skin);
 		waitingText.setVisible(false);
 		buildBackground(skin);
-		
+
 		buildTable(skin);
 		stage.addActor(table);
 	}
@@ -185,8 +186,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			}
 		});
 	}
-	
-	
+
 	private void buildBackground(Skin skin) {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.classpath("backgrounds/swanBackground2.jpg"))));
@@ -197,8 +197,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
 	}
-	
-	
 
 	private void buildTable(final Skin skin) {
 		table = new Table(skin);
