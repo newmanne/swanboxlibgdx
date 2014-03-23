@@ -44,6 +44,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final TextField portField;
 	private final TextField nicknameField;
 	private final TextButton connectButton;
+	private final TextButton joinButton;
 	private final TextButton gameStart;
 	private final TextButton updateButton;
 	private Table table;
@@ -84,6 +85,17 @@ public abstract class ClientConnectScreen extends SwanScreen {
 				}
 			}
 		});
+		
+		joinButton = new TextButton("Join Now", skin);
+		joinButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				System.out.println("Join button");
+			}
+		});
+		joinButton.setVisible(false);
+		joinButton.setDisabled(true);
+		
 		updateButton = new TextButton("Update Nickname", skin);
 		updateButton.addListener(new ChangeListener() {
 
@@ -140,9 +152,23 @@ public abstract class ClientConnectScreen extends SwanScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				getSocketIO().setHost(false);
-				waitingText.setVisible(true);
+				getSocketIO().emitToScreen(CommonSocketIOEvents.DYNAMIC_JOIN, getSocketIO().getNickname());
+				
 			}
 
+		});
+		registerEvent(CommonSocketIOEvents.DYNAMIC_REPLY, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				Boolean isGameStarted = (Boolean) args[0];
+				if (isGameStarted){
+					joinButton.setVisible(true);
+					joinButton.setDisabled(false);
+				}else{
+					waitingText.setVisible(true);
+				}
+			}
 		});
 		registerEvent(CommonSocketIOEvents.ELECTED_HOST, new EventCallback() {
 
@@ -207,9 +233,12 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		table.add(connectButton);
 		table.add(updateButton);
-		table.add(gameStart);
+		table.add(gameStart);		
 		table.row();
-
+		
+		table.add(joinButton);
+		table.row();
+		
 		table.add(waitingText);
 
 		table.setFillParent(true);

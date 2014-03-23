@@ -7,6 +7,7 @@ import java.util.Map;
 
 import lombok.Data;
 
+import com.badlogic.gdx.Gdx;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -34,10 +35,12 @@ public class EventEmitter {
 	}
 
 	public void clear() {
+		Gdx.app.log("SERVER", "Cleared callbacks " + callbacks.keySet());
 		callbacks.clear();
 	}
 
 	public void unregisterEvent(String event) {
+		Gdx.app.log("SERVER", "Remove call back " + event);
 		callbacks.remove(event);
 	}
 

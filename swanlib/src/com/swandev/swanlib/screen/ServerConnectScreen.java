@@ -5,6 +5,7 @@ import io.socket.SocketIOException;
 
 import java.net.MalformedURLException;
 
+import lombok.Getter;
 import lombok.Setter;
 
 import com.badlogic.gdx.Game;
@@ -24,6 +25,8 @@ public abstract class ServerConnectScreen extends SwanScreen {
 	final int port = 8080;
 	final String serverAddress = SwanUtil.toAddress(serverIP, Integer.toString(port));
 	boolean connectFailed = false;
+
+	@Getter
 	@Setter
 	boolean gameStarted = false;
 
@@ -74,6 +77,21 @@ public abstract class ServerConnectScreen extends SwanScreen {
 		if (!getSocketIO().isConnected()) {
 			connect();
 		}
+		getSocketIO().on(CommonSocketIOEvents.DYNAMIC_JOIN, new EventCallback() {
+
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				String replyTarget = (String) args[0];
+				boolean isGameStarted;
+				if (getSocketIO().isJoinable() && gameStarted) {
+					isGameStarted = true;
+				}else{
+					isGameStarted = false;
+				}
+				Gdx.app.log("Server", "Should emit to " + replyTarget);
+				getSocketIO().swanEmit(CommonSocketIOEvents.DYNAMIC_REPLY, replyTarget, isGameStarted);
+			}
+		});
 	}
 
 	@Override

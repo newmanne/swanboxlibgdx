@@ -14,5 +14,7 @@ public class CommonSocketIOEvents {
 	public static final String INVALID_NICKNAME = "invalid_nickname";
 	public static final String PLAYER_READY = "player_ready";
 	public static final String EVERYONE_READY = "everyone_ready";
+	public static final String DYNAMIC_JOIN = "dynamic_join";
+	public static final String DYNAMIC_REPLY = "dynamic_reply";
 
 }

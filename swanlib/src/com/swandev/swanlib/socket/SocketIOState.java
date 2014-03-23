@@ -20,7 +20,10 @@ import com.swandev.swanlib.util.CommonLogTags;
 import com.swandev.swanlib.util.SwanUtil;
 
 public class SocketIOState {
-
+	
+	@Getter
+	private final boolean isJoinable = true;
+	
 	@Getter
 	SocketIO client;
 

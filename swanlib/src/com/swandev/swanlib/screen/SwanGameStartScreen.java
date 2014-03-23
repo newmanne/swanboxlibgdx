@@ -40,6 +40,13 @@ public abstract class SwanGameStartScreen extends SwanScreen {
 				onEveryoneReady();
 			}
 		});
+		getSocketIO().on(CommonSocketIOEvents.DYNAMIC_JOIN, new EventCallback() {
+			
+			@Override
+			public void onEvent(IOAcknowledge ack, Object... args) {
+				
+			}
+		});
 		doShow();
 		ackReady();
 	}
