@@ -12,6 +12,7 @@ import org.apache.commons.lang3.RandomUtils;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Orientation;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -54,8 +55,8 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private Table table;
 	private final Label waitingText;
 
-	private final float VIRTUAL_WIDTH = 800;
-	private final float VIRTUAL_HEIGHT = 600;
+	private float VIRTUAL_WIDTH = 800;
+	private float VIRTUAL_HEIGHT = 600;
 	private final FreeTypeFontGenerator fontGenerator;
 	private final Label ipAddressLabel;
 	private final Label portLabel;
@@ -71,6 +72,23 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		this.skin = new Skin(Gdx.files.classpath("skins/uiskin.json"));
 		fontGenerator = new FreeTypeFontGenerator(Gdx.files.classpath("fonts/arial.ttf"));
 		this.stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
+		
+		Orientation orientation = Gdx.input.getNativeOrientation();
+		
+		switch (orientation){
+			case Landscape:
+				VIRTUAL_WIDTH = 800;
+				VIRTUAL_HEIGHT = 600;
+				break;
+			case Portrait:
+				VIRTUAL_WIDTH = 600;
+				VIRTUAL_HEIGHT = 800;
+				break;
+			default:
+				VIRTUAL_WIDTH = 800;
+				VIRTUAL_HEIGHT = 600;
+				break;
+		}
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
 		ipAddressField = new TextField(defaultIP, skin);

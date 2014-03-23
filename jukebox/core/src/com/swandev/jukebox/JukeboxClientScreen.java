@@ -46,22 +46,29 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final int fontSize = 20;
 	private final Table table;
 
-	private final float VIRTUAL_WIDTH = 800;
-	private final float VIRTUAL_HEIGHT = 600;
+	private final float VIRTUAL_WIDTH = 600;
+	private final float VIRTUAL_HEIGHT = 800;
 
 	private final List<Actor> fontActors;
 
 	private Image backgroundImage;
+	
+	private final Group songGroup;
+	
+	private List<String> songs;
+	public Skin skin;
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
 
 		stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), game.getSpriteBatch());
 		this.game = game;
-		final Skin skin = game.getAssets().getSkin();
-		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);		
+		skin = game.getAssets().getSkin();
+		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);
 		
-		list.addListener(new ClickListener() {
+		
+		
+		/*list.addListener(new ClickListener() {
 
 			// Unfortunately without this hack the user is prompted with a dialog the moment the screen opens
 			boolean first = false;
@@ -87,7 +94,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 					}
 				}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
 			}
-		});
+		});*/
 		
 		
 		
@@ -95,18 +102,20 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		// final Table table = new Table();
 		table = new Table();
 		table.setFillParent(true);
+		//table.debug();
 
-		final ScrollPane scroller = new ScrollPane(list);
+		/*final ScrollPane scroller = new ScrollPane(list);
 
 		final Group group = new Group();
 		scroller.setFillParent(true);
-
-		group.addActor(scroller);
+		group.addActor(scroller);*/
+		
+		songGroup = new Group();
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
 		table.add(nameLabel).colspan(2);
 		table.row();
-		table.add(group).fill().expand().colspan(2);
+		table.add(songGroup).fill().expand().colspan(2);
 		table.row();
 		addHostButtons(table);
 		buildBackground(skin);
@@ -214,16 +223,76 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			@Override
 			public void onEvent(IOAcknowledge arg0, Object... args) {
 				Gdx.app.log("JUKEBOX", "song list receieved!");
-				final List<String> songs = SwanUtil.parseJsonList((JSONArray) args[0]);
-				list.setItems(songs.toArray(new String[songs.size()]));
+				songs = SwanUtil.parseJsonList((JSONArray) args[0]);
+				//list.setItems(songs.toArray(new String[songs.size()]));
+				buildSongList();
 			}
 		});
+	}
+	
+	private void buildSongList(){
+		final Table songTable = new Table();
+		//songTable.debug();
+		final ScrollPane scroller = new ScrollPane(songTable);
+		
+		for (int i = 0; i < songs.size(); i++){
+			final Group group = new Group();
+			Table songInfo = new Table();
+			//songInfo.debug();
+			
+			String songName = songs.get(i);
+			Label nameLabel = new Label(songName, skin);
+			nameLabel.setName("songName");
+			Label test = new Label("test", skin);
+			songInfo.add(nameLabel).expandX().left().padLeft(10);
+			//songInfo.row().center();
+			//songInfo.add(test).expandX().left().padLeft(10);
+			songInfo.setFillParent(true);
+			
+			group.addActor(songInfo);
+						
+			group.addListener(new ClickListener() {
+
+				@Override
+				public void clicked(InputEvent event, float x , float y) {
+					if (songSelected) {
+						new Dialog("Can't select this song now", skin, "dialog").text("You already have a song queued to be played").button("OK").show(stage);
+					} else {
+						Label sn = (Label) group.findActor("songName");
+						selectSong(sn.getText().toString());
+					}
+				}
+
+				private void selectSong(final String songName) {
+					new Dialog("Select this song?", skin, "dialog") {
+						@Override
+						protected void result(Object result) {
+							if (result.equals(true)) {
+								Gdx.app.log("JUKEBOX", "Song " + songName + " selected to be played");
+								getSocketIO().emitToScreen(JukeboxLib.ADD_TO_PLAYLIST, getSocketIO().getNickname(), songName);
+								songSelected = true;
+							}
+						}
+					}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
+				}
+			});
+			
+			songTable.row().height(nameLabel.getHeight()*3);
+			songTable.add(group).expandX().left();
+			
+			
+		}
+		songTable.top();
+		scroller.setFillParent(true);		
+		songGroup.addActor(scroller);
+		
 	}
 
 	@Override
 	protected void doRender(float delta) {
 		stage.draw();
 		stage.act(delta);
+		//Table.drawDebug(stage);
 	}
 
 	@Override
