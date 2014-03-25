@@ -39,8 +39,7 @@ import com.swandev.swanlib.util.SwanUtil;
 public class HandScreen extends SwanGameStartScreen {
 	// *** Layout Coordinates ***//
 	private static final float COORD_SCALE = 50f;
-	// Use the pixels per unit to define a grid and orient
-	// all the elements of the screen based on that grid.
+	// Define a grid and orient all the elements of the screen based on that grid.
 	private static final float CAMERA_WIDTH = 15f * COORD_SCALE; // how many boxes wide the screen is
 	private static final float CAMERA_HEIGHT = 10f * COORD_SCALE; // how many boxes high the screen is
 	
@@ -48,9 +47,9 @@ public class HandScreen extends SwanGameStartScreen {
 	private static final float CARD_WIDTH = 4f * COORD_SCALE;
 	private static final float CARD_HEIGHT = 6f * COORD_SCALE;
 	private static final float CARD1_ORIGIN_X = 5f * COORD_SCALE;
-	private static final float CARD1_ORIGIN_Y = 3f * COORD_SCALE;
+	private static final float CARD1_ORIGIN_Y = 2.5f * COORD_SCALE;
 	private static final float CARD2_ORIGIN_X = 9f * COORD_SCALE;
-	private static final float CARD2_ORIGIN_Y = 3f * COORD_SCALE;
+	private static final float CARD2_ORIGIN_Y = 2.5f * COORD_SCALE;
 	
 	// orient the image for hand complete
 	private static final float OVER_IMAGE_HEIGHT = 3f * COORD_SCALE;
@@ -62,7 +61,7 @@ public class HandScreen extends SwanGameStartScreen {
 	private static final float BUTTON_WIDTH = 3f * COORD_SCALE;
 	private static final float BUTTON_HEIGHT = 1f * COORD_SCALE;
 	private static final float BUTTON_PADDING_LEFT = 1f * COORD_SCALE;
-	private static final float BUTTON_PADDING_TOP = 1f * COORD_SCALE;
+	private static final float BUTTON_PADDING_TOP = 1.5f * COORD_SCALE;
 
 	// orient the text boxes which show the amount of $$ owned and bet
 	private static final float MONEY_TEXT_WIDTH = 2f * COORD_SCALE;
@@ -73,6 +72,10 @@ public class HandScreen extends SwanGameStartScreen {
 	// size the buttons for the raise dialog
 	private static final float RAISE_TEXT_HEIGHT = 2f * COORD_SCALE; //width should adjust with the text
 	private static final float RAISE_BUTTON_WIDTH = 2f * COORD_SCALE; //height is the same as width
+	
+	// size of label for the username
+	private static final float USERNAME_HEIGHT = 1f * COORD_SCALE;
+	private static final float USERNAME_WIDTH = 5f * COORD_SCALE;
 
 	// These labels are members so we can dynamically change their values
 	// without looking them up in the stage
@@ -358,6 +361,22 @@ public class HandScreen extends SwanGameStartScreen {
 		handOver.setHeight(OVER_IMAGE_HEIGHT);
 		stage.addActor(handOver);
 	}
+	
+	private void buildUserName(Skin skin){
+		Table nameTable = new Table(skin);
+		Gdx.app.log("NAME", "Setting username to "+game.getSocketIO().getNickname());
+		
+		Label userNameLabel = new Label("Name: "+game.getSocketIO().getNickname(), skin);
+		userNameLabel.setAlignment(Align.center);
+		
+		nameTable.add(userNameLabel).width(USERNAME_WIDTH).height(USERNAME_HEIGHT);
+		nameTable.row();
+		
+		nameTable.center().top();
+		nameTable.setFillParent(true);
+		nameTable.debug();
+		stage.addActor(nameTable);
+	}
 
 	private void disableActionButtons() {
 		// disables all the action buttons; should be called after a request is sent
@@ -571,6 +590,7 @@ public class HandScreen extends SwanGameStartScreen {
 		// for the background since it needs to be behind everything else, but also
 		// determines who's in front in some weird resizing cases.
 		buildBackground(skin);
+		buildUserName(skin);
 		buildMoneyText(skin);
 		buildButtonTable(skin);
 		buildCards(skin);
