@@ -3,7 +3,6 @@ package com.swandev.jukebox;
 import io.socket.IOAcknowledge;
 
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONArray;
 
@@ -26,7 +25,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
@@ -36,9 +34,7 @@ import com.swandev.swanlib.util.SwanUtil;
 public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	final Stage stage;
-	// whether or not a user has a song selected
 	boolean songSelected = false;
-	final com.badlogic.gdx.scenes.scene2d.ui.List<String> list;
 	private final JukeboxClient game;
 	private ImageButton playPause;
 	private ImageButton next;
@@ -66,12 +62,9 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), game.getSpriteBatch());
 		this.game = game;
 		skin = game.getAssets().getSkin();
-		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);
 
 		table = new Table();
 		table.setFillParent(true);
-		// table.debug();
-
 		songGroup = new Group();
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
@@ -91,7 +84,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage.addActor(table);
 
 		// how do we we set the current song label to fixed font??
-		fontActors = Lists.<Actor> newArrayList(list, nameLabel, currentSongLabel, currentSongInfo);
+		fontActors = Lists.<Actor> newArrayList(nameLabel, currentSongLabel, currentSongInfo);
 	}
 
 	private void buildBackground(Skin skin) {
@@ -108,9 +101,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private void addHostButtons(Table table) {
 		Gdx.app.log("JUKEBOX", "Adding buttons for host");
 		final Skin skin = game.getAssets().getSkin();
-		// TODO: make a play/pause button, its dumb to have both
 		next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
-		playPause = new PlayPauseButton(skin);
+		playPause = new PlayPauseButton(getSocketIO());
 		table.add(playPause).height(100).width(100).center();
 		table.add(next).height(100).width(100).center();
 		table.row();
@@ -134,40 +126,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				}
 			});
 		}
-	}
-
-	public class PlayPauseButton extends ImageButton {
-
-		final private static String play = "PLAY";
-		final private static String pause = "PAUSE";
-		private String state;
-		Map<String, String> stateToEvents = ImmutableMap.of(play, JukeboxLib.USER_PLAY, pause, JukeboxLib.USER_PAUSE);
-
-		public PlayPauseButton(Skin skin) {
-			super(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png")))), new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png")))));
-			state = pause;
-			addListener(new ChangeListener() {
-
-				@Override
-				public void changed(ChangeEvent event, Actor actor) {
-					getSocketIO().emitToScreen(stateToEvents.get(state));
-					state = state.equals(pause) ? play : pause;
-					changePlayPauseButton(state);
-
-				}
-			});
-		}
-	}
-
-	public void changePlayPauseButton(String state) {
-		if (state.equals("PAUSE")) {
-			playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png"))));
-			playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png"))));
-		} else {
-			playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/play_up.png"))));
-			playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/play_down.png"))));
-		}
-
 	}
 
 	@Override
@@ -195,7 +153,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			public void onEvent(IOAcknowledge arg0, Object... args) {
 				Gdx.app.log("JUKEBOX", "song list receieved!");
 				songs = SwanUtil.parseJsonList((JSONArray) args[0]);
-				// list.setItems(songs.toArray(new String[songs.size()]));
 				buildSongList();
 			}
 		});
