@@ -14,7 +14,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class PlayerTable extends Table {
 	private final Label nameLabel;
-	private final Image myTurnImage;
+	
+	private final Image chevronLeft;
+	private final Image chevronRight;
+	
 	private final Label chipValueLabel;
 	private final Label actionLabel;
 	
@@ -40,15 +43,21 @@ public class PlayerTable extends Table {
 		nameLabel.setAlignment(Align.left);
 		cardToImage = cardAtlas;
 		
-		chipValueLabel = new Label(chipValue.toString(), skin);
+		String chipVal = (chipValue != null)? chipValue.toString() : "";
+		chipValueLabel = new Label(chipVal, skin);
 		
 		actionLabel = new Label("", skin);
 		actionLabel.setVisible(false);
 		
-		TextureRegion chevron = new TextureRegion(new Texture(Gdx.files.internal("images/cur_player_chevron.png")));
-		chevron.flip(true, false); //flip the image in the X direction
-		myTurnImage = new Image(chevron);
-		myTurnImage.setVisible(false);
+		TextureRegion chevronL = new TextureRegion(new Texture(Gdx.files.internal("images/cur_player_chevron.png")));
+		TextureRegion chevronR = new TextureRegion(new Texture(Gdx.files.internal("images/cur_player_chevron.png")));
+		chevronR.flip(true, false); //flip the image in the X direction
+		
+		chevronLeft = new Image(chevronL);
+		chevronLeft.setVisible(false);
+		
+		chevronRight = new Image(chevronR);
+		chevronRight.setVisible(false);
 		
 		card1Image = new Image();
 		card2Image = new Image();
@@ -57,20 +66,26 @@ public class PlayerTable extends Table {
 		
 		//Build the table
 		defaults().height(rowHeight);
+		add();
 		add(card1Image).height(cardHeight).width(cardWidth).right();
 		add(card2Image).height(cardHeight).width(cardWidth);
 		row();
+		add(chevronLeft).width(turnWidth);
 		add(nameLabel).width(nameWidth).colspan(2);
-		add(myTurnImage).width(turnWidth);
+		add(chevronRight).width(turnWidth);
 		row();
+		add();
 		add(chipValueLabel).width(moneyWidth);
 		add(actionLabel).width(actionWidth);
-		row();			
+		row();
+		debug();
 	}
 	
 	public void setCardImages(int card1, int card2){
-		card1Image.setDrawable(new TextureRegionDrawable(cardToImage.get(card1)));
-		card2Image.setDrawable(new TextureRegionDrawable(cardToImage.get(card2)));
+		if (cardToImage != null){
+			card1Image.setDrawable(new TextureRegionDrawable(cardToImage.get(card1)));
+			card2Image.setDrawable(new TextureRegionDrawable(cardToImage.get(card2)));
+		}
 	}
 	
 	public void clearCardImages(){
@@ -100,6 +115,7 @@ public class PlayerTable extends Table {
 	
 	public void toggleCurrentTurn(boolean myTurn){
 		Gdx.app.log("PLAYER_TABLE", (myTurn? "Setting":"Clearing")+" Current Turn");
-		myTurnImage.setVisible(myTurn);
+		chevronRight.setVisible(myTurn);
+		chevronLeft.setVisible(myTurn);
 	}
 }

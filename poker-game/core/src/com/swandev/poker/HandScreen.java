@@ -300,7 +300,7 @@ public class HandScreen extends SwanGameStartScreen {
 		buttonTable.row();
 
 		/* Raise-1000 Button Requests a bet which 1000 more than the call value - the bet value */
-		raiseButton = new TextButton("Raise $1000", skin);
+		raiseButton = new TextButton("Raise", skin);
 		raiseButton.setColor(Color.BLUE);
 		raiseButton.addListener(new ChangeListener() {
 			@Override

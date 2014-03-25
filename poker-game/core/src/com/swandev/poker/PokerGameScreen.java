@@ -35,9 +35,15 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	// orient the cards on the table
 	public static final float TABLE_CARD_WIDTH = 4f * COORD_SCALE;
 	public static final float TABLE_CARD_HEIGHT = 6f * COORD_SCALE;
-	public static final float TABLE_CARDS_ORIGIN_X = 7f * COORD_SCALE;
+	public static final float TABLE_CARDS_ORIGIN_X = 8f * COORD_SCALE;
 	public static final float TABLE_CARDS_ORIGIN_Y = 8f * COORD_SCALE;
-	public static final float TABLE_CARDS_HSPACING = 1f * COORD_SCALE;
+	public static final float TABLE_CARDS_HSPACING = 0.5f * COORD_SCALE;
+	
+	// orient the table graphic
+	public static final float TABLE_IMAGE_WIDTH = 5*TABLE_CARD_WIDTH + 6* TABLE_CARDS_HSPACING;
+	public static final float TABLE_IMAGE_HEIGHT = TABLE_CARD_HEIGHT + 2* TABLE_CARDS_HSPACING;
+	public static final float TABLE_IMAGE_ORIGIN_X = TABLE_CARDS_ORIGIN_X - TABLE_CARDS_HSPACING;
+	public static final float TABLE_IMAGE_ORIGIN_Y = TABLE_CARDS_ORIGIN_Y - TABLE_CARDS_HSPACING;
 	
 	// orient the card images for each player's hand
 	public static final float PLAYER_CARD_WIDTH = 2.5f * COORD_SCALE;
@@ -56,7 +62,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public static final float PLAYER_NAME_WIDTH = 4f * COORD_SCALE;
 	public static final float PLAYER_MONEY_WIDTH = 2.5f * COORD_SCALE;
 	public static final float PLAYER_ACTION_WIDTH = 1.5f * COORD_SCALE;
-	public static final float PLAYER_TURN_WIDTH = 1f* COORD_SCALE;
+	public static final float PLAYER_TURN_WIDTH = 0.5f* COORD_SCALE;
 	
 	// orient the pot label at the top of the screen
 	public static final float POT_LABEL_HEIGHT = 1f * COORD_SCALE;
@@ -99,6 +105,10 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public void uiForDrawCards(PokerRound round) {
 		for (int i = 0; i < round.ordinal() + 2; i++) {
 			tableCards[i].setDrawable(new TextureRegionDrawable(cardToImage.get(pokerTable.getTableCards().get(i).getImageNumber())));
+			tableCards[i].setVisible(true);
+		}
+		for (int i = round.ordinal() + 2; i < 5; i++){
+			tableCards[i].setVisible(false);
 		}
 	}
 
@@ -112,6 +122,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		}
 		for (Image card : tableCards) {
 			card.setDrawable(new TextureRegionDrawable(cardToImage.get(PokerLib.CARD_BACK)));
+			card.setVisible(false);
 		}
 	}
 
@@ -149,6 +160,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	protected void doRender(float delta) {
 		stage.draw();
 		stage.act(delta);
+		//Table.drawDebug(stage);
 	}
 
 	@Override
@@ -195,10 +207,45 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			stage.addActor(tableCards[i]);
 		}
 	}
+	
+	private PlayerTable genEmptyPlayerTable(Skin skin){
+		//Used to keep proper sizing for all player tables
+		PlayerTable empty = new PlayerTable(skin, "", null, null,
+				PLAYER_TABLE_ROW_HEIGHT, PLAYER_CARD_HEIGHT, PLAYER_CARD_WIDTH, PLAYER_NAME_WIDTH, PLAYER_TURN_WIDTH, PLAYER_MONEY_WIDTH, PLAYER_ACTION_WIDTH);
+		empty.toggleCardsVisible(false);
+		empty.toggleCurrentTurn(false);
+		return empty;
+	}
 
 	private void buildPlayerTables(Skin skin) {
 		Table playerTables = new Table(skin);
-		for (int i = 0; i < Math.min(playerNames.size(), 6); ++i) {
+		
+		//construct the top row of the table: P1|	|	|	|	| P8
+		if (playerNames.size() >= 1){
+			String playerName = playerNames.get(0);
+			PlayerTable newTable = new PlayerTable(
+					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage,
+					PLAYER_TABLE_ROW_HEIGHT, PLAYER_CARD_HEIGHT, PLAYER_CARD_WIDTH, PLAYER_NAME_WIDTH, PLAYER_TURN_WIDTH, PLAYER_MONEY_WIDTH, PLAYER_ACTION_WIDTH);
+			nameToTableMap.put(playerName, newTable);
+			playerTables.add(newTable);
+		}
+		for (int i = 0; i < 4; ++i){
+			playerTables.add();
+		}
+		if ( playerNames.size() >= 8 ){
+			String playerName = playerNames.get(7);
+			PlayerTable newTable = new PlayerTable(
+					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage,
+					PLAYER_TABLE_ROW_HEIGHT, PLAYER_CARD_HEIGHT, PLAYER_CARD_WIDTH, PLAYER_NAME_WIDTH, PLAYER_TURN_WIDTH, PLAYER_MONEY_WIDTH, PLAYER_ACTION_WIDTH);
+			nameToTableMap.put(playerName, newTable);
+			playerTables.add(newTable);
+		} else {
+			playerTables.add(genEmptyPlayerTable(skin));
+		}
+		playerTables.row();
+		
+		//construct the bottom row of the table: P2|P3|P4|P5|P6|P7
+		for (int i = 1; i < Math.min(playerNames.size(), 7); ++i) {
 			String playerName = playerNames.get(i);
 			PlayerTable newTable = new PlayerTable(
 					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage,
@@ -206,9 +253,20 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
 		}
-		playerTables.bottom().left();
-		playerTables.padBottom(PLAYER_TABLES_PADDING_Y).padLeft(PLAYER_TABLES_PADDING_X);
+		if (playerNames.size() < 7){
+			for (int i = playerNames.size(); i < 7; ++i){
+				playerTables.add(genEmptyPlayerTable(skin));
+			}
+		}
+		
+		if (playerNames.size() > 8){
+			Gdx.app.log("PLAYER_TABLES", "Sorry to those players who didn't get rendered!! :(");
+		}
+		
+		playerTables.center().bottom();
+		playerTables.padBottom(PLAYER_TABLES_PADDING_Y);
 		playerTables.setFillParent(true);
+		playerTables.debug();
 		stage.addActor(playerTables);
 	}
 
@@ -221,6 +279,13 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		backgroundImage.setHeight(CAMERA_HEIGHT);
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
+		
+		Image tableImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/table.png"))));
+		tableImage.setX(TABLE_IMAGE_ORIGIN_X);
+		tableImage.setY(TABLE_IMAGE_ORIGIN_Y);
+		tableImage.setWidth(TABLE_IMAGE_WIDTH);
+		tableImage.setHeight(TABLE_IMAGE_HEIGHT);
+		stage.addActor(tableImage);
 	}
 	
 	private void buildPotLabel(Skin skin){
