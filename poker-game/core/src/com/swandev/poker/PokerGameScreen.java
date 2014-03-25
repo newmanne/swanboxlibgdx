@@ -118,7 +118,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			PlayerTable playerTable = nameToTableMap.get(player.getName());
 			playerTable.setChipValue(player.getMoney()); // update the money label
 			playerTable.setCardImages(PokerLib.CARD_BACK, PokerLib.CARD_BACK); //show their cards
-			playerTable.toggleCardsVisible(true);
+			playerTable.setCardsVisible(true);
 		}
 		for (Image card : tableCards) {
 			card.setDrawable(new TextureRegionDrawable(cardToImage.get(PokerLib.CARD_BACK)));
@@ -210,10 +210,9 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	
 	private PlayerTable genEmptyPlayerTable(Skin skin){
 		//Used to keep proper sizing for all player tables
-		PlayerTable empty = new PlayerTable(skin, "", null, null,
-				PLAYER_TABLE_ROW_HEIGHT, PLAYER_CARD_HEIGHT, PLAYER_CARD_WIDTH, PLAYER_NAME_WIDTH, PLAYER_TURN_WIDTH, PLAYER_MONEY_WIDTH, PLAYER_ACTION_WIDTH);
-		empty.toggleCardsVisible(false);
-		empty.toggleCurrentTurn(false);
+		PlayerTable empty = new PlayerTable(skin, "", null, null);
+		empty.setCardsVisible(false);
+		empty.setCurrentTurn(false);
 		return empty;
 	}
 
@@ -224,8 +223,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		if (playerNames.size() >= 1){
 			String playerName = playerNames.get(0);
 			PlayerTable newTable = new PlayerTable(
-					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage,
-					PLAYER_TABLE_ROW_HEIGHT, PLAYER_CARD_HEIGHT, PLAYER_CARD_WIDTH, PLAYER_NAME_WIDTH, PLAYER_TURN_WIDTH, PLAYER_MONEY_WIDTH, PLAYER_ACTION_WIDTH);
+					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
 		}
@@ -235,8 +233,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		if ( playerNames.size() >= 8 ){
 			String playerName = playerNames.get(7);
 			PlayerTable newTable = new PlayerTable(
-					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage,
-					PLAYER_TABLE_ROW_HEIGHT, PLAYER_CARD_HEIGHT, PLAYER_CARD_WIDTH, PLAYER_NAME_WIDTH, PLAYER_TURN_WIDTH, PLAYER_MONEY_WIDTH, PLAYER_ACTION_WIDTH);
+					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
 		} else {
@@ -248,8 +245,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		for (int i = 1; i < Math.min(playerNames.size(), 7); ++i) {
 			String playerName = playerNames.get(i);
 			PlayerTable newTable = new PlayerTable(
-					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage,
-					PLAYER_TABLE_ROW_HEIGHT, PLAYER_CARD_HEIGHT, PLAYER_CARD_WIDTH, PLAYER_NAME_WIDTH, PLAYER_TURN_WIDTH, PLAYER_MONEY_WIDTH, PLAYER_ACTION_WIDTH);
+					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
 		}

@@ -13,6 +13,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class PlayerTable extends Table {
+	private final String playerName;
+	
 	private final Label nameLabel;
 	
 	private final Image chevronLeft;
@@ -30,14 +32,8 @@ public class PlayerTable extends Table {
 			Skin skin, 
 			String name, 
 			Integer chipValue, 
-			Map<Integer, TextureRegion> cardAtlas,
-			float rowHeight,
-			float cardHeight,
-			float cardWidth,
-			float nameWidth,
-			float turnWidth,
-			float moneyWidth,
-			float actionWidth) {
+			Map<Integer, TextureRegion> cardAtlas) {
+		playerName = name;
 		nameLabel = new Label(name, skin);
 		nameLabel.setWrap(true);
 		nameLabel.setAlignment(Align.left);
@@ -62,21 +58,21 @@ public class PlayerTable extends Table {
 		card1Image = new Image();
 		card2Image = new Image();
 		clearCardImages();
-		toggleCardsVisible(false);
+		setCardsVisible(false);
 		
 		//Build the table
-		defaults().height(rowHeight);
-		add();
-		add(card1Image).height(cardHeight).width(cardWidth).right();
-		add(card2Image).height(cardHeight).width(cardWidth);
+		defaults().height(PokerGameScreen.PLAYER_TABLE_ROW_HEIGHT);
+		add();//empty cell so the chevron below positions correctly
+		add(card1Image).height(PokerGameScreen.PLAYER_CARD_HEIGHT).width(PokerGameScreen.PLAYER_CARD_WIDTH).right();
+		add(card2Image).height(PokerGameScreen.PLAYER_CARD_HEIGHT).width(PokerGameScreen.PLAYER_CARD_WIDTH);
 		row();
-		add(chevronLeft).width(turnWidth);
-		add(nameLabel).width(nameWidth).colspan(2);
-		add(chevronRight).width(turnWidth);
+		add(chevronLeft).width(PokerGameScreen.PLAYER_TURN_WIDTH);
+		add(nameLabel).width(PokerGameScreen.PLAYER_NAME_WIDTH).colspan(2);
+		add(chevronRight).width(PokerGameScreen.PLAYER_TURN_WIDTH);
 		row();
-		add();
-		add(chipValueLabel).width(moneyWidth);
-		add(actionLabel).width(actionWidth);
+		add(); //empty cell so the chevron above positions correctly
+		add(chipValueLabel).width(PokerGameScreen.PLAYER_MONEY_WIDTH);
+		add(actionLabel).width(PokerGameScreen.PLAYER_ACTION_WIDTH);
 		row();
 		debug();
 	}
@@ -92,8 +88,8 @@ public class PlayerTable extends Table {
 		setCardImages(PokerLib.CARD_BACK, PokerLib.CARD_BACK);
 	}
 	
-	public void toggleCardsVisible (boolean visible){
-		Gdx.app.log("PLAYER_TABLE", "Toggling cards "+(visible? "":"in")+"visible!");
+	public void setCardsVisible (boolean visible){
+		Gdx.app.log("PLAYER_TABLE", playerName+": Toggling cards "+(visible? "":"in")+"visible!");
 		card1Image.setVisible(visible);
 		card2Image.setVisible(visible);
 	}
@@ -103,18 +99,18 @@ public class PlayerTable extends Table {
 	}
 	
 	public void setLastAction(String action){
-		Gdx.app.log("PLAYER_TABLE", "Setting action to "+action);
+		Gdx.app.log("PLAYER_TABLE", playerName+": Setting action to "+action);
 		actionLabel.setText(action);
 		actionLabel.setVisible(true);
 	}
 	
 	public void clearAction(){
-		Gdx.app.log("PLAYER_TABLE", "Clearing action.");
+		Gdx.app.log("PLAYER_TABLE", playerName+": Clearing action.");
 		actionLabel.setVisible(false);
 	}
 	
-	public void toggleCurrentTurn(boolean myTurn){
-		Gdx.app.log("PLAYER_TABLE", (myTurn? "Setting":"Clearing")+" Current Turn");
+	public void setCurrentTurn(boolean myTurn){
+		Gdx.app.log("PLAYER_TABLE", playerName+": "+(myTurn? "Setting":"Clearing")+" Current Turn");
 		chevronRight.setVisible(myTurn);
 		chevronLeft.setVisible(myTurn);
 	}

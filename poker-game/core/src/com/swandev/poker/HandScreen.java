@@ -364,8 +364,7 @@ public class HandScreen extends SwanGameStartScreen {
 	
 	private void buildUserName(Skin skin){
 		Table nameTable = new Table(skin);
-		Gdx.app.log("NAME", "Setting username to "+game.getSocketIO().getNickname());
-		
+
 		Label userNameLabel = new Label("Name: "+game.getSocketIO().getNickname(), skin);
 		userNameLabel.setAlignment(Align.center);
 		
