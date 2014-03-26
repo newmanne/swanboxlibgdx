@@ -2,7 +2,8 @@ package com.swandev.jukebox;
 
 import io.socket.IOAcknowledge;
 
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -23,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -61,7 +63,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	private static final Json json = new Json();
 
-	private Collection<SongData> songs;
+	private List<SongData> songs;
 
 	private boolean yourSongIsPlaying = false;
 
@@ -114,7 +116,26 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		playPause = new PlayPauseButton(getSocketIO());
 		table.add(playPause).height(100).width(100).center();
 		table.add(next).height(100).width(100).center();
+		TextButton sortByArtist = new SortSongsTextButton("Sort by artist", skin, byArtist);
+		table.add(sortByArtist);
+		TextButton sortByTitle = new SortSongsTextButton("Sort by title", skin, byTitle);
+		table.add(sortByTitle);
 		table.row();
+	}
+
+	public class SortSongsTextButton extends TextButton {
+
+		public SortSongsTextButton(String text, Skin skin, final Comparator<SongData> comparator) {
+			super(text, skin);
+			addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					Collections.sort(songs, comparator);
+					buildSongList();
+				}
+			});
+		}
+
 	}
 
 	public class EventSendingTextButton extends ImageButton {
@@ -175,7 +196,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				for (int i = 0; i < jsonArray.length(); i++) {
 					songs.add(json.fromJson(SongData.class, jsonArray.getJSONObject(i).toString()));
 				}
-				buildSongList(songs);
+				buildSongList();
 			}
 		});
 
@@ -192,7 +213,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	}
 
-	private void buildSongList(Collection<SongData> songs) {
+	private void buildSongList() {
 		songGroup.clear();
 		final Table songTable = new Table();
 		final ScrollPane scroller = new ScrollPane(songTable);
@@ -264,4 +285,22 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		getSocketIO().emitToScreen(JukeboxLib.REQUEST_SONGLIST);
 		Gdx.app.log("JUKEBOX", "Requesting song list from server...");
 	}
+
+	public static final Comparator<SongData> byArtist = new Comparator<SongData>() {
+
+		@Override
+		public int compare(SongData o1, SongData o2) {
+			return o1.getArtist().compareTo(o2.getArtist());
+		}
+
+	};
+
+	public static final Comparator<SongData> byTitle = new Comparator<SongData>() {
+
+		@Override
+		public int compare(SongData o1, SongData o2) {
+			return o1.getSongName().compareTo(o2.getSongName());
+		}
+
+	};
 }
