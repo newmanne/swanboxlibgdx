@@ -52,8 +52,8 @@ public class PlayPauseButton extends ImageButton {
 		}
 
 		public void setState(String state) {
-			imageUp = state.equals(play) ? pauseUp : playUp;
-			imageDown = state.equals(play) ? pauseDown : playDown;
+			imageUp = state.equals(pause) ? pauseUp : playUp;
+			imageDown = state.equals(pause) ? pauseDown : playDown;
 		}
 
 	}
