@@ -53,8 +53,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	private final Group songGroup;
 
+	private List<String> songs;
 	public Skin skin;
-	private com.badlogic.gdx.scenes.scene2d.ui.List<String> list;
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
@@ -62,16 +62,10 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), game.getSpriteBatch());
 		this.game = game;
 		skin = game.getAssets().getSkin();
-		list = new com.badlogic.gdx.scenes.scene2d.ui.List<String>(skin);
+
 		table = new Table();
 		table.setFillParent(true);
-
-		final ScrollPane scroller = new ScrollPane(list);
-		scroller.setFillParent(true);
-
-		table.setFillParent(true);
 		songGroup = new Group();
-		songGroup.addActor(scroller);
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
 		Label currentSongLabel = new Label("Current Song: ", skin);
@@ -89,33 +83,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		buildBackground(skin);
 		stage.addActor(table);
 
-		list.addListener(new ClickListener() {
-
-			@Override
-			public void clicked(InputEvent event, float x, float y) {
-				if (songSelected) {
-					new Dialog("Can't select this song now", skin, "dialog").text("You already have a song queued to be played").button("OK").show(stage);
-				} else {
-					selectSong(list.getSelected());
-				}
-			}
-
-			private void selectSong(final String songName) {
-				new Dialog("Select this song?", skin, "dialog") {
-					@Override
-					protected void result(Object result) {
-						if (result.equals(true)) {
-							Gdx.app.log("JUKEBOX", "Song " + songName + " selected to be played");
-							getSocketIO().emitToScreen(JukeboxLib.ADD_TO_PLAYLIST, getSocketIO().getNickname(), songName);
-							songSelected = true;
-						}
-					}
-				}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
-			}
-		});
-
 		// how do we we set the current song label to fixed font??
-		fontActors = Lists.<Actor> newArrayList(list, nameLabel, currentSongLabel, currentSongInfo);
+		fontActors = Lists.<Actor> newArrayList(nameLabel, currentSongLabel, currentSongInfo);
 	}
 
 	private void buildBackground(Skin skin) {
@@ -183,8 +152,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			@Override
 			public void onEvent(IOAcknowledge arg0, Object... args) {
 				Gdx.app.log("JUKEBOX", "song list receieved!");
-				List<String> songs = SwanUtil.parseJsonList((JSONArray) args[0]);
-				list.setItems(songs.toArray(new String[songs.size()]));
+				songs = SwanUtil.parseJsonList((JSONArray) args[0]);
+				buildSongList();
 			}
 		});
 
@@ -194,6 +163,58 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				currentSongInfo.setText((CharSequence) args[0]);
 			}
 		});
+
+	}
+
+	private void buildSongList() {
+		final Table songTable = new Table();
+		final ScrollPane scroller = new ScrollPane(songTable);
+
+		for (String songName : songs) {
+			final Group group = new Group();
+			Table songInfo = new Table();
+
+			Label nameLabel = new Label(songName, skin);
+			nameLabel.setName("songName");
+			songInfo.add(nameLabel).expandX().left().padLeft(10);
+			songInfo.setFillParent(true);
+
+			fontActors.add(nameLabel);
+
+			group.addActor(songInfo);
+			group.addListener(new ClickListener() {
+
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					if (songSelected) {
+						new Dialog("Can't select this song now", skin, "dialog").text("You already have a song queued to be played").button("OK").show(stage);
+					} else {
+						Label sn = (Label) group.findActor("songName");
+						selectSong(sn.getText().toString());
+					}
+				}
+
+				private void selectSong(final String songName) {
+					new Dialog("Select this song?", skin, "dialog") {
+						@Override
+						protected void result(Object result) {
+							if (result.equals(true)) {
+								Gdx.app.log("JUKEBOX", "Song " + songName + " selected to be played");
+								getSocketIO().emitToScreen(JukeboxLib.ADD_TO_PLAYLIST, getSocketIO().getNickname(), songName);
+								songSelected = true;
+							}
+						}
+					}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
+				}
+			});
+
+			songTable.row().height(fontSize * 3);
+			songTable.add(group).expandX().left();
+
+		}
+		songTable.top();
+		scroller.setFillParent(true);
+		songGroup.addActor(scroller);
 
 	}
 
