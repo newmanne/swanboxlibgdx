@@ -233,11 +233,14 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final String songName;
 
 		public SongInfoTable(SongData songData) {
+			// TODO: add these guys to the font resize things
+			// TODO: fix the table from looking like crap
 			super();
 			songName = songData.toString();
 			defaults().pad(10).left();
 			add(new Label(songData.getSongName(), skin));
 			add(new Label("(" + songData.getArtist() + ")", skin));
+			add(new Label(JukeboxLib.formatTime(songData.getLengthInSeconds()), skin));
 			addListener(new ClickListener() {
 
 				@Override
