@@ -41,7 +41,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private String currentSong;
 	private final Label currentSongInfo;
 
-	private final int fontSize = 20;
+	private final int fontSize = 40;
 	private final Table table;
 
 	private final float VIRTUAL_WIDTH = 600;
@@ -55,6 +55,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	private List<String> songs;
 	public Skin skin;
+	private Label yourSelectionInfo;
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
@@ -69,13 +70,17 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
 		Label currentSongLabel = new Label("Current Song: ", skin);
+		Label yourSelectionLabel = new Label("Your selection: ", skin);
+		yourSelectionInfo = new Label("Example song I selected", skin);
 		table.add(nameLabel).colspan(2);
 		table.row();
 
-		table.row().height(nameLabel.getHeight() * 3);
 		currentSongInfo = new Label(currentSong, skin);
 		table.add(currentSongLabel);
 		table.add(currentSongInfo).left();
+		table.row();
+		table.add(yourSelectionLabel);
+		table.add(yourSelectionInfo).left();
 		table.row();
 		table.add(songGroup).fill().expand().colspan(2);
 		table.row();
@@ -84,16 +89,13 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage.addActor(table);
 
 		// how do we we set the current song label to fixed font??
-		fontActors = Lists.<Actor> newArrayList(nameLabel, currentSongLabel, currentSongInfo);
+		fontActors = Lists.<Actor> newArrayList(nameLabel, currentSongLabel, currentSongInfo, yourSelectionLabel, yourSelectionInfo);
 	}
 
 	private void buildBackground(Skin skin) {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/jukeboxBackground.jpg"))));
-		backgroundImage.setX(0);
-		backgroundImage.setY(0);
-		backgroundImage.setWidth(VIRTUAL_WIDTH - 10);
-		backgroundImage.setHeight(VIRTUAL_HEIGHT - 10);
+		backgroundImage.setBounds(0, 0, VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 10);
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
 	}
@@ -186,12 +188,17 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					if (songSelected) {
-						new Dialog("Can't select this song now", skin, "dialog").text("You already have a song queued to be played").button("OK").show(stage);
+					if (yourSongIsPlaying()) {
+						new Dialog("Can't select this song now", skin, "dialog").text("Please wait until your song finishes playing").button("OK").show(stage);
 					} else {
 						Label sn = (Label) group.findActor("songName");
 						selectSong(sn.getText().toString());
 					}
+				}
+
+				// TODO: this won't work if you picked the song currently playing...
+				private boolean yourSongIsPlaying() {
+					return yourSelectionInfo.getText().equals(currentSongInfo.getText());
 				}
 
 				private void selectSong(final String songName) {
@@ -202,6 +209,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 								Gdx.app.log("JUKEBOX", "Song " + songName + " selected to be played");
 								getSocketIO().emitToScreen(JukeboxLib.ADD_TO_PLAYLIST, getSocketIO().getNickname(), songName);
 								songSelected = true;
+								yourSelectionInfo.setText(songName);
 							}
 						}
 					}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);

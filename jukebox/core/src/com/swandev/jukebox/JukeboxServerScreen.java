@@ -32,9 +32,9 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 		cubeAnimation = new CubeAnimation();
 		stage = new Stage();
 
-		slider = new Slider (0, 100, 1, false, game.getAssets().getSkin());
+		slider = new Slider(0, 100, 1, false, game.getAssets().getSkin());
 		slider.setDisabled(true);
-		
+
 		timeElapsed = new Label("", game.getAssets().getSkin());
 		playListTable = new Table();
 		stage.addActor(playListTable);
@@ -47,29 +47,21 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 		stage.act(delta);
 		final SongData songData = jukebox.getCurrentSongData();
 		if (songData != null) {
-			
-			timeElapsed.setText(formatTimeElapsed(songData));			
+
+			timeElapsed.setText(formatTimeElapsed(songData));
 		}
 		setSliderPosition(songData);
 	}
-	
-	public void setSliderPosition (SongData songData)
-	{
+
+	public void setSliderPosition(SongData songData) {
 		if (songData != null) {
 			float elapsedTime = songData.getMusic().getPosition();
 			float totalTime = songData.getLengthInSeconds();
 			float sliderPosition = (elapsedTime / totalTime) * 100;
-			
-			if (sliderPosition > 100){
-				sliderPosition = 100;
-			}
-			slider.setValue(sliderPosition);
-			
-			//return String.format("%.1f / %d s", song.getMusic().getPosition(), song.getLengthInSeconds());
-		}else{
+			slider.setValue(Math.min(sliderPosition, 100));
+		} else {
 			slider.setValue(0);
 		}
-		
 	}
 
 	@Override
@@ -86,7 +78,7 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 		playListTable.row();
 		playListTable.add(slider).colspan(2);
 		playListTable.row();
-		
+
 		playListTable.add(new Label("Song:", skin));
 		playListTable.add(new Label("Requester:", skin));
 		playListTable.row();
@@ -162,21 +154,21 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 	}
 
 	private String formatTimeElapsed(SongData song) {
-		
-			String properCurPos;
-			String properSongLen;
-			
-			int currentPosition = (int) song.getMusic().getPosition();
-			int songLength = song.getLengthInSeconds();
-			
-			//mask time skew;
-			if (currentPosition > songLength){
-				currentPosition = songLength;
-			}
-			properCurPos = ((currentPosition / 60) + ":" + String.format("%02d", currentPosition % 60));
-			properSongLen = ((songLength / 60) + ":" + String.format("%02d", songLength % 60));
-			
-			return properCurPos + " / " + properSongLen;
+
+		String properCurPos;
+		String properSongLen;
+
+		int currentPosition = (int) song.getMusic().getPosition();
+		int songLength = song.getLengthInSeconds();
+
+		// mask time skew;
+		if (currentPosition > songLength) {
+			currentPosition = songLength;
+		}
+		properCurPos = ((currentPosition / 60) + ":" + String.format("%02d", currentPosition % 60));
+		properSongLen = ((songLength / 60) + ":" + String.format("%02d", songLength % 60));
+
+		return properCurPos + " / " + properSongLen;
 
 	}
 

@@ -21,7 +21,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Music.OnCompletionListener;
 import com.badlogic.gdx.files.FileHandle;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -104,9 +107,9 @@ public class Jukebox {
 		final SongData currentSong = getCurrentSongData();
 		if (currentSong != null) {
 			final Music music = currentSong.getMusic();
-			if (!music.isPlaying()){
+			if (!music.isPlaying()) {
 				music.setOnCompletionListener(new OnCompletionListener() {
-	
+
 					@Override
 					public void onCompletion(Music music) {
 						popPlaylist();
@@ -144,6 +147,16 @@ public class Jukebox {
 	public void request(final String sender, final String songName) {
 		Preconditions.checkArgument(songs.get(songName) != null);
 		final SongRequest request = new SongRequest(sender, songName);
+		// remove an old request if it exists, bump your new request down
+		Optional<SongRequest> previousRequest = Iterables.tryFind(playList, new Predicate<SongRequest>() {
+			@Override
+			public boolean apply(SongRequest request) {
+				return request.getRequester().equals(sender);
+			}
+		});
+		if (previousRequest.isPresent()) {
+			playList.remove(previousRequest.get());
+		}
 		playList.add(request);
 		play(); // might be possible to play right now
 	}
