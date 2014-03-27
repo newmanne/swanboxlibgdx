@@ -79,30 +79,33 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		songGroup = new Group();
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
+		table.add(nameLabel);
+		table.row();
+
+		Table infoTable = new Table();
 		Label currentSongLabel = new Label("Current Song: ", skin);
 		Label yourSelectionLabel = new Label("Your selection: ", skin);
 		yourSelectionInfo = new Label("", skin);
-		table.add(nameLabel).colspan(2);
+		currentSongInfo = new Label("", skin);
+		infoTable.add(currentSongLabel);
+		infoTable.add(currentSongInfo).left();
+		infoTable.row();
+		infoTable.add(yourSelectionLabel);
+		infoTable.add(yourSelectionInfo).left();
+		table.add(infoTable);
 		table.row();
 
-		currentSongInfo = new Label("", skin);
-		table.add(currentSongLabel);
-		table.add(currentSongInfo).left();
+		table.add(songGroup).left().fill().expand();
 		table.row();
-		table.add(yourSelectionLabel);
-		table.add(yourSelectionInfo).left();
-		table.row();
-		table.add(songGroup).fill().expand().colspan(2);
-		table.row();
-		addButtons(table);
-		buildBackground(skin);
+		addButtons();
+		buildBackground();
 		stage.addActor(table);
 
 		// how do we we set the current song label to fixed font??
 		fontActors = Lists.<Actor> newArrayList(nameLabel, currentSongLabel, currentSongInfo, yourSelectionLabel, yourSelectionInfo);
 	}
 
-	private void buildBackground(Skin skin) {
+	private void buildBackground() {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/jukeboxBackground.jpg"))));
 		backgroundImage.setBounds(0, 0, VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 10);
@@ -110,17 +113,17 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage.addActor(backgroundImage);
 	}
 
-	private void addButtons(Table table) {
-		final Skin skin = game.getAssets().getSkin();
+	private void addButtons() {
+		Table buttonTable = new Table();
 		next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
 		playPause = new PlayPauseButton(getSocketIO());
-		table.add(playPause).height(100).width(100).center();
-		table.add(next).height(100).width(100).center();
+		buttonTable.add(playPause).height(100).width(100).center();
+		buttonTable.add(next).height(100).width(100).center();
 		TextButton sortByArtist = new SortSongsTextButton("Sort by artist", skin, byArtist);
-		table.add(sortByArtist);
+		buttonTable.add(sortByArtist);
 		TextButton sortByTitle = new SortSongsTextButton("Sort by title", skin, byTitle);
-		table.add(sortByTitle);
-		table.row();
+		buttonTable.add(sortByTitle);
+		table.add(buttonTable);
 	}
 
 	public class SortSongsTextButton extends TextButton {
@@ -219,8 +222,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final ScrollPane scroller = new ScrollPane(songTable);
 
 		for (SongData song : songs) {
-			songTable.add(new SongInfoTable(song));
-			songTable.row().height(fontSize * 2f);
+			songTable.add(new SongInfoTable(song)).left();
+			songTable.row().padBottom(fontSize).padTop(fontSize);
 		}
 		songTable.top();
 		scroller.setFillParent(true);
@@ -238,9 +241,12 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			super();
 			songName = songData.toString();
 			defaults().pad(10).left();
+			debug();
 			add(new Label(songData.getSongName(), skin));
-			add(new Label("(" + songData.getArtist() + ")", skin));
 			add(new Label(JukeboxLib.formatTime(songData.getLengthInSeconds()), skin));
+			row();
+			add(new Label("(" + songData.getArtist() + ")", skin)).colspan(2);
+
 			addListener(new ClickListener() {
 
 				@Override
@@ -272,8 +278,10 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	@Override
 	protected void doRender(float delta) {
+		table.debug();
 		stage.draw();
 		stage.act(delta);
+		// Table.drawDebug(stage);
 	}
 
 	@Override
