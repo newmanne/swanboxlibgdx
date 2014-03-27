@@ -1,11 +1,13 @@
 package com.swandev.jukebox;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import org.jaudiotagger.audio.AudioFile;
@@ -28,7 +30,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-/** Note that we are NOT in a multi-threaded environment, so don't think too hard about threadsafe */
 @RequiredArgsConstructor
 public class Jukebox {
 
@@ -56,8 +57,8 @@ public class Jukebox {
 	}
 
 	/** Return a list of all the song names */
-	public Set<String> getLibrary() {
-		return songs.keySet();
+	public Collection<SongData> getLibrary() {
+		return songs.values();
 	}
 
 	/** Scan the directory and update the songs available */
@@ -116,7 +117,7 @@ public class Jukebox {
 					}
 				});
 				music.play();
-				jukeboxServerScreen.getSocketIO().swanBroadcast(JukeboxLib.CURRENT_SONG, getCurrentSongData().toString());
+				jukeboxServerScreen.getSocketIO().swanBroadcast(JukeboxLib.CURRENT_SONG, getCurrentSongData().toString(), getCurrentSongRequest().getRequester());
 			}
 		}
 	}
@@ -162,11 +163,14 @@ public class Jukebox {
 	}
 
 	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
 	public static class SongData {
-		private final String songName;
-		private final Music music;
-		private final int lengthInSeconds;
-		private final String artist;
+		private String songName;
+		// exclude from json
+		private transient Music music;
+		private int lengthInSeconds;
+		private String artist;
 
 		@Override
 		public String toString() {

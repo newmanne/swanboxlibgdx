@@ -2,9 +2,12 @@ package com.swandev.jukebox;
 
 import io.socket.IOAcknowledge;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -21,11 +24,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.Lists;
+import com.swandev.jukebox.Jukebox.SongData;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.socket.SocketIOState;
@@ -38,10 +44,9 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final JukeboxClient game;
 	private ImageButton playPause;
 	private ImageButton next;
-	private String currentSong;
 	private final Label currentSongInfo;
 
-	private final int fontSize = 40;
+	private final int fontSize = 20;
 	private final Table table;
 
 	private final float VIRTUAL_WIDTH = 600;
@@ -53,9 +58,14 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	private final Group songGroup;
 
-	private List<String> songs;
 	public Skin skin;
 	private Label yourSelectionInfo;
+
+	private static final Json json = new Json();
+
+	private List<SongData> songs;
+
+	private boolean yourSongIsPlaying = false;
 
 	public JukeboxClientScreen(SocketIOState socketIO, JukeboxClient game) {
 		super(socketIO);
@@ -71,11 +81,11 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
 		Label currentSongLabel = new Label("Current Song: ", skin);
 		Label yourSelectionLabel = new Label("Your selection: ", skin);
-		yourSelectionInfo = new Label("Example song I selected", skin);
+		yourSelectionInfo = new Label("", skin);
 		table.add(nameLabel).colspan(2);
 		table.row();
 
-		currentSongInfo = new Label(currentSong, skin);
+		currentSongInfo = new Label("", skin);
 		table.add(currentSongLabel);
 		table.add(currentSongInfo).left();
 		table.row();
@@ -84,7 +94,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		table.row();
 		table.add(songGroup).fill().expand().colspan(2);
 		table.row();
-		addHostButtons(table);
+		addButtons(table);
 		buildBackground(skin);
 		stage.addActor(table);
 
@@ -100,14 +110,32 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage.addActor(backgroundImage);
 	}
 
-	private void addHostButtons(Table table) {
-		Gdx.app.log("JUKEBOX", "Adding buttons for host");
+	private void addButtons(Table table) {
 		final Skin skin = game.getAssets().getSkin();
 		next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
 		playPause = new PlayPauseButton(getSocketIO());
 		table.add(playPause).height(100).width(100).center();
 		table.add(next).height(100).width(100).center();
+		TextButton sortByArtist = new SortSongsTextButton("Sort by artist", skin, byArtist);
+		table.add(sortByArtist);
+		TextButton sortByTitle = new SortSongsTextButton("Sort by title", skin, byTitle);
+		table.add(sortByTitle);
 		table.row();
+	}
+
+	public class SortSongsTextButton extends TextButton {
+
+		public SortSongsTextButton(String text, Skin skin, final Comparator<SongData> comparator) {
+			super(text, skin);
+			addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					Collections.sort(songs, comparator);
+					buildSongList();
+				}
+			});
+		}
+
 	}
 
 	public class EventSendingTextButton extends ImageButton {
@@ -141,20 +169,33 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage.dispose();
 	}
 
+	private boolean isMySongPlaying() {
+		return yourSongIsPlaying;
+	}
+
 	@Override
 	protected void registerEvents() {
 		registerEvent(JukeboxLib.SONG_OVER, new EventCallback() {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				songSelected = false;
+				yourSongIsPlaying = false;
+				yourSelectionInfo.setText("");
 				currentSongInfo.setText("");
 			}
+
 		});
 		registerEvent(JukeboxLib.SEND_SONGLIST, new EventCallback() {
 			@Override
 			public void onEvent(IOAcknowledge arg0, Object... args) {
 				Gdx.app.log("JUKEBOX", "song list receieved!");
-				songs = SwanUtil.parseJsonList((JSONArray) args[0]);
+				// This code is messy and exemplifies the problem that we are using 3 different json processing engines in the same project. But whatever, that's not going to change now.
+				songs = Lists.newArrayList();
+				Gdx.app.log("HELP", JSONObject.valueToString(args));
+				JSONArray jsonArray = (JSONArray) args[0];
+				for (int i = 0; i < jsonArray.length(); i++) {
+					songs.add(json.fromJson(SongData.class, jsonArray.getJSONObject(i).toString()));
+				}
 				buildSongList();
 			}
 		});
@@ -163,45 +204,56 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				currentSongInfo.setText((CharSequence) args[0]);
+				final String requester = (String) args[1];
+				if (requester.equals(getSocketIO().getNickname())) {
+					yourSongIsPlaying = true;
+				}
 			}
 		});
 
 	}
 
 	private void buildSongList() {
+		songGroup.clear();
 		final Table songTable = new Table();
 		final ScrollPane scroller = new ScrollPane(songTable);
 
-		for (String songName : songs) {
-			final Group group = new Group();
-			Table songInfo = new Table();
+		for (SongData song : songs) {
+			songTable.add(new SongInfoTable(song));
+			songTable.row().height(fontSize * 2f);
+		}
+		songTable.top();
+		scroller.setFillParent(true);
+		songGroup.addActor(scroller);
+	}
 
-			Label nameLabel = new Label(songName, skin);
-			nameLabel.setName("songName");
-			songInfo.add(nameLabel).expandX().left().padLeft(10);
-			songInfo.setFillParent(true);
+	public class SongInfoTable extends Table {
 
-			fontActors.add(nameLabel);
+		// hacky way to record the "key" to use
+		final String songName;
 
-			group.addActor(songInfo);
-			group.addListener(new ClickListener() {
+		public SongInfoTable(SongData songData) {
+			// TODO: add these guys to the font resize things
+			// TODO: fix the table from looking like crap
+			super();
+			songName = songData.toString();
+			defaults().pad(10).left();
+			add(new Label(songData.getSongName(), skin));
+			add(new Label("(" + songData.getArtist() + ")", skin));
+			add(new Label(JukeboxLib.formatTime(songData.getLengthInSeconds()), skin));
+			addListener(new ClickListener() {
 
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					if (yourSongIsPlaying()) {
+					if (isMySongPlaying()) {
 						new Dialog("Can't select this song now", skin, "dialog").text("Please wait until your song finishes playing").button("OK").show(stage);
 					} else {
-						Label sn = (Label) group.findActor("songName");
-						selectSong(sn.getText().toString());
+						selectSong(songName);
 					}
 				}
 
-				// TODO: this won't work if you picked the song currently playing...
-				private boolean yourSongIsPlaying() {
-					return yourSelectionInfo.getText().equals(currentSongInfo.getText());
-				}
-
 				private void selectSong(final String songName) {
+					final String dialogText = songSelected ? "Switch request to " : "Request ";
 					new Dialog("Select this song?", skin, "dialog") {
 						@Override
 						protected void result(Object result) {
@@ -212,18 +264,10 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 								yourSelectionInfo.setText(songName);
 							}
 						}
-					}.text("Play " + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
+					}.text(dialogText + songName + "?").button("Yes", true).button("No", false).key(Keys.ENTER, true).key(Keys.ESCAPE, false).show(stage);
 				}
 			});
-
-			songTable.row().height(fontSize * 3);
-			songTable.add(group).expandX().left();
-
 		}
-		songTable.top();
-		scroller.setFillParent(true);
-		songGroup.addActor(scroller);
-
 	}
 
 	@Override
@@ -244,4 +288,22 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		getSocketIO().emitToScreen(JukeboxLib.REQUEST_SONGLIST);
 		Gdx.app.log("JUKEBOX", "Requesting song list from server...");
 	}
+
+	public static final Comparator<SongData> byArtist = new Comparator<SongData>() {
+
+		@Override
+		public int compare(SongData o1, SongData o2) {
+			return o1.getArtist().compareTo(o2.getArtist());
+		}
+
+	};
+
+	public static final Comparator<SongData> byTitle = new Comparator<SongData>() {
+
+		@Override
+		public int compare(SongData o1, SongData o2) {
+			return o1.getSongName().compareTo(o2.getSongName());
+		}
+
+	};
 }

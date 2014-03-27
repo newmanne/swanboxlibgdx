@@ -47,8 +47,7 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 		stage.act(delta);
 		final SongData songData = jukebox.getCurrentSongData();
 		if (songData != null) {
-
-			timeElapsed.setText(formatTimeElapsed(songData));
+			timeElapsed.setText(formatSliderTime(songData));
 		}
 		setSliderPosition(songData);
 	}
@@ -153,23 +152,10 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 
 	}
 
-	private String formatTimeElapsed(SongData song) {
-
-		String properCurPos;
-		String properSongLen;
-
-		int currentPosition = (int) song.getMusic().getPosition();
-		int songLength = song.getLengthInSeconds();
-
-		// mask time skew;
-		if (currentPosition > songLength) {
-			currentPosition = songLength;
-		}
-		properCurPos = ((currentPosition / 60) + ":" + String.format("%02d", currentPosition % 60));
-		properSongLen = ((songLength / 60) + ":" + String.format("%02d", songLength % 60));
-
-		return properCurPos + " / " + properSongLen;
-
+	private String formatSliderTime(SongData song) {
+		// mask clock skew
+		int curPos = Math.max((int) song.getMusic().getPosition(), song.getLengthInSeconds());
+		return JukeboxLib.formatTime(curPos) + " / " + JukeboxLib.formatTime(song.getLengthInSeconds());
 	}
 
 	@Override
