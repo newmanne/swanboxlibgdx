@@ -98,6 +98,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 				pokerTable.betPlayer(player, amount);
 				// UI
 				nameToTableMap.get(playerName).setChipValue(player.getMoney());
+				setPotValue(pokerTable.pot.getValue());
 			}
 		});
 	}
@@ -194,6 +195,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	@Override
 	protected void onEveryoneReady() {
 		pokerTable.newHand();
+		setPotValue(pokerTable.pot.getValue());
 
 	}
 
@@ -304,7 +306,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		for (PlayerStats player : playerMap.values()) {
 			PlayerTable playerTable = nameToTableMap.get(player.getName());
 			playerTable.setChipValue(player.getMoney()); // update the money label
-			if (player.getPrivateCards().size() == 2) {
+			if (player.getPrivateCards().size() == 2 && !player.isFolded() ) {
 				playerTable.setCardImages(player.getPrivateCards().get(0).getImageNumber(), player.getPrivateCards().get(1).getImageNumber()); //show their cards
 			}
 		}
@@ -317,6 +319,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			@Override
 			public void run() {
 				pokerTable.newHand();
+				setPotValue(pokerTable.pot.getValue());
 
 			}
 		}, 5000);

@@ -399,6 +399,9 @@ public class HandScreen extends SwanGameStartScreen {
 		} else if (state.betValue == state.callValue) {
 			checkButton.setDisabled(false); // otherwise you will be able to check
 		}
+		if(state.callValue == 0){
+			checkButton.setDisabled(false);
+		}
 		
 		if (state.chipValue > 0) {
 			allInButton.setDisabled(false);

@@ -34,7 +34,7 @@ public class PokerTable {
 
 	public void newHand() {
 		Gdx.app.log("poker", "Starting a new round of poker!");
-		callValue = PokerLib.ANTE;
+		callValue = 0;
 		deck.reset();
 		round = PokerRound.PREFLOP;
 		pot.reset();
@@ -129,22 +129,30 @@ public class PokerTable {
 	}
 
 	private void nextPlayer() {
-		int numAllin = 0;
+		int numAlive = 0;
+		int numFolded = 0;
 		for (PlayerStats player : players) {
-			if (player.isAllIn()) {
-				numAllin++;
+			if (player.isFolded()) {
+				numFolded++;
 			}
+			if (player.isAlive()){
+				numAlive++;
+			}
+			
 		}
 		if (getNumRemainingPlayersInRound() <= 0){
 			round = PokerRound.RIVER;
 			pokerGameScreen.uiForDrawCards(round);
 			endHand();
 		}
-		else if (getNumRemainingPlayersInRound() == 1) {
+		else if (numAlive - numFolded == 1) {
 			endHand();
-		} else if (shouldAdvanceRounds()) {
+		} 
+		else if (shouldAdvanceRounds()) {
 			nextRound();
-		} else {
+		} 
+		else {
+			
 			currentPlayer = nextUnfoldedAlivePlayer(currentPlayer);
 			PlayerStats playerStats = players.get(currentPlayer);
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue, playerStats.getTotalBet());
@@ -175,6 +183,7 @@ public class PokerTable {
 					totalBet.add(player.getTotalBet());
 				}
 			}
+			Gdx.app.log("Server", "Bet size " + bets.size() + " and remaining players" + getNumRemainingPlayersInRound() );
 			if (bets.size() == getNumRemainingPlayersInRound() && Sets.newHashSet(bets).size() == 1 && !totalBet.get(0).equals(PokerLib.ANTE)) {
 				if (getNumRemainingPlayersInRound() <=1){
 					round = PokerRound.RIVER;
