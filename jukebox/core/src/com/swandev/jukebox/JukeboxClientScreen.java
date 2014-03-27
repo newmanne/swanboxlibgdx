@@ -10,6 +10,7 @@ import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -86,6 +87,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Label yourSelectionLabel = new Label("Your selection: ", skin);
 		yourSelectionInfo = new Label("", skin);
 		currentSongInfo = new Label("", skin);
+		currentSongLabel.setColor(Color.ORANGE);
+		currentSongInfo.setColor(Color.ORANGE);
 		infoTable.add(currentSongLabel);
 		infoTable.add(currentSongInfo).left();
 		infoTable.row();
@@ -156,7 +159,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 					getSocketIO().emitToScreen(socketEvent);
 					playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png"))));
 					playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png"))));
-
 				}
 			});
 		}
@@ -223,9 +225,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		songGroup.clear();
 		final Table songTable = new Table();
 		final ScrollPane scroller = new ScrollPane(songTable);
-
 		for (SongData song : songs) {
-			songTable.add(new SongInfoTable(song)).expandX().left();
+			songTable.add(new SongInfoTable(song)).expandX().fillX().left();
 			songTable.row().padBottom(fontSize).padTop(fontSize);
 		}
 		songTable.top();
@@ -240,7 +241,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 		public SongInfoTable(SongData songData) {
 			super();
-			setFillParent(true);
 			songName = songData.toString();
 			defaults().pad(10).expandX();
 			// debug();
@@ -280,7 +280,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	@Override
 	protected void doRender(float delta) {
-		table.debug();
+		// table.debug();
 		stage.draw();
 		stage.act(delta);
 		// Table.drawDebug(stage);
