@@ -27,7 +27,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 
 	// *** Layout Coordinates ***//
 	private static final float COORD_SCALE = 50f;
-	
+
 	// Define a grid and orient all the elements of the screen based on that grid.		
 	public static final float CAMERA_WIDTH = 38f * COORD_SCALE;
 	public static final float CAMERA_HEIGHT = 17f * COORD_SCALE;
@@ -38,23 +38,23 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public static final float TABLE_CARDS_ORIGIN_X = 8f * COORD_SCALE;
 	public static final float TABLE_CARDS_ORIGIN_Y = 8f * COORD_SCALE;
 	public static final float TABLE_CARDS_HSPACING = 0.5f * COORD_SCALE;
-	
+
 	// orient the table graphic
-	public static final float TABLE_IMAGE_WIDTH = 5*TABLE_CARD_WIDTH + 6* TABLE_CARDS_HSPACING;
-	public static final float TABLE_IMAGE_HEIGHT = TABLE_CARD_HEIGHT + 2* TABLE_CARDS_HSPACING;
+	public static final float TABLE_IMAGE_WIDTH = 5 * TABLE_CARD_WIDTH + 6 * TABLE_CARDS_HSPACING;
+	public static final float TABLE_IMAGE_HEIGHT = TABLE_CARD_HEIGHT + 2 * TABLE_CARDS_HSPACING;
 	public static final float TABLE_IMAGE_ORIGIN_X = TABLE_CARDS_ORIGIN_X - TABLE_CARDS_HSPACING;
 	public static final float TABLE_IMAGE_ORIGIN_Y = TABLE_CARDS_ORIGIN_Y - TABLE_CARDS_HSPACING;
-	
+
 	// orient the card images for each player's hand
 	public static final float PLAYER_CARD_WIDTH = 2.5f * COORD_SCALE;
 	public static final float PLAYER_CARD_HEIGHT = 4f * COORD_SCALE;
 	public static final float PLAYER_CARD1_ORIGIN_X = 0.5f * COORD_SCALE;
 	public static final float PLAYER_CARD2_ORIGIN_X = 2f * COORD_SCALE;
-	
+
 	//The player tables start padded from the bottom-left corner
-	public static final float PLAYER_TABLES_PADDING_Y = 1f*COORD_SCALE;
-	public static final float PLAYER_TABLES_PADDING_X = 1f*COORD_SCALE;
-	
+	public static final float PLAYER_TABLES_PADDING_Y = 1f * COORD_SCALE;
+	public static final float PLAYER_TABLES_PADDING_X = 1f * COORD_SCALE;
+
 	//all rows in a player table are the same height
 	public static final float PLAYER_TABLE_ROW_HEIGHT = 1f * COORD_SCALE;
 
@@ -62,13 +62,13 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public static final float PLAYER_NAME_WIDTH = 4f * COORD_SCALE;
 	public static final float PLAYER_MONEY_WIDTH = 2.5f * COORD_SCALE;
 	public static final float PLAYER_ACTION_WIDTH = 1.5f * COORD_SCALE;
-	public static final float PLAYER_TURN_WIDTH = 0.5f* COORD_SCALE;
-	
+	public static final float PLAYER_TURN_WIDTH = 0.5f * COORD_SCALE;
+
 	// orient the pot label at the top of the screen
 	public static final float POT_LABEL_HEIGHT = 1f * COORD_SCALE;
 	public static final float POT_LABEL_WIDTH = 2f * COORD_SCALE;
 	public static final float POT_VALUE_LABEL_WIDTH = 5f * COORD_SCALE;
-	
+
 	private static final int STARTING_VALUE = 100000;
 
 	private PokerTable pokerTable;
@@ -107,7 +107,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			tableCards[i].setDrawable(new TextureRegionDrawable(cardToImage.get(pokerTable.getTableCards().get(i).getImageNumber())));
 			tableCards[i].setVisible(true);
 		}
-		for (int i = round.ordinal() + 2; i < 5; i++){
+		for (int i = round.ordinal() + 2; i < 5; i++) {
 			tableCards[i].setVisible(false);
 		}
 	}
@@ -138,7 +138,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	private final Image[] tableCards = new Image[5];
 	private final Map<String, PlayerTable> nameToTableMap = Maps.newHashMap();
 	private Label potValueLabel;
-	
+
 	private int width;
 	private int height;
 	private Image backgroundImage;
@@ -155,7 +155,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 
 		cardToImage = PokerLib.getCardTextures();
 	}
-	
+
 	@Override
 	protected void doRender(float delta) {
 		stage.draw();
@@ -165,7 +165,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 
 	@Override
 	public void resize(int w, int h) {
-		Gdx.app.log("SIZE_DEBUG", "Resizing to "+ w + "x" + h);
+		Gdx.app.log("SIZE_DEBUG", "Resizing to " + w + "x" + h);
 		this.width = w;
 		this.height = h;
 		stage.getViewport().update(width, height, true);
@@ -187,16 +187,16 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		buildPotLabel(skin);
 		buildCards();
 		buildPlayerTables(skin);
-		
+
 		pokerTable = new PokerTable(this, players);
 	}
-	
+
 	@Override
 	protected void onEveryoneReady() {
 		pokerTable.newHand();
-		
+
 	}
-	
+
 	private void buildCards() {
 		for (int i = 0; i < 5; ++i) {
 			tableCards[i] = new Image();
@@ -207,8 +207,8 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			stage.addActor(tableCards[i]);
 		}
 	}
-	
-	private PlayerTable genEmptyPlayerTable(Skin skin){
+
+	private PlayerTable genEmptyPlayerTable(Skin skin) {
 		//Used to keep proper sizing for all player tables
 		PlayerTable empty = new PlayerTable(skin, "", null, null);
 		empty.setCardsVisible(false);
@@ -218,47 +218,44 @@ public class PokerGameScreen extends SwanGameStartScreen {
 
 	private void buildPlayerTables(Skin skin) {
 		Table playerTables = new Table(skin);
-		
+
 		//construct the top row of the table: P1|	|	|	|	| P8
-		if (playerNames.size() >= 1){
+		if (playerNames.size() >= 1) {
 			String playerName = playerNames.get(0);
-			PlayerTable newTable = new PlayerTable(
-					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
+			PlayerTable newTable = new PlayerTable(skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
 		}
-		for (int i = 0; i < 4; ++i){
+		for (int i = 0; i < 4; ++i) {
 			playerTables.add();
 		}
-		if ( playerNames.size() >= 8 ){
+		if (playerNames.size() >= 8) {
 			String playerName = playerNames.get(7);
-			PlayerTable newTable = new PlayerTable(
-					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
+			PlayerTable newTable = new PlayerTable(skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
 		} else {
 			playerTables.add(genEmptyPlayerTable(skin));
 		}
 		playerTables.row();
-		
+
 		//construct the bottom row of the table: P2|P3|P4|P5|P6|P7
 		for (int i = 1; i < Math.min(playerNames.size(), 7); ++i) {
 			String playerName = playerNames.get(i);
-			PlayerTable newTable = new PlayerTable(
-					skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
+			PlayerTable newTable = new PlayerTable(skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
 		}
-		if (playerNames.size() < 7){
-			for (int i = playerNames.size(); i < 7; ++i){
+		if (playerNames.size() < 7) {
+			for (int i = playerNames.size(); i < 7; ++i) {
 				playerTables.add(genEmptyPlayerTable(skin));
 			}
 		}
-		
-		if (playerNames.size() > 8){
+
+		if (playerNames.size() > 8) {
 			Gdx.app.log("PLAYER_TABLES", "Sorry to those players who didn't get rendered!! :(");
 		}
-		
+
 		playerTables.center().bottom();
 		playerTables.padBottom(PLAYER_TABLES_PADDING_Y);
 		playerTables.setFillParent(true);
@@ -275,7 +272,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		backgroundImage.setHeight(CAMERA_HEIGHT);
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
-		
+
 		Image tableImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/table.png"))));
 		tableImage.setX(TABLE_IMAGE_ORIGIN_X);
 		tableImage.setY(TABLE_IMAGE_ORIGIN_Y);
@@ -283,23 +280,23 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		tableImage.setHeight(TABLE_IMAGE_HEIGHT);
 		stage.addActor(tableImage);
 	}
-	
-	private void buildPotLabel(Skin skin){
+
+	private void buildPotLabel(Skin skin) {
 		Table potTable = new Table(skin);
-		
-		Label potTextLabel = new Label ("Pot:", skin);
+
+		Label potTextLabel = new Label("Pot:", skin);
 		potValueLabel = new Label("0", skin);
-		
+
 		potTable.add(potTextLabel).height(POT_LABEL_HEIGHT).width(POT_LABEL_WIDTH);
 		potTable.add(potValueLabel).height(POT_LABEL_HEIGHT).width(POT_VALUE_LABEL_WIDTH);
 		potTable.row();
 		potTable.center().top();
 		potTable.setFillParent(true);
-		
+
 		stage.addActor(potTable);
 	}
-	
-	public void setPotValue(Integer value){
+
+	public void setPotValue(Integer value) {
 		potValueLabel.setText(value.toString());
 	}
 
@@ -307,10 +304,13 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		for (PlayerStats player : playerMap.values()) {
 			PlayerTable playerTable = nameToTableMap.get(player.getName());
 			playerTable.setChipValue(player.getMoney()); // update the money label
-			playerTable.setCardImages(player.getPrivateCards().get(0).getImageNumber(), player.getPrivateCards().get(1).getImageNumber()); //show their cards
+			if (player.getPrivateCards().size() == 2) {
+				playerTable.setCardImages(player.getPrivateCards().get(0).getImageNumber(), player.getPrivateCards().get(1).getImageNumber()); //show their cards
+			}
 		}
+
 		setPotValue(0); //reset the pot
-		
+
 		Timer timer = new Timer("delayBetweenRounds");
 		timer.schedule(new TimerTask() {
 

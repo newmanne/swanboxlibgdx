@@ -6,7 +6,6 @@ import java.util.List;
 
 import lombok.Data;
 
-import com.badlogic.gdx.Gdx;
 import com.google.common.collect.Lists;
 
 @Data
@@ -14,19 +13,16 @@ public class PokerPot {
 
 	int value;
 	
-	private boolean isLeftover = false;
 	private int leftover = 0;
+	private int oldLeftover = 0;
 
 	public void add(int amount) {
 		value += amount;
 	}
 
 	public void reset() {
-		if (isLeftover){
-			value = leftover;
-		}else {
-			value = 0;
-		}
+		value = leftover + oldLeftover;
+		oldLeftover = leftover;
 		leftover = 0;
 	}
 
@@ -95,10 +91,18 @@ public class PokerPot {
 
 					}
 				}
+				if (oldLeftover > 0){
+					if (oldLeftover < maxValue){
+						amount += oldLeftover;
+						oldLeftover = 0;
+					}else{
+						amount += maxValue;
+						oldLeftover -= maxValue;
+					}
+				}
 				
 				int leftover = amount%(stillIn.size() * PokerLib.ANTE);
 				if (leftover > 0){
-					this.isLeftover = true;
 					this.leftover += leftover;
 					amount -= leftover;
 				}
@@ -109,11 +113,11 @@ public class PokerPot {
 					stillIn.get(k).setMoney(stillIn.get(k).getMoney() + amount);
 					if (!(tierList.size() == 1) && i == tierList.size()-1 && j == tierList.get(i).size() - 1){
 						// do nothing
-						Gdx.app.log("poker", "adding nothing list");
+						//Gdx.app.log("poker", "adding nothing list");
 					}
 					else if (!winners.contains(stillIn.get(k))) {
 						
-						Gdx.app.log("poker", "adding winners list");
+						//Gdx.app.log("poker", "adding winners list");
 						winners.add(stillIn.get(k));
 					}
 				}

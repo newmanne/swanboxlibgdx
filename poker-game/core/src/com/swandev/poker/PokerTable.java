@@ -81,7 +81,7 @@ public class PokerTable {
 
 	private int nextUnfoldedAlivePlayer(int playerNumber) {
 		int nextUnfoldedAlivePlayer = (playerNumber + 1) % players.size();
-		while (!players.get(nextUnfoldedAlivePlayer).isAlive() || players.get(nextUnfoldedAlivePlayer).isFolded()) {
+		while (!players.get(nextUnfoldedAlivePlayer).isAlive() || players.get(nextUnfoldedAlivePlayer).isFolded() || players.get(nextUnfoldedAlivePlayer).isAllIn()) {
 			nextUnfoldedAlivePlayer = (nextUnfoldedAlivePlayer + 1) % players.size();
 		}
 		return nextUnfoldedAlivePlayer;
@@ -96,7 +96,7 @@ public class PokerTable {
 	private int getNumRemainingPlayersInRound() {
 		int remainingPlayers = 0;
 		for (PlayerStats player : players) {
-			if (player.isAlive() && !player.isFolded()) {
+			if (player.isAlive() && !player.isFolded() && !player.isAllIn()) {
 				remainingPlayers++;
 			}
 		}
@@ -121,6 +121,9 @@ public class PokerTable {
 			currentPlayer.placeBet(amount, pot);
 			callValue = Math.max(callValue, currentPlayer.getBet());
 		}
+		if (currentPlayer.getMoney() == 0){
+			numChecksOrFoldsRequiredToAdvanceRounds--;
+		}
 		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, currentPlayer.getName(), currentPlayer.getBet(), currentPlayer.getMoney(), callValue, currentPlayer.getTotalBet());
 		nextPlayer();
 	}
@@ -132,7 +135,7 @@ public class PokerTable {
 				numAllin++;
 			}
 		}
-		if (getNumRemainingPlayersInRound() - numAllin <= 0){
+		if (getNumRemainingPlayersInRound() <= 0){
 			round = PokerRound.RIVER;
 			pokerGameScreen.uiForDrawCards(round);
 			endHand();
@@ -167,13 +170,13 @@ public class PokerTable {
 			List<Integer> bets = Lists.newArrayList();
 			List<Integer> totalBet = Lists.newArrayList();
 			for (PlayerStats player : players) {
-				if (player.isAlive() && !player.isFolded() && player.getBet() > 0) {
+				if (player.isAlive() && !player.isFolded() && player.getBet() > 0 && !player.isAllIn()) {
 					bets.add(player.getBet());
 					totalBet.add(player.getTotalBet());
 				}
 			}
 			if (bets.size() == getNumRemainingPlayersInRound() && Sets.newHashSet(bets).size() == 1 && !totalBet.get(0).equals(PokerLib.ANTE)) {
-				if (getNumRemainingPlayersInRound() - numAllin <=1){
+				if (getNumRemainingPlayersInRound() <=1){
 					round = PokerRound.RIVER;
 					pokerGameScreen.uiForDrawCards(round);
 				}
