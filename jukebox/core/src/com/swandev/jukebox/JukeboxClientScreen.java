@@ -10,6 +10,7 @@ import org.json.JSONArray;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -86,6 +87,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Label yourSelectionLabel = new Label("Your selection: ", skin);
 		yourSelectionInfo = new Label("", skin);
 		currentSongInfo = new Label("", skin);
+		currentSongLabel.setColor(Color.ORANGE);
+		currentSongInfo.setColor(Color.ORANGE);
 		infoTable.add(currentSongLabel);
 		infoTable.add(currentSongInfo).left();
 		infoTable.row();
