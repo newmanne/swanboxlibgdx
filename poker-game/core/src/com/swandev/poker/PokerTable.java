@@ -34,7 +34,7 @@ public class PokerTable {
 
 	public void newHand() {
 		Gdx.app.log("poker", "Starting a new round of poker!");
-		callValue = PokerLib.ANTE;
+		callValue = 0;
 		deck.reset();
 		round = PokerRound.PREFLOP;
 		pot.reset();
@@ -81,7 +81,7 @@ public class PokerTable {
 
 	private int nextUnfoldedAlivePlayer(int playerNumber) {
 		int nextUnfoldedAlivePlayer = (playerNumber + 1) % players.size();
-		while (!players.get(nextUnfoldedAlivePlayer).isAlive() || players.get(nextUnfoldedAlivePlayer).isFolded()) {
+		while (!players.get(nextUnfoldedAlivePlayer).isAlive() || players.get(nextUnfoldedAlivePlayer).isFolded() || players.get(nextUnfoldedAlivePlayer).isAllIn()) {
 			nextUnfoldedAlivePlayer = (nextUnfoldedAlivePlayer + 1) % players.size();
 		}
 		return nextUnfoldedAlivePlayer;
@@ -96,7 +96,7 @@ public class PokerTable {
 	private int getNumRemainingPlayersInRound() {
 		int remainingPlayers = 0;
 		for (PlayerStats player : players) {
-			if (player.isAlive() && !player.isFolded()) {
+			if (player.isAlive() && !player.isFolded() && !player.isAllIn()) {
 				remainingPlayers++;
 			}
 		}
@@ -121,27 +121,38 @@ public class PokerTable {
 			currentPlayer.placeBet(amount, pot);
 			callValue = Math.max(callValue, currentPlayer.getBet());
 		}
+		if (currentPlayer.getMoney() == 0){
+			numChecksOrFoldsRequiredToAdvanceRounds--;
+		}
 		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, currentPlayer.getName(), currentPlayer.getBet(), currentPlayer.getMoney(), callValue, currentPlayer.getTotalBet());
 		nextPlayer();
 	}
 
 	private void nextPlayer() {
-		int numAllin = 0;
+		int numAlive = 0;
+		int numFolded = 0;
 		for (PlayerStats player : players) {
-			if (player.isAllIn()) {
-				numAllin++;
+			if (player.isFolded()) {
+				numFolded++;
 			}
+			if (player.isAlive()){
+				numAlive++;
+			}
+			
 		}
-		if (getNumRemainingPlayersInRound() - numAllin <= 0){
+		if (getNumRemainingPlayersInRound() <= 0){
 			round = PokerRound.RIVER;
 			pokerGameScreen.uiForDrawCards(round);
 			endHand();
 		}
-		else if (getNumRemainingPlayersInRound() == 1) {
+		else if (numAlive - numFolded == 1) {
 			endHand();
-		} else if (shouldAdvanceRounds()) {
+		} 
+		else if (shouldAdvanceRounds()) {
 			nextRound();
-		} else {
+		} 
+		else {
+			
 			currentPlayer = nextUnfoldedAlivePlayer(currentPlayer);
 			PlayerStats playerStats = players.get(currentPlayer);
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.YOUR_TURN, playerStats.getName(), playerStats.getBet(), playerStats.getMoney(), callValue, playerStats.getTotalBet());
@@ -167,13 +178,14 @@ public class PokerTable {
 			List<Integer> bets = Lists.newArrayList();
 			List<Integer> totalBet = Lists.newArrayList();
 			for (PlayerStats player : players) {
-				if (player.isAlive() && !player.isFolded() && player.getBet() > 0) {
+				if (player.isAlive() && !player.isFolded() && player.getBet() > 0 && !player.isAllIn()) {
 					bets.add(player.getBet());
 					totalBet.add(player.getTotalBet());
 				}
 			}
+			Gdx.app.log("Server", "Bet size " + bets.size() + " and remaining players" + getNumRemainingPlayersInRound() );
 			if (bets.size() == getNumRemainingPlayersInRound() && Sets.newHashSet(bets).size() == 1 && !totalBet.get(0).equals(PokerLib.ANTE)) {
-				if (getNumRemainingPlayersInRound() - numAllin <=1){
+				if (getNumRemainingPlayersInRound() <=1){
 					round = PokerRound.RIVER;
 					pokerGameScreen.uiForDrawCards(round);
 				}
