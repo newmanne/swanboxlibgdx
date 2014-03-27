@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -198,7 +197,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				Gdx.app.log("JUKEBOX", "song list receieved!");
 				// This code is messy and exemplifies the problem that we are using 3 different json processing engines in the same project. But whatever, that's not going to change now.
 				songs = Lists.newArrayList();
-				Gdx.app.log("HELP", JSONObject.valueToString(args));
+				Gdx.app.log("HELP", args.toString());
 				JSONArray jsonArray = (JSONArray) args[0];
 				for (int i = 0; i < jsonArray.length(); i++) {
 					songs.add(json.fromJson(SongData.class, jsonArray.getJSONObject(i).toString()));
