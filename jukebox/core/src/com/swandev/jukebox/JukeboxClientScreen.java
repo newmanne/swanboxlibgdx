@@ -156,7 +156,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 					getSocketIO().emitToScreen(socketEvent);
 					playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png"))));
 					playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png"))));
-
 				}
 			});
 		}
@@ -223,9 +222,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		songGroup.clear();
 		final Table songTable = new Table();
 		final ScrollPane scroller = new ScrollPane(songTable);
-
 		for (SongData song : songs) {
-			songTable.add(new SongInfoTable(song)).expandX().left();
+			songTable.add(new SongInfoTable(song)).expandX().fillX().left();
 			songTable.row().padBottom(fontSize).padTop(fontSize);
 		}
 		songTable.top();
@@ -240,7 +238,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 		public SongInfoTable(SongData songData) {
 			super();
-			setFillParent(true);
 			songName = songData.toString();
 			defaults().pad(10).expandX();
 			// debug();
@@ -280,7 +277,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	@Override
 	protected void doRender(float delta) {
-		table.debug();
+		// table.debug();
 		stage.draw();
 		stage.act(delta);
 		// Table.drawDebug(stage);
