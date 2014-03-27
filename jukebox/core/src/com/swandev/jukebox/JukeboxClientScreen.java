@@ -222,7 +222,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final ScrollPane scroller = new ScrollPane(songTable);
 
 		for (SongData song : songs) {
-			songTable.add(new SongInfoTable(song)).left();
+			songTable.add(new SongInfoTable(song)).expandX().left();
 			songTable.row().padBottom(fontSize).padTop(fontSize);
 		}
 		songTable.top();
@@ -236,16 +236,15 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final String songName;
 
 		public SongInfoTable(SongData songData) {
-			// TODO: add these guys to the font resize things
-			// TODO: fix the table from looking like crap
 			super();
+			setFillParent(true);
 			songName = songData.toString();
-			defaults().pad(10).left();
+			defaults().pad(10).expandX();
 			debug();
-			add(new Label(songData.getSongName(), skin));
-			add(new Label(JukeboxLib.formatTime(songData.getLengthInSeconds()), skin));
+			add(new Label(songData.getSongName(), skin)).left();
+			add(new Label(JukeboxLib.formatTime(songData.getLengthInSeconds()), skin)).right();
 			row();
-			add(new Label("(" + songData.getArtist() + ")", skin)).colspan(2);
+			add(new Label("(" + songData.getArtist() + ")", skin)).left().colspan(2);
 
 			addListener(new ClickListener() {
 
