@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -52,7 +51,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final float VIRTUAL_WIDTH = 600;
 	private final float VIRTUAL_HEIGHT = 800;
 
-	private final List<Actor> fontActors;
+	private final List<Actor> fontActors = Lists.newArrayList();
 
 	private Image backgroundImage;
 
@@ -63,7 +62,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	private static final Json json = new Json();
 
-	private List<SongData> songs;
+	private List<SongData> songs = Lists.newArrayList();
 
 	private boolean yourSongIsPlaying = false;
 
@@ -79,30 +78,32 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		songGroup = new Group();
 
 		Label nameLabel = new Label("Swanbox Jukebox:", skin);
+		table.add(nameLabel);
+		table.row();
+
+		Table infoTable = new Table();
 		Label currentSongLabel = new Label("Current Song: ", skin);
 		Label yourSelectionLabel = new Label("Your selection: ", skin);
 		yourSelectionInfo = new Label("", skin);
-		table.add(nameLabel).colspan(2);
+		currentSongInfo = new Label("", skin);
+		infoTable.add(currentSongLabel);
+		infoTable.add(currentSongInfo).left();
+		infoTable.row();
+		infoTable.add(yourSelectionLabel);
+		infoTable.add(yourSelectionInfo).left();
+		table.add(infoTable);
 		table.row();
 
-		currentSongInfo = new Label("", skin);
-		table.add(currentSongLabel);
-		table.add(currentSongInfo).left();
+		table.add(songGroup).left().fill().expand();
 		table.row();
-		table.add(yourSelectionLabel);
-		table.add(yourSelectionInfo).left();
-		table.row();
-		table.add(songGroup).fill().expand().colspan(2);
-		table.row();
-		addButtons(table);
-		buildBackground(skin);
+		addButtons();
+		buildBackground();
 		stage.addActor(table);
 
-		// how do we we set the current song label to fixed font??
-		fontActors = Lists.<Actor> newArrayList(nameLabel, currentSongLabel, currentSongInfo, yourSelectionLabel, yourSelectionInfo);
+		fontActors.addAll(Lists.newArrayList(nameLabel, currentSongLabel, currentSongInfo, yourSelectionLabel, yourSelectionInfo));
 	}
 
-	private void buildBackground(Skin skin) {
+	private void buildBackground() {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/jukeboxBackground.jpg"))));
 		backgroundImage.setBounds(0, 0, VIRTUAL_WIDTH - 10, VIRTUAL_HEIGHT - 10);
@@ -110,17 +111,20 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		stage.addActor(backgroundImage);
 	}
 
-	private void addButtons(Table table) {
-		final Skin skin = game.getAssets().getSkin();
+	private void addButtons() {
+		Table buttonTable = new Table();
 		next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
 		playPause = new PlayPauseButton(getSocketIO());
-		table.add(playPause).height(100).width(100).center();
-		table.add(next).height(100).width(100).center();
+		buttonTable.add(playPause).height(100).width(100).center();
+		buttonTable.add(next).height(100).width(100).center();
 		TextButton sortByArtist = new SortSongsTextButton("Sort by artist", skin, byArtist);
-		table.add(sortByArtist);
+		buttonTable.add(sortByArtist);
 		TextButton sortByTitle = new SortSongsTextButton("Sort by title", skin, byTitle);
-		table.add(sortByTitle);
-		table.row();
+		buttonTable.add(sortByTitle);
+		table.add(buttonTable);
+
+		fontActors.add(sortByTitle);
+		fontActors.add(sortByArtist);
 	}
 
 	public class SortSongsTextButton extends TextButton {
@@ -162,6 +166,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
 		SwanUtil.resizeFonts(fontActors, game.getAssets().getFontGenerator(), fontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+		// hacky way to resize table in the middle - just regenerate it...
+		buildSongList();
 	}
 
 	@Override
@@ -191,7 +197,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				Gdx.app.log("JUKEBOX", "song list receieved!");
 				// This code is messy and exemplifies the problem that we are using 3 different json processing engines in the same project. But whatever, that's not going to change now.
 				songs = Lists.newArrayList();
-				Gdx.app.log("HELP", JSONObject.valueToString(args));
+				Gdx.app.log("HELP", args.toString());
 				JSONArray jsonArray = (JSONArray) args[0];
 				for (int i = 0; i < jsonArray.length(); i++) {
 					songs.add(json.fromJson(SongData.class, jsonArray.getJSONObject(i).toString()));
@@ -219,8 +225,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final ScrollPane scroller = new ScrollPane(songTable);
 
 		for (SongData song : songs) {
-			songTable.add(new SongInfoTable(song));
-			songTable.row().height(fontSize * 2f);
+			songTable.add(new SongInfoTable(song)).expandX().left();
+			songTable.row().padBottom(fontSize).padTop(fontSize);
 		}
 		songTable.top();
 		scroller.setFillParent(true);
@@ -233,14 +239,16 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		final String songName;
 
 		public SongInfoTable(SongData songData) {
-			// TODO: add these guys to the font resize things
-			// TODO: fix the table from looking like crap
 			super();
+			setFillParent(true);
 			songName = songData.toString();
-			defaults().pad(10).left();
-			add(new Label(songData.getSongName(), skin));
-			add(new Label("(" + songData.getArtist() + ")", skin));
-			add(new Label(JukeboxLib.formatTime(songData.getLengthInSeconds()), skin));
+			defaults().pad(10).expandX();
+			// debug();
+			add(new Label(songData.getSongName(), skin)).left();
+			add(new Label(JukeboxLib.formatTime(songData.getLengthInSeconds()), skin)).right();
+			row();
+			add(new Label("(" + songData.getArtist() + ")", skin)).left().colspan(2);
+
 			addListener(new ClickListener() {
 
 				@Override
@@ -272,8 +280,10 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	@Override
 	protected void doRender(float delta) {
+		table.debug();
 		stage.draw();
 		stage.act(delta);
+		// Table.drawDebug(stage);
 	}
 
 	@Override

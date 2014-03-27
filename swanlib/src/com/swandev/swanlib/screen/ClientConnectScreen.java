@@ -26,7 +26,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableList;
@@ -42,7 +41,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	private static final int LABEL_FIELD_PADDING = 20;
 	private static final int FIELD_WIDTH = 400;
-	private static final int defaultFontSize = 30;
+	private static final int defaultFontSize = 25;
 	protected final Game game;
 	private final Stage stage;
 	private final Skin skin;
@@ -72,22 +71,20 @@ public abstract class ClientConnectScreen extends SwanScreen {
 		this.skin = new Skin(Gdx.files.classpath("skins/uiskin.json"));
 		fontGenerator = new FreeTypeFontGenerator(Gdx.files.classpath("fonts/arial.ttf"));
 		this.stage = new Stage(new StretchViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT), spritebatch);
-		
+
 		Orientation orientation = Gdx.input.getNativeOrientation();
-		
-		switch (orientation){
-			case Landscape:
-				VIRTUAL_WIDTH = 800;
-				VIRTUAL_HEIGHT = 600;
-				break;
-			case Portrait:
-				VIRTUAL_WIDTH = 600;
-				VIRTUAL_HEIGHT = 800;
-				break;
-			default:
-				VIRTUAL_WIDTH = 800;
-				VIRTUAL_HEIGHT = 600;
-				break;
+		Gdx.app.log("Orientation", "Orientation is " + orientation);
+		switch (orientation) {
+		case Landscape:
+			VIRTUAL_WIDTH = 800;
+			VIRTUAL_HEIGHT = 600;
+			break;
+		case Portrait:
+			VIRTUAL_WIDTH = 600;
+			VIRTUAL_HEIGHT = 800;
+			break;
+		default:
+			throw new IllegalStateException();
 		}
 
 		final String defaultIP = Gdx.app.getType() == ApplicationType.Desktop ? "localhost" : "192.168.0.100";
@@ -96,7 +93,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		portField = new TextField("8080", skin);
 		portField.setMessageText("Port");
-		final List<String> sampleNames = ImmutableList.of("Blinky", "Pacman", "Robocop", "DemonSlayer", "HAL", "ChickenLittle", "HansSolo", "Yoshi", "LittleEngineThatCould", "Ghost", "GoLeafsGo", "Batman");
+		final List<String> sampleNames = ImmutableList.of("Blinky", "Pacman", "Robocop", "DemonSlayer", "HAL", "ChickenLittle", "HansSolo", "Yoshi", "EcologyFan", "Ghost", "GoLeafsGo", "Batman");
 		final String defaultName = sampleNames.get(RandomUtils.nextInt(0, sampleNames.size()));
 		nicknameField = new TextField(defaultName + RandomStringUtils.randomNumeric(3), skin);
 		nicknameField.setMessageText("Blinky");
@@ -207,17 +204,14 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private void buildBackground(Skin skin) {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.classpath("backgrounds/swanBackground2.jpg"))));
-		backgroundImage.setX(0);
-		backgroundImage.setY(0);
-		backgroundImage.setWidth(VIRTUAL_WIDTH);
-		backgroundImage.setHeight(VIRTUAL_HEIGHT);
+		backgroundImage.setBounds(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
 	}
 
 	private void buildTable(final Skin skin) {
 		table = new Table(skin);
-		table.defaults().align(Align.left);
+		table.defaults().left();
 		table.add(ipAddressLabel).padRight(LABEL_FIELD_PADDING);
 		table.add(ipAddressField).prefWidth(FIELD_WIDTH);
 		table.row();
@@ -295,8 +289,8 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 	@Override
 	public void hide() {
-		announcementLabel.setText("");
 		super.hide();
+		announcementLabel.setText("");
 	}
 
 	@Override
