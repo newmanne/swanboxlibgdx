@@ -52,7 +52,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	private final float VIRTUAL_WIDTH = 600;
 	private final float VIRTUAL_HEIGHT = 800;
 
-	private final List<Actor> fontActors;
+	private final List<Actor> fontActors = Lists.newArrayList();
 
 	private Image backgroundImage;
 
@@ -63,7 +63,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	private static final Json json = new Json();
 
-	private List<SongData> songs;
+	private List<SongData> songs = Lists.newArrayList();
 
 	private boolean yourSongIsPlaying = false;
 
@@ -101,8 +101,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		buildBackground();
 		stage.addActor(table);
 
-		// how do we we set the current song label to fixed font??
-		fontActors = Lists.<Actor> newArrayList(nameLabel, currentSongLabel, currentSongInfo, yourSelectionLabel, yourSelectionInfo);
+		fontActors.addAll(Lists.newArrayList(nameLabel, currentSongLabel, currentSongInfo, yourSelectionLabel, yourSelectionInfo));
 	}
 
 	private void buildBackground() {
@@ -124,6 +123,9 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		TextButton sortByTitle = new SortSongsTextButton("Sort by title", skin, byTitle);
 		buttonTable.add(sortByTitle);
 		table.add(buttonTable);
+
+		fontActors.add(sortByTitle);
+		fontActors.add(sortByArtist);
 	}
 
 	public class SortSongsTextButton extends TextButton {
@@ -165,6 +167,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
 		SwanUtil.resizeFonts(fontActors, game.getAssets().getFontGenerator(), fontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+		// hacky way to resize table in the middle - just regenerate it...
+		buildSongList();
 	}
 
 	@Override
@@ -240,7 +244,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 			setFillParent(true);
 			songName = songData.toString();
 			defaults().pad(10).expandX();
-			debug();
+			// debug();
 			add(new Label(songData.getSongName(), skin)).left();
 			add(new Label(JukeboxLib.formatTime(songData.getLengthInSeconds()), skin)).right();
 			row();
