@@ -156,7 +156,25 @@ public class PokerGameScreen extends SwanGameStartScreen {
 
 		cardToImage = PokerLib.getCardTextures();
 	}
+	
+	public void setPlayerTurn(String playerName, boolean isCurrentTurn){
+		nameToTableMap.get(playerName).setCurrentTurn(isCurrentTurn);
+	}
+	
+	public void setPlayerAction(String playerName, String action){
+		nameToTableMap.get(playerName).setLastAction(action);
+	}
 
+	public void clearPlayerActions(){
+		for (PlayerTable table : nameToTableMap.values()){
+			table.clearAction();
+		}
+	}
+	
+	public void clearPlayerCards(String playerName){
+		nameToTableMap.get(playerName).setCardsVisible(false);
+	}
+	
 	@Override
 	protected void doRender(float delta) {
 		stage.draw();
