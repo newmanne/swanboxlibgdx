@@ -30,7 +30,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
-import com.google.common.collect.Maps;
 import com.swandev.poker.HandScreen.HandRenderer.CardImage;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
@@ -104,7 +103,7 @@ public class HandScreen extends SwanGameStartScreen {
 	private Image backgroundImage;
 
 	/** Textures **/
-	private Map<Integer, TextureRegion> cardTextureMap = Maps.newHashMap();
+	private final Map<Integer, TextureRegion> cardTextureMap;
 
 	private int width;
 	private int height;
@@ -114,8 +113,6 @@ public class HandScreen extends SwanGameStartScreen {
 		this.game = game;
 		cardTextureMap = PokerLib.getCardTextures();
 
-		width = Gdx.graphics.getWidth();
-		height = Gdx.graphics.getHeight();
 		Gdx.app.log("SIZE_DEBUG", "Constructing to " + width + "x" + height);
 		stage = new Stage(new StretchViewport(CAMERA_WIDTH, CAMERA_HEIGHT));
 		state = new PlayerState();
@@ -129,14 +126,13 @@ public class HandScreen extends SwanGameStartScreen {
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				state.clearHand();
 				handOver.setVisible(false);
-				JSONArray jsonArray = (JSONArray) args[0];
-				List<Integer> hand = SwanUtil.parseJsonList(jsonArray);
-				state.receiveCard(hand.get(0));
-				state.receiveCard(hand.get(1));
+				List<Integer> hand = SwanUtil.parseJsonList((JSONArray) args[0]);
 				state.betValue = (Integer) args[1];
 				state.chipValue = (Integer) args[2];
 				state.callValue = (Integer) args[3];
 				state.totalBetValue = (Integer) args[4];
+				state.receiveCard(hand.get(0));
+				state.receiveCard(hand.get(1));
 				betLabel.setText(Integer.toString(state.totalBetValue));
 				cashLabel.setText(Integer.toString(state.chipValue));
 				callLabel.setText(Integer.toString(state.callValue));
@@ -162,9 +158,9 @@ public class HandScreen extends SwanGameStartScreen {
 				state.chipValue = (Integer) args[1];
 				state.callValue = (Integer) args[2];
 				state.totalBetValue = (Integer) args[3];
-				betLabel.setText(new Integer(state.totalBetValue).toString());
-				cashLabel.setText(new Integer(state.chipValue).toString());
-				callLabel.setText(new Integer(state.callValue).toString());
+				betLabel.setText(Integer.toString(state.totalBetValue));
+				cashLabel.setText(Integer.toString(state.chipValue));
+				callLabel.setText(Integer.toString(state.callValue));
 				disableActionButtons();
 			}
 		});
@@ -204,10 +200,7 @@ public class HandScreen extends SwanGameStartScreen {
 	private void buildBackground(Skin skin) {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/background.png"))));
-		backgroundImage.setX(0);
-		backgroundImage.setY(0);
-		backgroundImage.setWidth(CAMERA_WIDTH);
-		backgroundImage.setHeight(CAMERA_HEIGHT);
+		backgroundImage.setBounds(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
 	}
@@ -219,17 +212,11 @@ public class HandScreen extends SwanGameStartScreen {
 		// Note: If you want to overlap the cards because you're cool like that, just change the
 		// origins such that they overlap and the one added second (card2) is "in front" of the first one.
 		CardImage card1Image = myHand.getCard1();
-		card1Image.setX(CARD1_ORIGIN_X);
-		card1Image.setY(CARD1_ORIGIN_Y);
-		card1Image.setWidth(CARD_WIDTH);
-		card1Image.setHeight(CARD_HEIGHT);
+		card1Image.setBounds(CARD1_ORIGIN_X, CARD1_ORIGIN_Y, CARD_WIDTH, CARD_HEIGHT);
 		stage.addActor(card1Image);
 
 		CardImage card2Image = myHand.getCard2();
-		card2Image.setX(CARD2_ORIGIN_X);
-		card2Image.setY(CARD2_ORIGIN_Y);
-		card2Image.setWidth(CARD_WIDTH);
-		card2Image.setHeight(CARD_HEIGHT);
+		card2Image.setBounds(CARD2_ORIGIN_X, CARD2_ORIGIN_Y, CARD_WIDTH, CARD_HEIGHT);
 		stage.addActor(card2Image);
 	}
 
@@ -260,7 +247,7 @@ public class HandScreen extends SwanGameStartScreen {
 		moneyTextTable.add(betLabel);
 
 		moneyTextTable.setFillParent(true);
-		moneyTextTable.debug();
+		// moneyTextTable.debug();
 		stage.addActor(moneyTextTable);
 	}
 
@@ -341,10 +328,7 @@ public class HandScreen extends SwanGameStartScreen {
 		handOver = new Image();
 		handOver.setVisible(false);
 
-		handOver.setX(OVER_IMAGE_X);
-		handOver.setY(OVER_IMAGE_Y);
-		handOver.setWidth(OVER_IMAGE_WIDTH);
-		handOver.setHeight(OVER_IMAGE_HEIGHT);
+		handOver.setBounds(OVER_IMAGE_X, OVER_IMAGE_Y, OVER_IMAGE_WIDTH, OVER_IMAGE_HEIGHT);
 		stage.addActor(handOver);
 	}
 
@@ -551,16 +535,11 @@ public class HandScreen extends SwanGameStartScreen {
 
 	@Override
 	public void resize(int width, int height) {
-		this.width = width;
-		this.height = height;
 		stage.getViewport().update(width, height, true);
 	}
 
 	@Override
 	protected void onEveryoneReady() {
-		// We don't care when everyone's ready as long as the server does. Since everything is
-		// coordinated by the server, we won't be prompted for an action unless the server decides
-		// it's OK.
 	}
 
 	@Override
@@ -587,23 +566,6 @@ public class HandScreen extends SwanGameStartScreen {
 		// enableLegalActionButtons(); move to the registered events
 		disableActionButtons();
 		Gdx.input.setInputProcessor(stage);
-	}
-
-	@Override
-	public void hide() {
-		super.hide();
-	}
-
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
