@@ -39,6 +39,9 @@ import com.swandev.swanlib.util.SwanUtil;
 
 public class JukeboxClientScreen extends SwanGameStartScreen {
 
+	private static final Color CURRENT_SONG_COLOUR = Color.ORANGE;
+	private static final Color YOUR_SELECTION_COLOUR = Color.GREEN;
+
 	final Stage stage;
 	boolean songSelected = false;
 	private final JukeboxClient game;
@@ -87,8 +90,10 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Label yourSelectionLabel = new Label("Your selection: ", skin);
 		yourSelectionInfo = new Label("", skin);
 		currentSongInfo = new Label("", skin);
-		currentSongLabel.setColor(Color.ORANGE);
-		currentSongInfo.setColor(Color.ORANGE);
+		currentSongLabel.setColor(CURRENT_SONG_COLOUR);
+		currentSongInfo.setColor(CURRENT_SONG_COLOUR);
+		yourSelectionLabel.setColor(YOUR_SELECTION_COLOUR);
+		yourSelectionInfo.setColor(YOUR_SELECTION_COLOUR);
 		infoTable.add(currentSongLabel);
 		infoTable.add(currentSongInfo).left();
 		infoTable.row();
