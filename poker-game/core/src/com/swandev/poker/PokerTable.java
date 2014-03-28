@@ -17,6 +17,7 @@ public class PokerTable {
 	PokerRound round;
 	@Getter
 	int callValue;
+	@Getter
 	PokerPot pot = new PokerPot();
 	Deck deck = new Deck();
 	@Getter

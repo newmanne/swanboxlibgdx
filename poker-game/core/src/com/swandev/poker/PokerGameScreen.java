@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -24,6 +24,8 @@ import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 
 public class PokerGameScreen extends SwanGameStartScreen {
+
+	private static final long DELAY_BETWEEN_HANDS_IN_MS = TimeUnit.SECONDS.toMillis(10);
 
 	// *** Layout Coordinates ***//
 	private static final float COORD_SCALE = 50f;
@@ -69,11 +71,23 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public static final float POT_LABEL_WIDTH = 2f * COORD_SCALE;
 	public static final float POT_VALUE_LABEL_WIDTH = 5f * COORD_SCALE;
 
-	private static final int STARTING_VALUE = 100000;
+	private static final int STARTING_VALUE = 50000;
 
 	private PokerTable pokerTable;
 
 	final Map<String, PlayerStats> playerMap = Maps.newHashMap();
+
+	final PokerGameServer game;
+
+	Map<Integer, TextureRegion> cardToImage = Maps.newHashMap();
+	List<String> playerNames;
+
+	private final Stage stage;
+	private final Image[] tableCards = new Image[5];
+	private final Map<String, PlayerTable> nameToTableMap = Maps.newHashMap();
+	private Label potValueLabel;
+
+	private Image backgroundImage;
 
 	enum PokerRound {
 		PREFLOP, FLOP, TURN, RIVER
@@ -98,27 +112,27 @@ public class PokerGameScreen extends SwanGameStartScreen {
 				pokerTable.betPlayer(player, amount);
 				// UI
 				nameToTableMap.get(playerName).setChipValue(player.getMoney());
-				setPotValue(pokerTable.pot.getValue());
+				setPotValue(pokerTable.getPot().getValue());
 			}
 		});
 	}
 
 	public void uiForDrawCards(PokerRound round) {
-		for (int i = 0; i < round.ordinal() + 2; i++) {
+		int i;
+		for (i = 0; i < round.ordinal() + 2; i++) {
 			tableCards[i].setDrawable(new TextureRegionDrawable(cardToImage.get(pokerTable.getTableCards().get(i).getImageNumber())));
 			tableCards[i].setVisible(true);
 		}
-		for (int i = round.ordinal() + 2; i < 5; i++) {
+		for (; i < tableCards.length; i++) {
 			tableCards[i].setVisible(false);
 		}
 	}
 
 	public void uiForPreFlop() {
-		// re-initialize the cards to face-down
 		for (PlayerStats player : playerMap.values()) {
 			PlayerTable playerTable = nameToTableMap.get(player.getName());
 			playerTable.setChipValue(player.getMoney()); // update the money label
-			playerTable.setCardImages(PokerLib.CARD_BACK, PokerLib.CARD_BACK); // show their cards
+			playerTable.setCardImages(PokerLib.CARD_BACK, PokerLib.CARD_BACK); // re-initialize the cards to face-down
 			playerTable.setCardsVisible(true);
 		}
 		for (Image card : tableCards) {
@@ -127,33 +141,11 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		}
 	}
 
-	final PokerGameServer game;
-	final OrthographicCamera camera;
-
-	Map<Integer, TextureRegion> cardToImage = Maps.newHashMap();
-	List<String> playerNames;
-	float xMid;
-	float yMid;
-
-	private final Stage stage;
-	private final Image[] tableCards = new Image[5];
-	private final Map<String, PlayerTable> nameToTableMap = Maps.newHashMap();
-	private Label potValueLabel;
-
-	private int width;
-	private int height;
-	private Image backgroundImage;
-
 	public PokerGameScreen(PokerGameServer game) {
 		super(game.getSocketIO());
 		this.game = game;
-		camera = new OrthographicCamera();
-		camera.setToOrtho(false);
-		width = Gdx.graphics.getWidth();
-		height = Gdx.graphics.getHeight();
 
 		stage = new Stage(new StretchViewport(CAMERA_WIDTH, CAMERA_HEIGHT));
-
 		cardToImage = PokerLib.getCardTextures();
 	}
 
@@ -189,15 +181,15 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	@Override
 	public void resize(int w, int h) {
 		Gdx.app.log("SIZE_DEBUG", "Resizing to " + w + "x" + h);
-		this.width = w;
-		this.height = h;
-		stage.getViewport().update(width, height, true);
+		stage.getViewport().update(w, h, true);
 	}
 
 	@Override
 	protected void doShow() {
-		// TODO Auto-generated method stub
 		playerNames = Lists.newArrayList(getSocketIO().getNicknames());
+		if (playerNames.size() > 8 || playerNames.size() < 2) {
+			throw new IllegalStateException("You can only play poker with between 2 and 8 players");
+		}
 		List<PlayerStats> players = Lists.newArrayList();
 		for (String playerName : playerNames) {
 			PlayerStats playerStats = new PlayerStats(playerName, STARTING_VALUE);
@@ -218,7 +210,6 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	protected void onEveryoneReady() {
 		pokerTable.newHand();
 		setPotValue(pokerTable.pot.getValue());
-
 	}
 
 	private void buildCards() {
@@ -276,14 +267,10 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			}
 		}
 
-		if (playerNames.size() > 8) {
-			Gdx.app.log("PLAYER_TABLES", "Sorry to those players who didn't get rendered!! :(");
-		}
-
 		playerTables.center().bottom();
 		playerTables.padBottom(PLAYER_TABLES_PADDING_Y);
 		playerTables.setFillParent(true);
-		playerTables.debug();
+		// playerTables.debug();
 		stage.addActor(playerTables);
 	}
 
@@ -341,34 +328,15 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			@Override
 			public void run() {
 				pokerTable.newHand();
-				setPotValue(pokerTable.pot.getValue());
+				setPotValue(pokerTable.getPot().getValue());
 
 			}
-		}, 5000);
-	}
-
-	@Override
-	public void hide() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
-
+		}, DELAY_BETWEEN_HANDS_IN_MS);
 	}
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
+		stage.dispose();
 	}
 
 }
