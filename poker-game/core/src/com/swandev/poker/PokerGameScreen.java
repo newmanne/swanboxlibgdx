@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -25,7 +24,7 @@ import com.swandev.swanlib.socket.EventCallback;
 
 public class PokerGameScreen extends SwanGameStartScreen {
 
-	private static final long DELAY_BETWEEN_HANDS_IN_MS = TimeUnit.SECONDS.toMillis(10);
+	private static final long DELAY_BETWEEN_HANDS_IN_MS = 5000;
 
 	// *** Layout Coordinates ***//
 	private static final float COORD_SCALE = 50f;

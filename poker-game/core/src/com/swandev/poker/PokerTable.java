@@ -13,6 +13,8 @@ import com.swandev.poker.PokerGameScreen.PokerRound;
 
 public class PokerTable {
 
+	public static final String POKER_LOG_TAG = "POKER";
+
 	PokerRound round;
 	@Getter
 	int callValue;
@@ -33,7 +35,7 @@ public class PokerTable {
 	}
 
 	public void newHand() {
-		Gdx.app.log("poker", "Starting a new round of poker!");
+		Gdx.app.log(POKER_LOG_TAG, "Starting a new round of poker!");
 		callValue = 0;
 		deck.reset();
 		round = PokerRound.PREFLOP;
@@ -43,24 +45,25 @@ public class PokerTable {
 		}
 		deck.shuffle();
 		tableCards = deck.dealTable();
-		Gdx.app.log("poker", "Table cards are " + tableCards);
+		Gdx.app.log(POKER_LOG_TAG, "Table cards are " + tableCards);
 		for (PlayerStats player : players) {
 			if (player.isAlive()) {
 				deck.deal(player);
-				Gdx.app.log("poker", "Dealt " + player.getPrivateCards() + " to player " + player.getName());
+				Gdx.app.log(POKER_LOG_TAG, "Dealt " + player.getPrivateCards() + " to player " + player.getName());
 				player.setHand(getBestHand(player));
 				player.placeBet(PokerLib.ANTE, pot);
+				player.clearBet();
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), getPictueValuesForCards(player), 0, player.getMoney(), 0, player.getTotalBet());
 			} else {
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, player.getName());
 			}
 		}
-		numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
 		if (getNumRemainingPlayersInRound() == 1) {
 			pokerGameScreen.getSocketIO().swanBroadcast(PokerLib.GAMEOVER);
-			Gdx.app.log("POKER", "Game over detected, switching to server connect screen");
+			Gdx.app.log(POKER_LOG_TAG, "Game over detected, switching to server connect screen");
 			pokerGameScreen.game.setScreen(pokerGameScreen.game.getServerConnectScreen());
 		} else {
+			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
 			dealer = nextUnfoldedAlivePlayerThatCanAct(dealer);
 			currentPlayer = nextUnfoldedAlivePlayerThatCanAct(dealer);
 			pokerGameScreen.uiForPreFlop();
@@ -115,18 +118,15 @@ public class PokerTable {
 	}
 
 	public void betPlayer(PlayerStats currentPlayer, int amount) {
-		String action = "";
+		final String action;
 		if (amount == PokerLib.BET_CHECK) {
 			numChecksOrFoldsRequiredToAdvanceRounds--;
 			action = "CHECK";
 		} else {
-			numChecksOrFoldsRequiredToAdvanceRounds = Integer.MAX_VALUE;
+			numChecksOrFoldsRequiredToAdvanceRounds = Integer.MAX_VALUE; // this condition is no longer possible if someone bets
 			currentPlayer.placeBet(amount, pot);
-			action = currentPlayer.getBet() == callValue ? "CALL" : "RAISE";
+			action = currentPlayer.getBet() == callValue ? "CALL" : currentPlayer.isAllIn() ? "ALL IN" : "RAISE";
 			callValue = Math.max(callValue, currentPlayer.getBet());
-			if (currentPlayer.isAllIn()) {
-				action = "ALL IN";
-			}
 		}
 		pokerGameScreen.setPlayerAction(currentPlayer.getName(), action);
 		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, currentPlayer.getName(), currentPlayer.getBet(), currentPlayer.getMoney(), callValue, currentPlayer.getTotalBet());
@@ -136,10 +136,10 @@ public class PokerTable {
 	private void nextPlayer() {
 		// clear the current player's turn
 		pokerGameScreen.setPlayerTurn(players.get(currentPlayer).getName(), false);
-		if (shouldAdvanceRounds()) {
-			while (shouldAdvanceRounds()) {
-				nextRound();
-			}
+		if (shouldEndHand()) {
+			endHand();
+		} else if (shouldAdvanceRounds()) {
+			nextRound();
 		} else {
 			currentPlayer = nextUnfoldedAlivePlayerThatCanAct(currentPlayer);
 			PlayerStats playerStats = players.get(currentPlayer);
@@ -147,11 +147,15 @@ public class PokerTable {
 		}
 	}
 
+	private boolean shouldEndHand() {
+		return shouldAdvanceRounds() && round == PokerRound.RIVER || getNumRemainingPlayersInRound() == 1 || getNumRemainingPlayersInRound() == getNumAllIn();
+	}
+
 	private boolean shouldAdvanceRounds() {
 		// If everyone has checked (ie call value is 0 and the player who just played was last alive closest to dealer)
 		boolean shouldAdvance = false;
 		if (numChecksOrFoldsRequiredToAdvanceRounds == 0) {
-			Gdx.app.log("POKER", "Advancing rounds because everyone has checked or folded");
+			Gdx.app.log(POKER_LOG_TAG, "Advancing rounds because everyone has checked or folded");
 			shouldAdvance = true;
 		} else {
 			// If everyone alive still in has bet the same (non-zero) amount or is all in, the round should end
@@ -170,20 +174,16 @@ public class PokerTable {
 
 	private void nextRound() {
 		pokerGameScreen.clearPlayerActions();
-		if (round == PokerRound.RIVER) {
-			endHand();
-		} else {
-			round = PokerRound.values()[round.ordinal() + 1];
-			Gdx.app.log("POKER", "Advancing to round " + round);
-			pokerGameScreen.uiForDrawCards(round);
-			for (PlayerStats player : players) {
-				player.clearBet();
-			}
-			callValue = 0;
-			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound() - getNumAllIn();
-			currentPlayer = nextUnfoldedAlivePlayerThatCanAct(dealer);
-			notifyYourTurn(players.get(currentPlayer));
+		round = PokerRound.values()[round.ordinal() + 1];
+		Gdx.app.log("POKER", "Advancing to round " + round);
+		pokerGameScreen.uiForDrawCards(round);
+		for (PlayerStats player : players) {
+			player.clearBet();
 		}
+		callValue = 0;
+		numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound() - getNumAllIn();
+		currentPlayer = nextUnfoldedAlivePlayerThatCanAct(dealer);
+		notifyYourTurn(players.get(currentPlayer));
 	}
 
 	private int getNumAllIn() {
@@ -197,6 +197,7 @@ public class PokerTable {
 	}
 
 	public void endHand() {
+		pokerGameScreen.uiForDrawCards(PokerRound.RIVER);
 		final List<PlayerStats> showdownPlayers = Lists.newArrayList();
 		final List<PlayerStats> foldedList = Lists.newArrayList();
 		for (PlayerStats player : players) {
