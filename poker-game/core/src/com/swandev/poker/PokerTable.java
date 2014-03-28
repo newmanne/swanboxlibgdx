@@ -49,7 +49,7 @@ public class PokerTable {
 				deck.deal(player);
 				Gdx.app.log("poker", "Dealt " + player.getPrivateCards() + " to player " + player.getName());
 				player.setHand(getBestHand(player));
-				player.placeBet(PokerLib.ANTE < player.getMoney() ? player.getMoney() : PokerLib.ANTE, pot);
+				player.placeBet(PokerLib.ANTE, pot);
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.DEAL_HAND, player.getName(), getPictueValuesForCards(player), 0, player.getMoney(), 0, player.getTotalBet());
 			} else {
 				pokerGameScreen.getSocketIO().swanEmit(PokerLib.GAMEOVER, player.getName());
