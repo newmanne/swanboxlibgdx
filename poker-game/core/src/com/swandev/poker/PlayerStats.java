@@ -32,6 +32,9 @@ public class PlayerStats {
 	@Setter
 	private int totalBet;
 
+	@Getter
+	private int moneyAtHandStart;
+
 	public PlayerStats(String name, int money) {
 		this.name = name;
 		this.money = money;
@@ -53,6 +56,7 @@ public class PlayerStats {
 		folded = false;
 		privateCards.clear();
 		totalBet = 0;
+		moneyAtHandStart = money;
 	}
 
 	public boolean isAllIn() {

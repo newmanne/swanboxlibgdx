@@ -148,7 +148,7 @@ public class PokerTable {
 	}
 
 	private boolean shouldEndHand() {
-		return shouldAdvanceRounds() && round == PokerRound.RIVER || getNumRemainingPlayersInRound() == 1 || getNumRemainingPlayersInRound() == getNumAllIn();
+		return (shouldAdvanceRounds() && round == PokerRound.RIVER) || getNumRemainingPlayersInRound() == 1 || getNumRemainingPlayersInRound() == getNumAllIn();
 	}
 
 	private boolean shouldAdvanceRounds() {
@@ -214,14 +214,13 @@ public class PokerTable {
 			}
 		});
 		Collections.reverse(showdownPlayers);
-		List<PlayerStats> winners = pot.payout(showdownPlayers, foldedList);
+		pot.payout(showdownPlayers, foldedList);
 		Gdx.app.log("poker", "Winning hands " + showdownPlayers.get(0).getHand());
 		for (PlayerStats player : players) {
 			player.setAlive(player.getMoney() > PokerLib.ANTE);
-			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, 0, winners.contains(player));
+			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, 0, player.getMoney() >= player.getMoneyAtHandStart());
 		}
 		pokerGameScreen.clearPlayerActions();
 		pokerGameScreen.uiBetweenHands();
 	}
-
 }
