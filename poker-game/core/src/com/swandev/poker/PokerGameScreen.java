@@ -144,7 +144,6 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public PokerGameScreen(PokerGameServer game) {
 		super(game.getSocketIO());
 		this.game = game;
-
 		stage = new Stage(new StretchViewport(CAMERA_WIDTH, CAMERA_HEIGHT));
 		cardToImage = PokerLib.getCardTextures();
 	}
@@ -277,18 +276,12 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	private void buildBackground(Skin skin) {
 		// Adds a background texture to the stage
 		backgroundImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/background.png"))));
-		backgroundImage.setX(0);
-		backgroundImage.setY(0);
-		backgroundImage.setWidth(CAMERA_WIDTH);
-		backgroundImage.setHeight(CAMERA_HEIGHT);
+		backgroundImage.setBounds(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		backgroundImage.setFillParent(true);
 		stage.addActor(backgroundImage);
 
 		Image tableImage = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/table.png"))));
-		tableImage.setX(TABLE_IMAGE_ORIGIN_X);
-		tableImage.setY(TABLE_IMAGE_ORIGIN_Y);
-		tableImage.setWidth(TABLE_IMAGE_WIDTH);
-		tableImage.setHeight(TABLE_IMAGE_HEIGHT);
+		tableImage.setBounds(TABLE_IMAGE_ORIGIN_X, TABLE_IMAGE_ORIGIN_Y, TABLE_IMAGE_WIDTH, TABLE_IMAGE_HEIGHT);
 		stage.addActor(tableImage);
 	}
 

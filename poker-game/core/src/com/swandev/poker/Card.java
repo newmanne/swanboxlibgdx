@@ -25,4 +25,9 @@ public class Card implements Comparable<Card> {
 		return Integer.parseInt(String.format("%d%02d", suit.ordinal() + 1, rank.ordinal() + 2));
 	}
 
+	@Override
+	public String toString() {
+		return rank + " of " + suit;
+	}
+
 }
