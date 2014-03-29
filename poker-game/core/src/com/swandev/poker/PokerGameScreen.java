@@ -132,7 +132,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			PlayerTable playerTable = nameToTableMap.get(player.getName());
 			playerTable.setChipValue(player.getMoney()); // update the money label
 			playerTable.setCardImages(PokerLib.CARD_BACK, PokerLib.CARD_BACK); // re-initialize the cards to face-down
-			playerTable.setCardsVisible(true);
+			playerTable.setCardsVisible(player.isAlive());
 		}
 		for (Image card : tableCards) {
 			card.setDrawable(new TextureRegionDrawable(cardToImage.get(PokerLib.CARD_BACK)));
