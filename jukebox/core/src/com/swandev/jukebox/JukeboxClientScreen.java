@@ -39,7 +39,6 @@ import com.swandev.swanlib.util.SwanUtil;
 
 public class JukeboxClientScreen extends SwanGameStartScreen {
 
-	private static final Color CURRENT_SONG_COLOUR = Color.ORANGE;
 	private static final Color YOUR_SELECTION_COLOUR = Color.GREEN;
 
 	final Stage stage;
@@ -54,8 +53,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	private final float VIRTUAL_WIDTH = 600;
 	private final float VIRTUAL_HEIGHT = 800;
-
-	private final List<Actor> fontActors = Lists.newArrayList();
 
 	private Image backgroundImage;
 
@@ -90,8 +87,8 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		Label yourSelectionLabel = new Label("Your selection: ", skin);
 		yourSelectionInfo = new Label("", skin);
 		currentSongInfo = new Label("", skin);
-		currentSongLabel.setColor(CURRENT_SONG_COLOUR);
-		currentSongInfo.setColor(CURRENT_SONG_COLOUR);
+		currentSongLabel.setColor(JukeboxLib.CURRENT_SONG_COLOUR);
+		currentSongInfo.setColor(JukeboxLib.CURRENT_SONG_COLOUR);
 		yourSelectionLabel.setColor(YOUR_SELECTION_COLOUR);
 		yourSelectionInfo.setColor(YOUR_SELECTION_COLOUR);
 		infoTable.add(currentSongLabel);
@@ -107,8 +104,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		addButtons();
 		buildBackground();
 		stage.addActor(table);
-
-		fontActors.addAll(Lists.newArrayList(nameLabel, currentSongLabel, currentSongInfo, yourSelectionLabel, yourSelectionInfo));
 	}
 
 	private void buildBackground() {
@@ -130,9 +125,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		TextButton sortByTitle = new SortSongsTextButton("Sort by title", skin, byTitle);
 		buttonTable.add(sortByTitle);
 		table.add(buttonTable);
-
-		fontActors.add(sortByTitle);
-		fontActors.add(sortByArtist);
 	}
 
 	public class SortSongsTextButton extends TextButton {
@@ -172,9 +164,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
-		SwanUtil.resizeFonts(fontActors, game.getAssets().getFontGenerator(), fontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-		// hacky way to resize table in the middle - just regenerate it...
-		buildSongList();
+		SwanUtil.resizeAllFonts(stage, game.getAssets().getFontGenerator(), fontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 	}
 
 	@Override

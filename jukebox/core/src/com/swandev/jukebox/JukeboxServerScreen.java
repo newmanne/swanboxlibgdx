@@ -9,11 +9,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.swandev.jukebox.Jukebox.SongData;
 import com.swandev.jukebox.Jukebox.SongRequest;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.socket.SocketIOState;
+import com.swandev.swanlib.util.SwanUtil;
 
 public class JukeboxServerScreen extends SwanGameStartScreen {
 
@@ -24,13 +26,16 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 	private final Label timeElapsed;
 	private final CubeAnimation cubeAnimation;
 	private Slider slider;
+	private final static int DEFAULT_FONT_SIZE = 25;
+	private static final float CAMERA_HEIGHT = 600;
+	private static final float CAMERA_WIDTH = 800;
 
 	public JukeboxServerScreen(SocketIOState socketIO, JukeboxServer game) {
 		super(socketIO);
 		this.game = game;
 		jukebox = new Jukebox(this);
 		cubeAnimation = new CubeAnimation();
-		stage = new Stage();
+		stage = new Stage(new StretchViewport(CAMERA_WIDTH, CAMERA_HEIGHT));
 
 		slider = new Slider(0, 100, 1, false, game.getAssets().getSkin());
 		slider.setDisabled(true);
@@ -72,6 +77,7 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 		final Skin skin = game.getAssets().getSkin();
 		playListTable.clear();
 		final List<SongRequest> requests = jukebox.getPlayList();
+		playListTable.defaults().pad(10f);
 		playListTable.add(new Label("Time elapsed: ", skin));
 		playListTable.add(timeElapsed);
 		playListTable.row();
@@ -84,6 +90,11 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 		for (final SongRequest request : requests) {
 			final Label song = new Label(request.getSongName(), skin);
 			final Label requester = new Label(request.getRequester(), skin);
+			if (requests.indexOf(request) == 0) {
+				// make the current song stand out a bit more
+				song.setColor(JukeboxLib.CURRENT_SONG_COLOUR);
+				requester.setColor(JukeboxLib.CURRENT_SONG_COLOUR);
+			}
 			playListTable.add(song);
 			playListTable.add(requester);
 			playListTable.row();
@@ -101,6 +112,7 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
+		SwanUtil.resizeAllFonts(stage, game.getAssets().getFontGenerator(), DEFAULT_FONT_SIZE, CAMERA_WIDTH, CAMERA_HEIGHT);
 	}
 
 	@Override
@@ -154,7 +166,7 @@ public class JukeboxServerScreen extends SwanGameStartScreen {
 
 	private String formatSliderTime(SongData song) {
 		// mask clock skew
-		int curPos = Math.max((int) song.getMusic().getPosition(), song.getLengthInSeconds());
+		int curPos = Math.min((int) song.getMusic().getPosition(), song.getLengthInSeconds());
 		return JukeboxLib.formatTime(curPos) + " / " + JukeboxLib.formatTime(song.getLengthInSeconds());
 	}
 

@@ -21,5 +21,6 @@ public class Assets {
 
 	public void dispose() {
 		skin.dispose();
+		fontGenerator.dispose();
 	}
 }

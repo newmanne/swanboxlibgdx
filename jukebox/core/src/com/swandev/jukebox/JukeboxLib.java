@@ -1,5 +1,7 @@
 package com.swandev.jukebox;
 
+import com.badlogic.gdx.graphics.Color;
+
 public class JukeboxLib {
 
 	public static final String SEND_SONGLIST = "send_songlist";
@@ -11,6 +13,8 @@ public class JukeboxLib {
 	public static final String SONG_OVER = "song_over";
 	public static final String SCREEN_READY = "screen_ready";
 	public static final String CURRENT_SONG = "current_song";
+
+	public static final Color CURRENT_SONG_COLOUR = Color.ORANGE;
 
 	public static String formatTime(int time) {
 		return (time / 60) + ":" + String.format("%02d", time % 60);
