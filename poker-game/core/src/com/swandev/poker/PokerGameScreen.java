@@ -21,10 +21,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
 import com.swandev.swanlib.socket.EventCallback;
+import com.swandev.swanlib.util.SwanUtil;
 
 public class PokerGameScreen extends SwanGameStartScreen {
 
-	private static final long DELAY_BETWEEN_HANDS_IN_MS = 5000;
+	private static final long DELAY_BETWEEN_HANDS_IN_MS = 7000;
 
 	// *** Layout Coordinates ***//
 	private static final float COORD_SCALE = 50f;
@@ -71,6 +72,8 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public static final float POT_VALUE_LABEL_WIDTH = 5f * COORD_SCALE;
 
 	private static final int STARTING_VALUE = 50000;
+
+	private static final int DEFAULT_FONT_SIZE = 20;
 
 	private PokerTable pokerTable;
 
@@ -180,6 +183,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public void resize(int w, int h) {
 		Gdx.app.log("SIZE_DEBUG", "Resizing to " + w + "x" + h);
 		stage.getViewport().update(w, h, true);
+		SwanUtil.resizeAllFonts(stage, game.getAssets().getFontGenerator(), DEFAULT_FONT_SIZE, CAMERA_WIDTH, CAMERA_HEIGHT);
 	}
 
 	@Override

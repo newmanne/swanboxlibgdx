@@ -76,6 +76,8 @@ public class HandScreen extends SwanGameStartScreen {
 	private static final float USERNAME_HEIGHT = 1f * COORD_SCALE;
 	private static final float USERNAME_WIDTH = 5f * COORD_SCALE;
 
+	private static final int DEFAULT_FONT_SIZE = 25;
+
 	// These labels are members so we can dynamically change their values
 	// without looking them up in the stage
 	private Label cashLabel;
@@ -536,6 +538,7 @@ public class HandScreen extends SwanGameStartScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
+		SwanUtil.resizeAllFonts(stage, game.getAssets().getFontGenerator(), DEFAULT_FONT_SIZE, CAMERA_WIDTH, CAMERA_HEIGHT);
 	}
 
 	@Override
