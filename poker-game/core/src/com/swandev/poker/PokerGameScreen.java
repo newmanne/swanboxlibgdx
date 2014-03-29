@@ -238,10 +238,11 @@ public class PokerGameScreen extends SwanGameStartScreen {
 
 	private void buildPlayerTables(Skin skin) {
 		Table playerTables = new Table(skin);
-
+		// The UI and the Domain code disagree about whether left a player to the left of you has a higher number, so we reverse this list to put them in synch
+		List<String> reversedPlayerNames = Lists.reverse(playerNames);
 		// construct the top row of the table: P1| | | | | P8
-		if (playerNames.size() >= 1) {
-			String playerName = playerNames.get(0);
+		if (reversedPlayerNames.size() >= 1) {
+			String playerName = reversedPlayerNames.get(0);
 			PlayerTable newTable = new PlayerTable(skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
@@ -249,8 +250,8 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		for (int i = 0; i < 4; ++i) {
 			playerTables.add();
 		}
-		if (playerNames.size() >= 8) {
-			String playerName = playerNames.get(7);
+		if (reversedPlayerNames.size() >= 8) {
+			String playerName = reversedPlayerNames.get(7);
 			PlayerTable newTable = new PlayerTable(skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
@@ -260,14 +261,14 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		playerTables.row();
 
 		// construct the bottom row of the table: P2|P3|P4|P5|P6|P7
-		for (int i = 1; i < Math.min(playerNames.size(), 7); ++i) {
-			String playerName = playerNames.get(i);
+		for (int i = 1; i < Math.min(reversedPlayerNames.size(), 7); ++i) {
+			String playerName = reversedPlayerNames.get(i);
 			PlayerTable newTable = new PlayerTable(skin, playerName, playerMap.get(playerName).getMoney(), cardToImage);
 			nameToTableMap.put(playerName, newTable);
 			playerTables.add(newTable);
 		}
-		if (playerNames.size() < 7) {
-			for (int i = playerNames.size(); i < 7; ++i) {
+		if (reversedPlayerNames.size() < 7) {
+			for (int i = reversedPlayerNames.size(); i < 7; ++i) {
 				playerTables.add(genEmptyPlayerTable(skin));
 			}
 		}
