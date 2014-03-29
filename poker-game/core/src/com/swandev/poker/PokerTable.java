@@ -64,9 +64,13 @@ public class PokerTable {
 			pokerGameScreen.game.setScreen(pokerGameScreen.game.getServerConnectScreen());
 		} else {
 			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
-			dealer = nextUnfoldedAlivePlayerThatCanAct(dealer);
+			dealer = nextUnfoldedAlivePlayer(dealer);
 			currentPlayer = nextUnfoldedAlivePlayerThatCanAct(dealer);
 			pokerGameScreen.uiForPreFlop();
+			// everyone but one person is all in
+			if (nextUnfoldedAlivePlayerThatCanAct(currentPlayer) == currentPlayer) {
+				endHand();
+			}
 			notifyYourTurn(players.get(currentPlayer));
 		}
 	}
@@ -86,11 +90,19 @@ public class PokerTable {
 	}
 
 	private int nextUnfoldedAlivePlayerThatCanAct(int playerNumber) {
-		int nextUnfoldedAlivePlayer = (playerNumber + 1) % players.size();
-		while (!players.get(nextUnfoldedAlivePlayer).isAlive() || players.get(nextUnfoldedAlivePlayer).isFolded() || players.get(nextUnfoldedAlivePlayer).isAllIn()) {
-			nextUnfoldedAlivePlayer = (nextUnfoldedAlivePlayer + 1) % players.size();
+		int nextUnfoldedAlivePlayerThatCanAct = (playerNumber + 1) % players.size();
+		while (!players.get(nextUnfoldedAlivePlayerThatCanAct).isAlive() || players.get(nextUnfoldedAlivePlayerThatCanAct).isFolded() || players.get(nextUnfoldedAlivePlayerThatCanAct).isAllIn()) {
+			nextUnfoldedAlivePlayerThatCanAct = (nextUnfoldedAlivePlayerThatCanAct + 1) % players.size();
 		}
-		return nextUnfoldedAlivePlayer;
+		return nextUnfoldedAlivePlayerThatCanAct;
+	}
+
+	private int nextUnfoldedAlivePlayer(int playerNumber) {
+		int nextUnfoldedAlivePlayerThatCanAct = (playerNumber + 1) % players.size();
+		while (!players.get(nextUnfoldedAlivePlayerThatCanAct).isAlive() || players.get(nextUnfoldedAlivePlayerThatCanAct).isFolded()) {
+			nextUnfoldedAlivePlayerThatCanAct = (nextUnfoldedAlivePlayerThatCanAct + 1) % players.size();
+		}
+		return nextUnfoldedAlivePlayerThatCanAct;
 	}
 
 	private PokerHand getBestHand(PlayerStats player) {
@@ -123,7 +135,9 @@ public class PokerTable {
 			numChecksOrFoldsRequiredToAdvanceRounds--;
 			action = "CHECK";
 		} else {
-			numChecksOrFoldsRequiredToAdvanceRounds = Integer.MAX_VALUE; // this condition is no longer possible if someone bets
+			// if at least one person bets, it isn't possible to use this condition to advance rounds anymore
+			numChecksOrFoldsRequiredToAdvanceRounds = Integer.MAX_VALUE;
+
 			currentPlayer.placeBet(amount, pot);
 			action = currentPlayer.getBet() == callValue ? "CALL" : currentPlayer.isAllIn() ? "ALL IN" : "RAISE";
 			callValue = Math.max(callValue, currentPlayer.getBet());
@@ -175,7 +189,7 @@ public class PokerTable {
 	private void nextRound() {
 		pokerGameScreen.clearPlayerActions();
 		round = PokerRound.values()[round.ordinal() + 1];
-		Gdx.app.log("POKER", "Advancing to round " + round);
+		Gdx.app.log(POKER_LOG_TAG, "Advancing to round " + round);
 		pokerGameScreen.uiForDrawCards(round);
 		for (PlayerStats player : players) {
 			player.clearBet();
@@ -207,7 +221,6 @@ public class PokerTable {
 			}
 		}
 		Collections.sort(showdownPlayers, new Comparator<PlayerStats>() {
-
 			@Override
 			public int compare(PlayerStats o1, PlayerStats o2) {
 				return o1.getHand().compareTo(o2.getHand());
@@ -215,9 +228,9 @@ public class PokerTable {
 		});
 		Collections.reverse(showdownPlayers);
 		pot.payout(showdownPlayers, foldedList);
-		Gdx.app.log("poker", "Winning hands " + showdownPlayers.get(0).getHand());
+		Gdx.app.log(POKER_LOG_TAG, "The winning hand was " + showdownPlayers.get(0).getHand());
 		for (PlayerStats player : players) {
-			player.setAlive(player.getMoney() > PokerLib.ANTE);
+			player.setAlive(player.getMoney() >= PokerLib.ANTE);
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, 0, player.getMoney() >= player.getMoneyAtHandStart());
 		}
 		pokerGameScreen.clearPlayerActions();
