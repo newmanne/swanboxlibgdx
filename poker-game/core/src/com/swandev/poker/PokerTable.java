@@ -67,11 +67,7 @@ public class PokerTable {
 			dealer = nextUnfoldedAlivePlayer(dealer);
 			currentPlayer = nextUnfoldedAlivePlayerThatCanAct(dealer);
 			pokerGameScreen.uiForPreFlop();
-			// everyone but one person is all in
-			if (nextUnfoldedAlivePlayerThatCanAct(currentPlayer) == currentPlayer) {
-				endHand();
-			}
-			notifyYourTurn(players.get(currentPlayer));
+			startTheRound();
 		}
 	}
 
@@ -139,7 +135,7 @@ public class PokerTable {
 			numChecksOrFoldsRequiredToAdvanceRounds = Integer.MAX_VALUE;
 
 			currentPlayer.placeBet(amount, pot);
-			action = currentPlayer.getBet() == callValue ? "CALL" : currentPlayer.isAllIn() ? "ALL IN" : "RAISE";
+			action = currentPlayer.getBet() == callValue ? "CALL " + currentPlayer.getBet() : currentPlayer.isAllIn() ? "ALL IN " + currentPlayer.getBet() : "RAISE " + (currentPlayer.getBet() - callValue);
 			callValue = Math.max(callValue, currentPlayer.getBet());
 		}
 		pokerGameScreen.setPlayerAction(currentPlayer.getName(), action);
@@ -197,6 +193,10 @@ public class PokerTable {
 		callValue = 0;
 		numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound() - getNumAllIn();
 		currentPlayer = nextUnfoldedAlivePlayerThatCanAct(dealer);
+		startTheRound();
+	}
+
+	private void startTheRound() {
 		// everyone but one person is all in
 		if (nextUnfoldedAlivePlayerThatCanAct(currentPlayer) == currentPlayer) {
 			endHand();
