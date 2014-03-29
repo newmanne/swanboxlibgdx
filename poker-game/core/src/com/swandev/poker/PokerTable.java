@@ -197,7 +197,12 @@ public class PokerTable {
 		callValue = 0;
 		numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound() - getNumAllIn();
 		currentPlayer = nextUnfoldedAlivePlayerThatCanAct(dealer);
-		notifyYourTurn(players.get(currentPlayer));
+		// everyone but one person is all in
+		if (nextUnfoldedAlivePlayerThatCanAct(currentPlayer) == currentPlayer) {
+			endHand();
+		} else {
+			notifyYourTurn(players.get(currentPlayer));
+		}
 	}
 
 	private int getNumAllIn() {
