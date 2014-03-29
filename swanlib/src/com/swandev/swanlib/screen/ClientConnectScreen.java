@@ -29,7 +29,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.swandev.swanlib.socket.CommonSocketIOEvents;
 import com.swandev.swanlib.socket.ConnectCallback;
 import com.swandev.swanlib.socket.EventCallback;
@@ -63,7 +62,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	private final Label announcementLabel;
 
 	private Image backgroundImage;
-	private final List<Actor> fontActors;
 
 	public ClientConnectScreen(final Game game, final SocketIOState socketIO, final SpriteBatch spritebatch) {
 		super(socketIO);
@@ -147,9 +145,6 @@ public abstract class ClientConnectScreen extends SwanScreen {
 
 		buildTable(skin);
 		stage.addActor(table);
-
-		// keep track of anyone whose fonts need to be resized properly. could use some cleaning up
-		fontActors = Lists.<Actor> newArrayList(ipAddressField, portField, nicknameField, ipAddressLabel, portLabel, nicknameLabel, waitingText, announcementLabel, connectButton, updateButton, gameStart);
 	}
 
 	@Override
@@ -278,7 +273,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
-		SwanUtil.resizeFonts(fontActors, fontGenerator, defaultFontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+		SwanUtil.resizeAllFonts(stage, fontGenerator, defaultFontSize, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 	}
 
 	@Override
