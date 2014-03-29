@@ -64,11 +64,17 @@ public class PokerTable {
 			pokerGameScreen.game.setScreen(pokerGameScreen.game.getServerConnectScreen());
 		} else {
 			numChecksOrFoldsRequiredToAdvanceRounds = getNumRemainingPlayersInRound();
-			dealer = nextUnfoldedAlivePlayer(dealer);
+			updateDealer();
 			currentPlayer = nextUnfoldedAlivePlayerThatCanAct(dealer);
 			pokerGameScreen.uiForPreFlop();
 			startTheRound();
 		}
+	}
+
+	private void updateDealer() {
+		pokerGameScreen.clearDealer(players.get(dealer));
+		dealer = nextUnfoldedAlivePlayer(dealer);
+		pokerGameScreen.updateDealer(players.get(dealer));
 	}
 
 	private List<Integer> getPictueValuesForCards(PlayerStats player) {

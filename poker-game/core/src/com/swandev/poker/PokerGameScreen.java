@@ -8,6 +8,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -24,6 +25,8 @@ import com.swandev.swanlib.socket.EventCallback;
 import com.swandev.swanlib.util.SwanUtil;
 
 public class PokerGameScreen extends SwanGameStartScreen {
+
+	private static final Color DEALER_COLOUR = Color.ORANGE;
 
 	private static final long DELAY_BETWEEN_HANDS_IN_MS = 7000;
 
@@ -305,6 +308,16 @@ public class PokerGameScreen extends SwanGameStartScreen {
 
 	public void setPotValue(Integer value) {
 		potValueLabel.setText(value.toString());
+	}
+
+	public void updateDealer(PlayerStats playerStats) {
+		PlayerTable playerTable = nameToTableMap.get(playerStats.getName());
+		playerTable.getNameLabel().setColor(DEALER_COLOUR);
+	}
+
+	public void clearDealer(PlayerStats playerStats) {
+		PlayerTable playerTable = nameToTableMap.get(playerStats.getName());
+		playerTable.getNameLabel().setColor(Color.WHITE);
 	}
 
 	public void uiBetweenHands() {
