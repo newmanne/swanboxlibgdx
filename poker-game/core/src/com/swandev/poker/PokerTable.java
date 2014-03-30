@@ -177,13 +177,25 @@ public class PokerTable {
 		} else {
 			// If everyone alive still in has bet the same (non-zero) amount or is all in, the round should end
 			final List<Integer> bets = Lists.newArrayList();
+			final List<Integer> betsTotal = Lists.newArrayList();
+			int maxContribution = 0;
 			for (PlayerStats player : players) {
 				if (player.isAlive() && !player.isFolded() && player.getBet() > 0 && !player.isAllIn()) {
 					bets.add(player.getBet());
+					betsTotal.add(player.getTotalBet());
+				}
+				//Figure out who has contributed the most money
+				if (maxContribution < player.getTotalBet()) {
+					maxContribution = player.getTotalBet();
 				}
 			}
 			if (bets.size() == getNumRemainingPlayersInRound() - getNumAllIn() && Sets.newHashSet(bets).size() == 1) {
-				shouldAdvance = true;
+				if (bets.size() != 0 && Collections.min(betsTotal).compareTo(maxContribution) < 0) {
+					// If there is someone who is not all in but is contributing less than the max bet they need to bet to advance
+					shouldAdvance = false;
+				} else {
+					shouldAdvance = true;
+				}
 			}
 		}
 		return shouldAdvance;
