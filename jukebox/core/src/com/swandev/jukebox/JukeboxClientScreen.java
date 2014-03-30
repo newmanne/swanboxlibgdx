@@ -96,7 +96,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 		infoTable.row();
 		infoTable.add(yourSelectionLabel);
 		infoTable.add(yourSelectionInfo).left();
-		table.add(infoTable);
+		table.add(infoTable).left();
 		table.row();
 
 		table.add(songGroup).left().fill().expand();

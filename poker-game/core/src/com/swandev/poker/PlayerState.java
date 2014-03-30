@@ -14,7 +14,7 @@ public class PlayerState {
 	public PlayerState() {
 		card1 = PokerLib.CARD_BACK;
 		card2 = PokerLib.CARD_BACK;
-		chipValue = 100000;
+		chipValue = PokerLib.STARTING_VALUE;
 		betValue = 0;
 		callValue = 0;
 	}

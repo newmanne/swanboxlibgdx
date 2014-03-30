@@ -390,6 +390,7 @@ public class HandScreen extends SwanGameStartScreen {
 		// send the request to the server
 		if (betValue == -1) {
 			getSocketIO().emitToScreen(PokerLib.FOLD_REQUEST, getSocketIO().getNickname());
+			myHand.setCardVisibility(false);
 		} else {
 			getSocketIO().emitToScreen(PokerLib.BET_REQUEST, getSocketIO().getNickname(), betValue);
 		}
