@@ -241,6 +241,8 @@ public abstract class ClientConnectScreen extends SwanScreen {
 				public void onConnect(SocketIOException ex) {
 					if (ex != null) {
 						connectButton.setDisabled(false);
+						connectButton.setVisible(true);
+						new Dialog("Connection Error", skin).text("Connection Error").button("OK").show(stage);
 					} else {
 						connectButton.setVisible(false);
 						ipAddressField.setDisabled(true);
@@ -259,7 +261,11 @@ public abstract class ClientConnectScreen extends SwanScreen {
 				}
 			});
 		} catch (MalformedURLException e) {
-			Gdx.app.error(CommonLogTags.SOCKET_IO, "Malformed server address " + address);
+			final String errorMessage = "Malformed server address";
+			Gdx.app.error(CommonLogTags.SOCKET_IO, errorMessage + " " + address);
+			connectButton.setVisible(true);
+			connectButton.setDisabled(false);
+			new Dialog("Connection Error", skin).text(errorMessage).button("OK").show(stage);
 		}
 	}
 
