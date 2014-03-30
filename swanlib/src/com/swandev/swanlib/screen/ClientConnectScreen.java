@@ -242,7 +242,7 @@ public abstract class ClientConnectScreen extends SwanScreen {
 					if (ex != null) {
 						connectButton.setDisabled(false);
 						connectButton.setVisible(true);
-						new Dialog("Connection Error", skin).text("Connection Error").button("OK").show(stage);
+						new Dialog("Connection Error", skin).text("Please try again").button("OK").show(stage);
 					} else {
 						connectButton.setVisible(false);
 						ipAddressField.setDisabled(true);
