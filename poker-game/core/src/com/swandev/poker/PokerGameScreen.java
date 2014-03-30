@@ -333,8 +333,6 @@ public class PokerGameScreen extends SwanGameStartScreen {
 			}
 		}
 
-		setPotValue(0); // reset the pot
-
 		Timer timer = new Timer("delayBetweenRounds");
 		timer.schedule(new TimerTask() {
 
