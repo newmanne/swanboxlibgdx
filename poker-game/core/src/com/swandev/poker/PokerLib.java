@@ -9,10 +9,12 @@ import com.google.common.collect.Maps;
 public class PokerLib {
 	// Defines a bunch of static methods, constants, and messages to be used for
 	// the Poker game
-	static public final int ANTE = 1000;
+
+	public static final int STARTING_VALUE = 50000;
+	public static final int ANTE = 1000;
 	
 	// Define a place for the back of the card image to be put
-	static public final int CARD_BACK = -1;
+	public static final int CARD_BACK = -1;
 
 	// Define some MAX's for the card codes
 	public static int MAX_CARD = 14;

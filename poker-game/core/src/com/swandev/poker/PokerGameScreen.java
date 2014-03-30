@@ -74,8 +74,6 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	public static final float POT_LABEL_WIDTH = 2f * COORD_SCALE;
 	public static final float POT_VALUE_LABEL_WIDTH = 5f * COORD_SCALE;
 
-	private static final int STARTING_VALUE = 50000;
-
 	private static final int DEFAULT_FONT_SIZE = 20;
 
 	private PokerTable pokerTable;
@@ -197,7 +195,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		}
 		List<PlayerStats> players = Lists.newArrayList();
 		for (String playerName : playerNames) {
-			PlayerStats playerStats = new PlayerStats(playerName, STARTING_VALUE);
+			PlayerStats playerStats = new PlayerStats(playerName, PokerLib.STARTING_VALUE);
 			playerMap.put(playerName, playerStats);
 			players.add(playerStats);
 		}
