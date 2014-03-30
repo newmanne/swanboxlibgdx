@@ -126,6 +126,7 @@ public class PokerTable {
 	public void foldPlayer(PlayerStats player) {
 		player.setFolded(true);
 		pokerGameScreen.setPlayerAction(player.getName(), "FOLD");
+		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, player.getName(), player.getBet(), player.getMoney(), callValue, player.getTotalBet());
 		pokerGameScreen.clearPlayerCards(player.getName());
 		numChecksOrFoldsRequiredToAdvanceRounds--;
 		nextPlayer();

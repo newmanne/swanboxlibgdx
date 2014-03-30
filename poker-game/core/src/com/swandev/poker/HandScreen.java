@@ -109,6 +109,8 @@ public class HandScreen extends SwanGameStartScreen {
 
 	private int width;
 	private int height;
+	
+	private boolean isFolded;
 
 	public HandScreen(PokerGameClient game) {
 		super(game.getSocketIO());
@@ -118,6 +120,7 @@ public class HandScreen extends SwanGameStartScreen {
 		Gdx.app.log("SIZE_DEBUG", "Constructing to " + width + "x" + height);
 		stage = new Stage(new StretchViewport(CAMERA_WIDTH, CAMERA_HEIGHT));
 		state = new PlayerState();
+		isFolded = false;
 	}
 
 	@Override
@@ -127,6 +130,7 @@ public class HandScreen extends SwanGameStartScreen {
 			@Override
 			public void onEvent(IOAcknowledge ack, Object... args) {
 				state.clearHand();
+				isFolded = false;
 				handOver.setVisible(false);
 				List<Integer> hand = SwanUtil.parseJsonList((JSONArray) args[0]);
 				state.betValue = (Integer) args[1];
@@ -164,6 +168,9 @@ public class HandScreen extends SwanGameStartScreen {
 				cashLabel.setText(Integer.toString(state.chipValue));
 				callLabel.setText(Integer.toString(state.callValue));
 				disableActionButtons();
+				if (isFolded){
+					myHand.setCardVisibility(false);
+				}
 			}
 		});
 		registerEvent(PokerLib.HAND_COMPLETE, new EventCallback() {
@@ -390,6 +397,7 @@ public class HandScreen extends SwanGameStartScreen {
 		// send the request to the server
 		if (betValue == -1) {
 			getSocketIO().emitToScreen(PokerLib.FOLD_REQUEST, getSocketIO().getNickname());
+			isFolded = true;
 		} else {
 			getSocketIO().emitToScreen(PokerLib.BET_REQUEST, getSocketIO().getNickname(), betValue);
 		}
