@@ -181,7 +181,7 @@ public class PokerTable {
 					bets.add(player.getBet());
 				}
 			}
-			if (bets.size() == getNumRemainingPlayersInRound() - getNumAllIn() && Sets.newHashSet(bets).size() == 1) {
+			if (bets.size() == getNumRemainingPlayersInRound() - getNumAllIn() && Sets.newHashSet(bets).size() == 1 && bets.get(0).equals(callValue)) {
 				shouldAdvance = true;
 			}
 		}
