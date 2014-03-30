@@ -126,7 +126,7 @@ public class PokerTable {
 	public void foldPlayer(PlayerStats player) {
 		player.setFolded(true);
 		pokerGameScreen.setPlayerAction(player.getName(), "FOLD");
-		pokerGameScreen.getSocketIO().swanEmit(PokerLib.ACTION_ACKNOWLEDGE, player.getName(), player.getBet(), player.getMoney(), callValue, player.getTotalBet());
+		//don't need to ACK a fold action because the $$ isn't changing and the handscreen already made its cards invisible.
 		pokerGameScreen.clearPlayerCards(player.getName());
 		numChecksOrFoldsRequiredToAdvanceRounds--;
 		nextPlayer();
