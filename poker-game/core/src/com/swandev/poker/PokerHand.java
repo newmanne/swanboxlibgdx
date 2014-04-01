@@ -9,13 +9,13 @@ import lombok.Data;
 import net.ericaro.neoitertools.Itertools;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multiset.Entry;
 import com.google.common.collect.Multisets;
 import com.google.common.collect.Sets;
+import com.google.common.collect.TreeMultiset;
 import com.swandev.poker.Card.Rank;
 import com.swandev.poker.Card.Suit;
 
@@ -39,7 +39,7 @@ public class PokerHand implements Comparable<PokerHand> {
 		for (Card card : hand) {
 			rankList.add(card.getRank());
 		}
-		ranks = Multisets.copyHighestCountFirst(HashMultiset.create(rankList));
+		ranks = Multisets.copyHighestCountFirst(TreeMultiset.create(rankList));
 		setHandType();
 	}
 
