@@ -126,7 +126,7 @@ public class PokerTable {
 	public void foldPlayer(PlayerStats player) {
 		player.setFolded(true);
 		pokerGameScreen.setPlayerAction(player.getName(), "FOLD");
-		//don't need to ACK a fold action because the $$ isn't changing and the handscreen already made its cards invisible.
+		// don't need to ACK a fold action because the $$ isn't changing and the handscreen already made its cards invisible.
 		pokerGameScreen.clearPlayerCards(player.getName());
 		numChecksOrFoldsRequiredToAdvanceRounds--;
 		nextPlayer();
@@ -241,11 +241,16 @@ public class PokerTable {
 		Collections.reverse(showdownPlayers);
 		pot.payout(showdownPlayers, foldedList);
 		Gdx.app.log(POKER_LOG_TAG, "The winning hand was " + showdownPlayers.get(0).getHand());
+
+		List<PlayerStats> winners = Lists.newArrayList();
 		for (PlayerStats player : players) {
 			player.setAlive(player.getMoney() >= PokerLib.ANTE);
 			pokerGameScreen.getSocketIO().swanEmit(PokerLib.HAND_COMPLETE, player.getName(), 0, player.getMoney(), 0, 0, player.getMoney() >= player.getMoneyAtHandStart());
+			if (player.getMoney() >= player.getMoneyAtHandStart()) {
+				winners.add(player);
+			}
 		}
 		pokerGameScreen.clearPlayerActions();
-		pokerGameScreen.uiBetweenHands();
+		pokerGameScreen.uiBetweenHands(winners);
 	}
 }

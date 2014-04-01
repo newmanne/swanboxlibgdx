@@ -18,6 +18,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.swandev.swanlib.screen.SwanGameStartScreen;
@@ -91,6 +94,8 @@ public class PokerGameScreen extends SwanGameStartScreen {
 	private Label potValueLabel;
 
 	private Image backgroundImage;
+
+	private Label winnersValueLabel;
 
 	enum PokerRound {
 		PREFLOP, FLOP, TURN, RIVER
@@ -299,9 +304,18 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		Label potTextLabel = new Label("Pot:", skin);
 		potValueLabel = new Label("0", skin);
 
-		potTable.add(potTextLabel).height(POT_LABEL_HEIGHT).width(POT_LABEL_WIDTH);
-		potTable.add(potValueLabel).height(POT_LABEL_HEIGHT).width(POT_VALUE_LABEL_WIDTH);
+		potTable.defaults().center();
+
+		potTable.add(potTextLabel);
+		potTable.add(potValueLabel);
 		potTable.row();
+
+		Label winnerTextLabel = new Label("Winners: ", skin);
+		potTable.add(winnerTextLabel);
+		winnersValueLabel = new Label("", skin);
+		potTable.add(winnersValueLabel);
+		potTable.row();
+
 		potTable.center().top();
 		potTable.setFillParent(true);
 
@@ -322,7 +336,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 		playerTable.getNameLabel().setColor(Color.WHITE);
 	}
 
-	public void uiBetweenHands() {
+	public void uiBetweenHands(List<PlayerStats> winners) {
 		for (PlayerStats player : playerMap.values()) {
 			PlayerTable playerTable = nameToTableMap.get(player.getName());
 			playerTable.setChipValue(player.getMoney()); // update the money label
@@ -330,12 +344,22 @@ public class PokerGameScreen extends SwanGameStartScreen {
 				playerTable.setCardImages(player.getPrivateCards().get(0).getImageNumber(), player.getPrivateCards().get(1).getImageNumber()); // show their cards
 			}
 		}
+		String winnerText = Joiner.on(",").join(Iterables.transform(winners, new Function<PlayerStats, String>() {
+
+			@Override
+			public String apply(PlayerStats input) {
+				return input.getName();
+			};
+
+		}));
+		winnersValueLabel.setText(winnerText);
 
 		Timer timer = new Timer("delayBetweenRounds");
 		timer.schedule(new TimerTask() {
 
 			@Override
 			public void run() {
+				winnersValueLabel.setText("");
 				pokerTable.newHand();
 				setPotValue(pokerTable.getPot().getValue());
 
