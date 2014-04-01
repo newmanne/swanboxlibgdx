@@ -28,7 +28,7 @@ public class PokerGameScreen extends SwanGameStartScreen {
 
 	private static final Color DEALER_COLOUR = Color.ORANGE;
 
-	private static final long DELAY_BETWEEN_HANDS_IN_MS = 7000;
+	private static final long DELAY_BETWEEN_HANDS_IN_MS = 10000;
 
 	// *** Layout Coordinates ***//
 	private static final float COORD_SCALE = 50f;
