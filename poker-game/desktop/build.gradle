@@ -4,7 +4,7 @@ sourceCompatibility = 1.6
 sourceSets.main.java.srcDirs = [ "src/" ]
 sourceSets.main.resources.srcDirs = [file("../android/assets").getAbsolutePath()]
 
-project.ext.mainClassName = "com.swandev.poker.desktop.DesktopLauncher"
+project.ext.mainClassName = "com.swandev.poker.desktop.ServerDesktopLauncher"
 project.ext.assetsDir = new File("../android/assets");
 
 task run(dependsOn: classes, type: JavaExec) {
