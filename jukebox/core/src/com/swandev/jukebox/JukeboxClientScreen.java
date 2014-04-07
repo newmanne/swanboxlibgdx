@@ -154,8 +154,6 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
 					getSocketIO().emitToScreen(socketEvent);
-					playPause.getStyle().imageUp = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_up.png"))));
-					playPause.getStyle().imageDown = new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/pause_down.png"))));
 				}
 			});
 		}
