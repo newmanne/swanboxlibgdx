@@ -39,6 +39,12 @@ public class PlayPauseButton extends ImageButton {
 		((PlayPauseButtonStyle) getStyle()).setState(state);
 	}
 
+	public void setState(String newState) {
+		if (!state.equals(newState)) {
+			toggleState();
+		}
+	}
+
 	public static class PlayPauseButtonStyle extends ImageButtonStyle {
 
 		private final Drawable playUp, playDown, pauseUp, pauseDown;

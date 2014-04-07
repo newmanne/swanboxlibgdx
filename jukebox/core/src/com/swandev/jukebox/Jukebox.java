@@ -38,6 +38,7 @@ public class Jukebox {
 	private final List<SongRequest> playList = Lists.newArrayList();
 
 	final JukeboxServerScreen jukeboxServerScreen;
+	private boolean paused = false;
 
 	public List<SongRequest> getPlayList() {
 		return Lists.newArrayList(playList);
@@ -105,6 +106,7 @@ public class Jukebox {
 	}
 
 	public void play() {
+		paused = false;
 		final SongData currentSong = getCurrentSongData();
 		if (currentSong != null) {
 			final Music music = currentSong.getMusic();
@@ -123,6 +125,7 @@ public class Jukebox {
 	}
 
 	public void pause() {
+		paused = true;
 		final SongData currentSong = getCurrentSongData();
 		if (currentSong != null) {
 			currentSong.getMusic().pause();
@@ -159,7 +162,9 @@ public class Jukebox {
 			playList.remove(previousRequest.get());
 		}
 		playList.add(request);
-		play(); // might be possible to play right now
+		if (!paused) {
+			play(); // might be possible to play right now
+		}
 	}
 
 	@Data

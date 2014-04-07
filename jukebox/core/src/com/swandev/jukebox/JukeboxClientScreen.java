@@ -44,7 +44,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 	final Stage stage;
 	boolean songSelected = false;
 	private final JukeboxClient game;
-	private ImageButton playPause;
+	private PlayPauseButton playPause;
 	private ImageButton next;
 	private final Label currentSongInfo;
 
@@ -116,7 +116,7 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	private void addButtons() {
 		Table buttonTable = new Table();
-		next = new EventSendingTextButton("SKIP", skin, JukeboxLib.USER_NEXT);
+		next = new NextButton();
 		playPause = new PlayPauseButton(getSocketIO());
 		buttonTable.add(playPause).height(100).width(100).center();
 		buttonTable.add(next).height(100).width(100).center();
@@ -142,18 +142,18 @@ public class JukeboxClientScreen extends SwanGameStartScreen {
 
 	}
 
-	public class EventSendingTextButton extends ImageButton {
+	public class NextButton extends ImageButton {
 
 		protected String socketEvent;
 
-		public EventSendingTextButton(String text, Skin skin, final String socketEvent) {
+		public NextButton() {
 			super(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/next_up.png")))), new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("images/next_down.png")))));
-			this.socketEvent = socketEvent;
 			addListener(new ChangeListener() {
 
 				@Override
 				public void changed(ChangeEvent event, Actor actor) {
-					getSocketIO().emitToScreen(socketEvent);
+					getSocketIO().emitToScreen(JukeboxLib.USER_NEXT);
+					playPause.setState(PlayPauseButton.pause);
 				}
 			});
 		}
